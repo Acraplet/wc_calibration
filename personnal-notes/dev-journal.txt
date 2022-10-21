@@ -1,0 +1,3 @@
+This is the beginning of the developement journal for wc_calibration.
+
+This is a log book of the progress.
