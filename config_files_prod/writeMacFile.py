@@ -33,10 +33,10 @@ R = 10
 nEvent = 10000
 
 theta_min = 0
-theta_max = 1 #now it is done in costh #np.pi/2 #up to 90 degrees for now
+theta_max = 1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
 
 phi_min = 0
-phi_max = np.pi/2 #up to 180 degrees for now
+phi_max = 2*np.pi #up to 180 degrees for now
 
 FileID = 0
 

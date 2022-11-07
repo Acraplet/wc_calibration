@@ -15,6 +15,7 @@ interpolate = True
 source_xyz, source_Rtp, source_faction_evDigiHits, source_faction_evRawHits, source_fraction_rawQ = [],[],[],[],[]
 source_NHits, source_rawNHits, source_fraction_Q, source_mean_evRawQ, source_mean_evDigiQ = [],[],[],[],[]
 print(len(table))
+
 for ev in range(len(table)):
     t = table[ev]
     source_xyz.append([t[0], t[1], t[2]])

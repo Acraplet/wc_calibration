@@ -83,7 +83,11 @@ for name in sys.argv[1:]:
     df_geometry_59 = df_geometry[df_geometry["mPMT"]==59]
     df_geometry_58 = df_geometry_58.append(df_geometry_59[df_geometry_59["mPMT_pmt"]==19])
 
-    nEvents = int(df_data["Event"].max()) #total number of event simulated
+    nEvents = df_data["Event"].max()
+    if (nEvents.isNaN()):
+        nEvents = 0
+    else:
+        nEvents = int(nEvents) #total number of event simulated
 
     if (printEventByEvent):
         #here if we want an output of the charge and number of hits collected by our mPMT for each event to compare variations
