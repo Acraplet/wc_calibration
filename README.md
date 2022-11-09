@@ -19,6 +19,7 @@ The config files are produced in wc\_calibration/WCSim\_configFiles/ by calling 
 - t the number of points that we want to simualte equally spaced in sin(theta) between the limits (0-1) -> this can be changed in the file
 - p the number of points that we want to simulate equally spaced in phi between the limits (0, pi/2) -> this can be changed in the file
 - e the number of events that we want to simulate
+- a the alpha, string from the above options (carefull, you need to manually change the WCSim tuning_params.mac file before compiling and running, this is just to save the correct names)
 
 The photon number shot (1) per event, its wavelength (401.9nm = 3.08945eV), the detector type, QE, triggering process etc.. is all pre-set in the /config\_files\_prod/WCSim\_template.txt which is the base for the .mac files production - it can be modified.
 
