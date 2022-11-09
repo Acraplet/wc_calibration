@@ -36,13 +36,13 @@ theta_min = 0
 theta_max = 1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
 
 phi_min = 0
-phi_max = 2*np.pi #up to 180 degrees for now
+phi_max = np.pi/2 #up to 90 degrees for now
 
 FileID = 0
 
 argv = sys.argv[1:]
 
-opts, args = getopt.getopt(argv, "t:R:p:f:e:")
+opts, args = getopt.getopt(argv, "t:R:p:f:e:a:")
 for opt, arg in opts:
         if opt in ['-R']:
             R = float(arg)
@@ -54,7 +54,8 @@ for opt, arg in opts:
             FileID = int(arg)
         elif opt in ['-e']:
             nEvent = int(arg)
-
+        elif opt in ['-a']:
+            alpha_mode = str(arg)
 
 
 def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode,theta, phi, R, nEvent = 10000):
@@ -97,7 +98,7 @@ targetPMT_zpos = 0.0
 source_xpos = 0
 source_ypos = 0
 source_zpos = 0
-alpha_mode = "noAlpha"
+#alpha_mode = "noAlpha"
 
 range_theta = np.linspace(theta_min, theta_max, nTheta)
 range_phi = np.linspace(phi_min, phi_max, nPhi)
