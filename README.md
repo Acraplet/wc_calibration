@@ -1,4 +1,6 @@
 # wc_calibration
+_"Les mPMTs sont des fleurs dont les PMTs seraient les pétales"_
+
 WCTE calibration code - PMT timing response, angular response, water attenuation length etc... 
 
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
@@ -20,6 +22,7 @@ The config files are produced in wc\_calibration/WCSim\_configFiles/ by calling 
 - p the number of points that we want to simulate equally spaced in phi between the limits (0, pi/2) -> this can be changed in the file
 - e the number of events that we want to simulate
 - a the alpha, string from the above options (carefull, you need to manually change the WCSim tuning_params.mac file before compiling and running, this is just to save the correct names)
+- R the distance between the source position and the mPMT dome surface
 
 The photon number shot (1) per event, its wavelength (401.9nm = 3.08945eV), the detector type, QE, triggering process etc.. is all pre-set in the /config\_files\_prod/WCSim\_template.txt which is the base for the .mac files production - it can be modified.
 
