@@ -64,11 +64,11 @@ Some examples of maps are already present in the maps_txtFiles folder for testin
 
 
 *PYTHON (not recommended)*
-After the WCSim files have been produced, copy the \_flat files in your home /wc\_calibration/mPMTmapping/data folder where you can then run 
+After the WCSim files have been produced, copy the \_flat files in your home /wc_calibration/mPMTmapping/data folder where you can then run 
 ```
-python /wc\_calibration/mPMTmapping/src/make\_raw\_mPMTmap.py $(ls \*IDxx\*)
+python /wc_calibration/mPMTmapping/src/make_raw_mPMTmap.py $(ls \*IDxx\*)
 ```
-replacing xx by your desired file ID. This will plot and save in the /wc\_calibration/mPMTmapping/maps\_txtFiles folder the positions of the source in a 3D plot, and a map of the average recorded number of p.e. per event [be careful to modify the code if you do not run with the default 1000 events with a single photon sent each time] the mPMT then save a .txt file with the following entries:
+replacing xx by your desired file ID. This will plot and save in the /wc_calibration/mPMTmapping/maps_txtFiles folder the positions of the source in a 3D plot, and a map of the average recorded number of p.e. per event [be careful to modify the code if you do not run with the default 1000 events with a single photon sent each time] the mPMT then save a .txt file with the following entries:
 1. Source x position
 2. Source y position
 3. Source z position
@@ -81,7 +81,7 @@ replacing xx by your desired file ID. This will plot and save in the /wc\_calibr
 
 Once these maps have been made, they can be plotted at will with the following command 
 ```
-python /wc\_calibration/mPMTmapping/src/read\_raw\_mPMTmap.py /wc\_calibration/mPMTmapping/maps\_txtFiles/map\_raw\_FileIDxx.txt
+python /wc_calibration/mPMTmapping/src/read_raw_mPMTmap.py /wc_calibration/mPMTmapping/maps_txtFiles/map_raw_FileIDxx.txt
 ```
 where again the xx need to be swapped for the run ID you are interested in. Some examples of maps are already present in that folder for testing/understanding purposes
 
