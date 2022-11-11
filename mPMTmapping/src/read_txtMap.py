@@ -18,6 +18,8 @@ outputfile_name = 'none'
 phi_max = 90 #for plotting - get the max phi value to show only the right portion of the circle
 argv = sys.argv[1:]
 
+interpolation_mode = 'cubic' # 'linear'
+
 opts, args = getopt.getopt(argv, "m:o:p:f:c:a:")
 for opt, arg in opts:
         if opt in ['-m']:
@@ -84,6 +86,7 @@ if comparision_file != 'none':
         df_compa = df_compa.append(row, ignore_index=True)
 
 
+
     if phi_max != phi_max_compa:
         print("\n\nWe are looking at different file format, need to cut to compatibility !! \n \n")
 
@@ -130,7 +133,7 @@ if comparision_file == 'none':
     xi, yi = np.linspace(min(phi), max(phi), 100), np.linspace(min(theta), max(theta), 100)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate
-    rbf = scipy.interpolate.Rbf(phi, theta, zr, function='cubic')
+    rbf = scipy.interpolate.Rbf(phi, theta, zr, function=interpolation_mode)
     zi = rbf(xi, yi)
     ax.contourf(xi, yi, zi, 500, cmap='nipy_spectral')
 
@@ -159,7 +162,7 @@ if comparision_file != 'none':
     zr2 = df_compa["Q"]/df_compa["events"] #needed to have a common colorbar
     vmin = min(min(zr2), min(zr))
     vmax = max(max(zr2), max(zr))
-    im = ax.scatter(df["phi"], df["phi"], c = zr, cmap = "nipy_spectral",s = 40,vmin = vmin, vmax = vmax)
+    im = ax.scatter(df["phi"], df["theta"], c = zr, cmap = "nipy_spectral",s = 40,vmin = vmin, vmax = vmax)
     col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
     ax.set_thetamax(phi_max)
     ax.xaxis.labelpad = 10
@@ -168,15 +171,14 @@ if comparision_file != 'none':
     ax2 = fig.add_subplot(223, projection='polar')
     ax2.set_ylabel("Q %s"%(comparision_file))
     zr2 = df_compa["Q"]/df_compa["events"]
-    im2 = ax2.scatter(df_compa["phi"], df_compa["phi"], c = zr2, cmap = "nipy_spectral",s = 40,vmin = vmin, vmax = vmax)
+    im2 = ax2.scatter(df_compa["phi"], df_compa["theta"], c = zr2, cmap = "nipy_spectral",s = 40,vmin = vmin, vmax = vmax)
     col3 = plt.colorbar(im2, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
     #col3.set_clim(min(min(zr2), min(zr)), max(max(zr2), max(zr)))
     ax2.set_thetamin(0)
     ax2.set_thetamax(phi_max)
     ax2.xaxis.labelpad = 10
     ax2.set_xlabel(f'$\Theta$(rad)')
-
-    #need to re-order the dataframes so that we can make the comparision, this is for two files with the same id of the datapoints
+######need to re-order the dataframes so that we can make the comparision, this is for two files with the same id of the datapoints
     df = df.sort_values(["theta", "phi"], axis = 0, ascending = False).reset_index()
     df_compa = df_compa.sort_values(["theta", "phi"], axis = 0, ascending = False).reset_index()
     df_diff = df-df_compa
@@ -185,12 +187,14 @@ if comparision_file != 'none':
         print('It looks like the datasets do not have their points at the same position, please check what is up with this')
         raise MisleadingComparision
 
+    print(df["theta"].unique())
+
 ############## non-interpolated third plot ################
     ax2 = fig.add_subplot(122, projection='polar')
     ax2.set_title("Q Comparision \n %s-%s"%(filename, comparision_file))
 
-    zr2 = df_diff['Q']/df['events']
-    im2 = ax2.scatter(phi_compa, theta_compa, c = zr2, cmap = "nipy_spectral",s = 40)
+    zr2 = df['Q']/df['events'] - df_compa['Q']/df_compa['events']
+    im2 = ax2.scatter(df['phi'], df['theta'], c = zr2, cmap = "nipy_spectral",s = 40)
     col3 = plt.colorbar(im2, label=f"Difference in number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
 
     ax2.set_thetamin(0)
@@ -207,16 +211,16 @@ if comparision_file != 'none':
     fig = plt.figure(figsize=(20,10))
     ax = fig.add_subplot(221, projection='polar')
     ax.set_ylabel("Q %s "%(filename))
-    zr = Q_tot/nEvents
+    zr =  df["Q"]/df["events"]
 
-    xi, yi = np.linspace(min(phi), max(phi), 100), np.linspace(min(theta), max(theta), 100)
+    xi, yi = np.linspace(min(phi), max(phi), 200), np.linspace(min(theta), max(theta), 200)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate
-    rbf = scipy.interpolate.Rbf(phi, theta, zr, function='cubic',vmin = vmin, vmax = vmax)
+    rbf = scipy.interpolate.Rbf(df["phi"], df["theta"], zr, function=interpolation_mode, vmin = vmin, vmax = vmax)
     zi = rbf(xi, yi)
-    ax.contourf(xi, yi, zi, 500, cmap='nipy_spectral')
+    ax.contourf(xi, yi, zi, 500, cmap='nipy_spectral',vmin = vmin, vmax = vmax)
 
-    im = ax.scatter(phi, theta, c = zr, cmap = "nipy_spectral",s = 40, vmin = vmin, vmax = vmax)
+    im = ax.scatter(df["phi"], df["theta"], c = zr, cmap = "nipy_spectral",s = 40, vmin = vmin, vmax = vmax)
     col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
     ax.set_thetamin(0)
     ax.set_thetamax(phi_max)
@@ -226,16 +230,16 @@ if comparision_file != 'none':
 ############## interpolated second plot ################
     ax2 = fig.add_subplot(223, projection='polar')
     ax2.set_ylabel("Q %s"%(comparision_file))
-    zr2 = Q_tot_compa/nEvents
+    zr2 = df_compa["Q"]/df_compa["events"]
 
-    xi, yi = np.linspace(min(phi), max(phi), 100), np.linspace(min(theta), max(theta), 100)
+    xi, yi = np.linspace(min(phi), max(phi), 200), np.linspace(min(theta), max(theta), 200)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate
-    rbf = scipy.interpolate.Rbf(phi_compa, theta_compa, zr2, function='cubic')
+    rbf = scipy.interpolate.Rbf(df_compa["phi"], df_compa["theta"], zr2, function=interpolation_mode, vmin = vmin, vmax = vmax)
     zi = rbf(xi, yi)
     ax2.contourf(xi, yi, zi, 500, cmap='nipy_spectral',vmin = vmin, vmax = vmax)
 
-    im2 = ax2.scatter(phi_compa, theta_compa, c = zr2, cmap = "nipy_spectral",s = 40, vmin = vmin, vmax = vmax)
+    im2 = ax2.scatter(df_compa["phi"], df_compa["theta"], c = zr2, cmap = "nipy_spectral",s = 40, vmin = vmin, vmax = vmax)
     col3 = plt.colorbar(im2, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
 
     ax2.set_thetamin(0)
@@ -247,15 +251,15 @@ if comparision_file != 'none':
     ax3 = fig.add_subplot(122, projection='polar')
     ax3.set_title("Q Comparision \n %s-%s"%(filename, comparision_file))
 
-    zr2 = df_diff['Q']/df['events']
+    zr2 = df['Q']/df['events'] - df_compa['Q']/df_compa['events'] ##the difference in number of p.e. per event
 
-    xi, yi = np.linspace(min(df['phi']), max(df['phi']), 100), np.linspace(min(df['theta']), max(df['theta']), 100)
+    xi, yi = np.linspace(min(df['phi']), max(df['phi']), 200), np.linspace(min(df['theta']), max(df['theta']), 200)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate
-    rbf = scipy.interpolate.Rbf(df['phi'], df['theta'], zr2, function='cubic')
+    rbf = scipy.interpolate.Rbf(df['phi'], df['theta'], zr2, function=interpolation_mode)
     zi = rbf(xi, yi)
     ax3.contourf(xi, yi, zi, 500, cmap='nipy_spectral')
-    im2 = ax3.scatter(phi_compa, theta_compa, c = zr2, cmap = "nipy_spectral",s = 40)
+    im2 = ax3.scatter(df['phi'], df['theta'], c = zr2, cmap = "nipy_spectral",s = 40)
     col3 = plt.colorbar(im2, label=f"Difference in number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
 
     ax3.set_thetamin(0)
@@ -265,7 +269,6 @@ if comparision_file != 'none':
     ax3.set_xlabel(f'$\Theta$(rad)')
     plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_pictures/Comparisions/Interpolated/%s.png'%outputfile_name)
     plt.show()
-
 
 source_Rtp = np.array(source_Rtp)
 source_xyz = np.array(source_xyz)
@@ -305,7 +308,9 @@ ax.scatter3D(x, z, y, marker = 'x', color ='r')
 
 for i in range(len(x)):
     ax.plot([x[i], x[i] - R[i] *  np.sin(theta[i]) * np.cos(phi[i])], [z[i], z[i] - R[i] * np.sin(theta[i]) * np.sin(phi[i])], [y[i], y[i] - R[i] * np.cos(theta[i])], 'r-')
-#plt.show()
+plt.show()
+
+
 
 
 
