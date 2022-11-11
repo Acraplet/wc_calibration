@@ -9,15 +9,16 @@ The config files for WCSim are stored using a FileID which indicates which group
 
 It also has a label for the attenuation length we simulated in WCSim:
 - noAlpha: Absff = 10e10, Rayff = 10e10, Mieff = 0.0
-- 10cmScat: 
-- 10cmAbs:
-- 10cmScat10cmAbs: 
+- 10cmScat: Absff = 10e10, Rayff = 0.000555, Mieff = 0.0
+- 10cmAbs: Absff = 0.000243, Rayff = 10e10, Mieff = 0.0
+- 10cmScat10cmAbs: Absff = 0.000243, Rayff = 0.000555, Mieff = 0.0
+- 20cmScat20cmAbs: Absff = 0.000486, Rayff = 0.00111, Mieff = 0.0
 
 Then the file name saves the source position x, y, z coordinates in space as well as its relative angles theta and phi with respect to the mPMT centre and distance R to the mPMT surface
 
-The config files are produced in wc\_calibration/WCSim\_configFiles/ by calling 
+The config files are produced in wc_calibration/WCSim_configFiles/ by calling 
 ```
-python /config\_files\_prod/writeMacFile.py
+python /config_files_prod/writeMacFile.py
 ```
 with the options :
 
@@ -28,11 +29,11 @@ with the options :
 - a the alpha, string from the above options (carefull, you need to manually change the WCSim tuning_params.mac file before compiling and running, this is just to save the correct names)
 - R the distance between the source position and the mPMT dome surface
 
-The photon number shot (1) per event, its wavelength (401.9nm = 3.08945eV), the detector type, QE, triggering process etc.. is all pre-set in the /config\_files\_prod/WCSim\_template.txt which is the base for the .mac files production - it can be modified.
+The photon number shot (1) per event, its wavelength (401.9nm = 3.08945eV), the detector type, QE, triggering process etc.. is all pre-set in the /config_files_prod/WCSim_template.txt which is the base for the .mac files production - it can be modified.
 
 
-The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapping/config\_files folder. 
-Then, from /vols/t2k/user/ac4317/WCTE/, modify the submit\_mPMTmapping.sh file to get the right mPMT ID. Be careful to re-compile the WCSim code by running source /vols/t2k/user/ac4317/WCTE/source\_at\_start\_test.sh and then make in the main WCTE folder. Be especially careful of this if you change things in the tunning\_paramters.mac file as these will only be applied then. Wait for the batch jobs to be in the reading mode r before running make WCSim again.
+The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapping/config_files folder. 
+Then, from /vols/t2k/user/ac4317/WCTE/, modify the submit_mPMTmapping.sh file to get the right mPMT ID. Be careful to re-compile the WCSim code by running source /vols/t2k/user/ac4317/WCTE/source_at_start_test.sh and then make in the main WCTE folder. Be especially careful of this if you change things in the tunning_paramters.mac file as these will only be applied then. Wait for the batch jobs to be in the reading mode r before running make WCSim again.
 
 *C++ (recommended)*
 After the WCSim files have been produced, copy the \_flat files in your home /wc\_calibration/mPMTmapping/data folder. In the /wc_calibration/mPMTmapping folder you can then call 
