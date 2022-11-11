@@ -3,6 +3,7 @@ _"Les mPMTs sont des fleurs dont les PMTs seraient les pétales"_
 
 WCTE calibration code - PMT timing response, angular response, water attenuation length etc... 
 
+## Make config files
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
 
 The config files for WCSim are stored using a FileID which indicates which group of runs it belongs to. 
@@ -35,6 +36,8 @@ The photon number shot (1) per event, its wavelength (401.9nm = 3.08945eV), the 
 The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapping/config_files folder. 
 Then, from /vols/t2k/user/ac4317/WCTE/, modify the submit_mPMTmapping.sh file to get the right mPMT ID. Be careful to re-compile the WCSim code by running source /vols/t2k/user/ac4317/WCTE/source_at_start_test.sh and then make in the main WCTE folder. Be especially careful of this if you change things in the tunning_paramters.mac file as these will only be applied then. Wait for the batch jobs to be in the reading mode r before running make WCSim again.
 
+## Extract the maps as .txt file from WCSim 
+
 *C++ (recommended)*
 After the WCSim files have been produced, copy the \_flat files in your home /wc\_calibration/mPMTmapping/data folder. In the /wc_calibration/mPMTmapping folder you can then call 
 ```
@@ -51,6 +54,8 @@ replacing ID with the run ID you want. This saved a .txt file named /wc_calibrat
 7. Total charge collected in mPMT 58
 8. Total number of events
 
+## Plot and compare the maps
+
 
 Once these maps have been made, they can be plotted individually from the mPMTmapping folder with 
 ```
@@ -60,9 +65,16 @@ Or compared with
 ```
 bash plotting_mPMTmap.sh ID1 ID2
 ```
+It can be usefull to have a look at the profile of the map averaged over phi to compare more than two files. This is done with
+```
+bash compare_mPMTmap.sh ID1 ... IDn 
+```
+
 Note: the source coordinates need to be identical for the comparision to be made. TODO: Add a way to check the mPMT symmetry. 
 Some examples of maps are already present in the maps_txtFiles folder for testing/understanding purposes.
 
+
+## Python alternative
 
 *PYTHON (not recommended)*
 After the WCSim files have been produced, copy the \_flat files in your home /wc_calibration/mPMTmapping/data folder where you can then run 
