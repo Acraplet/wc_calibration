@@ -18,7 +18,7 @@ outputfile_name = 'none'
 phi_max = 90 #for plotting - get the max phi value to show only the right portion of the circle
 argv = sys.argv[1:]
 
-interpolation_mode = 'cubic' # 'linear'
+interpolation_mode = 'linear' # 'linear'
 
 opts, args = getopt.getopt(argv, "m:o:p:f:c:a:")
 for opt, arg in opts:

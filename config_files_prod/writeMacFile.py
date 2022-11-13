@@ -33,7 +33,7 @@ R = 10
 nEvent = 10000
 
 theta_min = 0
-theta_max = 1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
+theta_max = np.sin(1.1) # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
 
 phi_min = 0
 phi_max = np.pi/2 #up to 90 degrees for now
@@ -42,7 +42,7 @@ FileID = 0
 
 argv = sys.argv[1:]
 
-opts, args = getopt.getopt(argv, "t:R:p:f:e:a:")
+opts, args = getopt.getopt(argv, "t:R:p:f:e:a:r:")
 for opt, arg in opts:
         if opt in ['-R']:
             R = float(arg)
@@ -55,14 +55,20 @@ for opt, arg in opts:
         elif opt in ['-e']:
             nEvent = int(arg)
         elif opt in ['-a']:
-            alpha_mode = str(arg)
+            absff = float(arg)
+        elif opt in ['-r']:
+            rayff = float(arg)
 
+alpha_mode = "Absff%.3e_Rayff%.3e"%(absff, rayff)
 
-def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode,theta, phi, R, nEvent = 10000):
+if absff>=10:
+    alpha_mode = "Absff%.1e_Rayff%.3e"%(absff, rayff)
+if rayff>=10:
+    alpha_mode = "Absff%.3e_Rayff%.1e"%(absff, rayff)
+
+def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode, theta, phi, R, nEvent = 10000):
 
     run_beam_on = nEvent
-
-
 
     template_txtFile = open("WCSim_template.txt","r")
     data_saving_path = "/vols/t2k/users/ac4317/WCTE/WCSim/mPMTmapping/data"
@@ -81,14 +87,17 @@ def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode,theta, phi,
             file.write(line)
         file.write(orientation_string)
         file.write(position_string + "\n")
+        file.write("/WCSim/tuning/abwff %s\n"%absff)
+        file.write("/WCSim/tuning/rayff %s\n"%rayff)
         file.write("/Tracking/fractionOpticalPhotonsToDraw 100.0 \n")
         file.write("/WCSimIO/RootFile %s/%s \n"%(data_saving_path, data_file_name))
         file.write("/WCSimIO/SaveRooTracker 0 \n")
         file.write("/run/beamOn %i"%run_beam_on)
+    #print(config_file_name)
     template_txtFile.close()
 
 
-print(R)
+
 centre_offset = 27.4 #cm - distance from the PMT posiiton to the centre of the mPMT sphere
 
 targetPMT_xpos = 0.0
@@ -114,7 +123,7 @@ for theta in range_theta:
         if theta!=0 or w == 0:   
           source_xpos = targetPMT_xpos + (R + mPMT_radius) * np.sin(theta) * np.cos(phi)
           source_ypos = targetPMT_ypos + (R + mPMT_radius) * np.cos(theta) #careful, y is the "typical" vertical z coordinate
-          print(source_ypos)
+          #print(source_ypos)
           source_zpos = targetPMT_zpos + (R + mPMT_radius) * np.sin(theta) * np.sin(phi)
           makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode,theta, phi, R, nEvent)
           w = 1
