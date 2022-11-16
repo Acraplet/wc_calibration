@@ -36,6 +36,8 @@ The photon number shot (1) per event, its wavelength (401.9nm = 3.08945eV), the 
 The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapping/config_files folder. 
 Then, from /vols/t2k/user/ac4317/WCTE/, modify the submit_mPMTmapping.sh file to get the right mPMT ID. Be careful to re-compile the WCSim code by running source /vols/t2k/user/ac4317/WCTE/source_at_start_test.sh and then make in the main WCTE folder. Be especially careful of this if you change things in the tunning_paramters.mac file as these will only be applied then. Wait for the batch jobs to be in the reading mode r before running make WCSim again.
 
+![Employee data](/wc_calibration/personnal-notes/Batch_submit_sketch.jpg?raw=true "batch submit method")
+
 ## Extract the maps as .txt file from WCSim 
 
 *C++ (recommended)*
