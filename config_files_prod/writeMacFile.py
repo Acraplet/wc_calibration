@@ -76,11 +76,15 @@ def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode, theta, phi
 
     config_file_name = "%s/WCSim_config_mPMTmapping_401nm_FileID%i_%s_x%.2f_y%.2f_z%.2f_t%.2f_p%.2f_R%.2f.mac"%(config_saving_path, FileID,alpha_mode,source_xpos,source_ypos,source_zpos, theta, phi, R)
     data_file_name = "wcsim_mPMTmapping_401nm_FileID%i_%s_x%.2f_y%.2f_z%.2f_t%.2f_p%.2f_R%.2f.root"%(FileID, alpha_mode,source_xpos,source_ypos,source_zpos, theta, phi, R)
+    #making sure the value we write down is the correct value we implement in the config file
+    theta = float("%.2f"%theta)
+    phi = float("%.2f"%phi)
+    #print(theta, phi)
     source_dirx = - np.sin(theta) * np.cos(phi)
     source_diry = - np.cos(theta)
     source_dirz = - np.sin(theta) * np.sin(phi)
-    orientation_string = "/gun/direction %.2f %.2f %.2f\n"%(source_dirx, source_diry, source_dirz) #can be more precise once we save the source direction infp
-    position_string = "/gun/position %.5f %.5f %.5f \n"%(source_xpos, source_ypos, source_zpos)
+    orientation_string = "/gun/direction %.5f %.5f %.5f\n"%(source_dirx, source_diry, source_dirz) #can be more precise once we save the source direction infp
+    position_string = "/gun/position %.2f %.2f %.2f \n"%(source_xpos, source_ypos, source_zpos)
 
     with open("%s"%config_file_name, "w") as file:
         for line in template_txtFile:
@@ -90,7 +94,8 @@ def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode, theta, phi
         file.write("/WCSim/tuning/abwff %s\n"%absff)
         file.write("/WCSim/tuning/rayff %s\n"%rayff)
         file.write("/Tracking/fractionOpticalPhotonsToDraw 100.0 \n")
-        file.write("/WCSimIO/RootFile %s/%s \n"%(data_saving_path, data_file_name))
+        file.write("/WCSimIO/RootFile %s \n"%(data_file_name))
+        #now we are running in temp folder so no need to have the path to the file
         file.write("/WCSimIO/SaveRooTracker 0 \n")
         file.write("/run/beamOn %i"%run_beam_on)
     #print(config_file_name)
