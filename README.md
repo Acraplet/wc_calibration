@@ -24,17 +24,25 @@ python /config_files_prod/writeMacFile.py
 with the options :
 
 - f the (integer) ID of the run
-- t the number of points that we want to simualte equally spaced in sin(theta) between the limits (0-1) -> this can be changed in the file
+- t the number of points that we want to simualte equally spaced in sin(theta) between the limits (0 rad < theta < 1.1 rad) -> this can be changed in the file
 - p the number of points that we want to simulate equally spaced in phi between the limits (0, pi/2) -> this can be changed in the file
 - e the number of events that we want to simulate
-- a the alpha, string from the above options (carefull, you need to manually change the WCSim tuning_params.mac file before compiling and running, this is just to save the correct names)
+- a the absorption coefficient (abwff in WCSim)
+- r the Rayleigh scattering coefficient (rayff in WCSim)
 - R the distance between the source position and the mPMT dome surface
 
 The photon number shot (1) per event, its wavelength (401.9nm = 3.08945eV), the detector type, QE, triggering process etc.. is all pre-set in the /config_files_prod/WCSim_template.txt which is the base for the .mac files production - it can be modified.
 
+Alternatively, if you want to make many similar config files, use
 
-The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapping/config_files folder. 
-Then, from /vols/t2k/user/ac4317/WCTE/, modify the submit_mPMTmapping.sh file to get the right mPMT ID. Be careful to re-compile the WCSim code by running source /vols/t2k/user/ac4317/WCTE/source_at_start_test.sh and then make in the main WCTE folder. Be especially careful of this if you change things in the tunning_paramters.mac file as these will only be applied then. Wait for the batch jobs to be in the reading mode r before running make WCSim again.
+```
+bash make_all_config.sh abwff rayff ID0
+```
+which will make 7 config files with the input absorption and scattering params and IDs going from ID0 to ID0 + 7 with 20 points in theta, and phi and with R = 5, 10, 20, 40, 80, 160, 320cm. 
+
+## Run WCSim on the batch system (efficiently) 
+
+The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapping/config_files folder. Then follow the steps presented in the image below. 
 
 <img src="https://github.com/Acraplet/wc_calibration/blob/main/personnal-notes/Batch_submit_sketch.jpg" width="400" />
 
