@@ -193,7 +193,7 @@ if comparision_file != 'none':
     ax2 = fig.add_subplot(122, projection='polar')
     ax2.set_title("Q Comparision \n %s-%s"%(filename, comparision_file))
 
-    zr2 = df['Q']/df['events'] - df_compa['Q']/df_compa['events']
+    zr2 = (df['Q']/df['events'] - df_compa['Q']/df_compa['events']) #/df['Q']/df['events']
     im2 = ax2.scatter(df['phi'], df['theta'], c = zr2, cmap = "nipy_spectral",s = 40)
     col3 = plt.colorbar(im2, label=f"Difference in number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
 
@@ -252,7 +252,7 @@ if comparision_file != 'none':
     ax3.set_title("Q Comparision \n %s-%s"%(filename, comparision_file))
 
     zr2 = df['Q']/df['events'] - df_compa['Q']/df_compa['events'] ##the difference in number of p.e. per event
-
+    #zr2 = (df['Q']/df['events'] - df_compa['Q']/df_compa['events'])/df['Q']/df['events']
     xi, yi = np.linspace(min(df['phi']), max(df['phi']), 200), np.linspace(min(df['theta']), max(df['theta']), 200)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate

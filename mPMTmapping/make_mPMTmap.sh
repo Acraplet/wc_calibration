@@ -5,6 +5,8 @@ ID=$1
 VAR="$(ls /home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/data/*FileID""$ID""_*_flat*)"
 make
 
+rm maps_txtFiles/mPMT_map_ID"$ID".txt
+#to make sure we don't add to an existing file
 for name in $VAR
 do
     echo $name
