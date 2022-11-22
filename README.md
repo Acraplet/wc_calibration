@@ -42,7 +42,7 @@ which will make 7 config files with the input absorption and scattering params a
 
 ## Run WCSim on the batch system (efficiently) 
 
-The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapping/config_files folder. Then follow the steps presented in the image below. 
+The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapping/config_files folder, and the tuning files to /vols/t2k/user/ac4317/WCTE/mPMTmapping/tuning_files. Then follow the steps presented in the image below. 
 
 <img src="https://github.com/Acraplet/wc_calibration/blob/main/personnal-notes/Batch_submit_sketch.jpg" width="400" />
 
