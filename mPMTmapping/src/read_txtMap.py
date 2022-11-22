@@ -18,7 +18,33 @@ outputfile_name = 'none'
 phi_max = 90 #for plotting - get the max phi value to show only the right portion of the circle
 argv = sys.argv[1:]
 
+PMT_position_file = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/PMT_positions.txt'
+PMT = np.array(rd.read_data3(PMT_position_file)).T
+PMT_mPMT = PMT[0]
+PMT_mPMT_pmt = PMT[1]
+PMT_x = PMT[2]
+PMT_y = PMT[3]
+PMT_z = PMT[4]
+
+def dist(df_geom_buf, df_buf):
+    #df_geom_buf = df_geom[df_geom['mPMT_pmt'] == PMT]
+    #print(df_geom_buf['x'])
+    R = df_buf['R']
+    theta = df_buf['theta']
+    phi = df_buf['phi']
+    x = df_buf['x'] - R *  np.sin(theta)* np.cos(phi)
+    z = df_buf['z'] - R * np.sin(theta) * np.sin(phi)
+    y = df_buf['y'] - R * np.cos(theta)
+    return (x - df_geom_buf['x'])**2 + (y - df_geom_buf['y'])**2 + (z - df_geom_buf['z'])**2
+
+df_geom = pd.DataFrame()
+for i in range(len(PMT[0])):
+        c = [PMT[0][i],PMT[1][i],PMT[2][i],PMT[3][i],PMT[4][i]]
+        row =  pd.Series(data=c, index=['mPMT', 'mPMT_pmt', 'x', 'y', 'z'], dtype=np.float64)
+        df_geom = df_geom.append(row, ignore_index=True)
+
 interpolation_mode = 'linear' # 'linear'
+
 
 opts, args = getopt.getopt(argv, "m:o:p:f:c:a:")
 for opt, arg in opts:
@@ -46,6 +72,11 @@ if comparision_file == 'none':
     Q_tot =  np.array(table[6])
     nEvents = np.array(table[7])
     phi_max = max(phi) * 180/np.pi
+    df = pd.DataFrame()
+    for i in range(len(x)):
+        c = [x[i], y[i],  z[i],  theta[i], phi[i],  R[i],  Q_tot[i],  nEvents[i]]
+        row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events'], dtype=np.float64)
+        df = df.append(row, ignore_index=True)
 
     #print(phi_max)
 
@@ -99,9 +130,29 @@ if comparision_file != 'none':
 
 
 
-
-
 if comparision_file == 'none':
+    plt.style.use(["science", "notebook", "grid"])
+    distance_to_closest_PMT = []
+    Q_array = []
+    #check the closet distance to PMT
+    for index, row in df.iterrows():
+        dist_min = 100000
+        for index_geom, row_geom in df_geom.iterrows():
+        #for PMT in df_geom['mPMT_pmt'].unique():
+           #print()
+           distance = dist(row_geom, row)
+           if distance <= dist_min:
+               dist_min = distance
+        distance_to_closest_PMT.append(dist_min)
+        Q_array.append(row['Q']/row['events'])
+    plt.title('Charge collected vs distance to closest PMT\nFileID%s'%filename)
+    plt.xlabel('Distance to the closest PMT (cm)')
+    plt.ylabel('Charge collected per photon')
+    plt.plot(distance_to_closest_PMT, Q_array, 'x')
+    plt.xscale('log')
+    plt.show()
+
+#    raise End
     fig = plt.figure(figsize=(20,10))
     ax = fig.add_subplot(projection='polar')
     #only the points
@@ -149,9 +200,10 @@ if comparision_file == 'none':
     plt.show()
 
 
+
+
+
 if comparision_file != 'none':
-
-
 
     fig = plt.figure(figsize=(20,10))
 
@@ -304,7 +356,7 @@ ax.plot_surface(xs, ys, zs, alpha = 0.1)
 
 ax.scatter3D(0, 0, - 128.05 - 27.4, marker = 'x', color = 'k')
 ax.scatter3D(x, z, y, marker = 'x', color ='r')
-
+ax.scatter3D(PMT_x,PMT_z,PMT_y, marker = 'o')
 
 for i in range(len(x)):
     ax.plot([x[i], x[i] - R[i] *  np.sin(theta[i]) * np.cos(phi[i])], [z[i], z[i] - R[i] * np.sin(theta[i]) * np.sin(phi[i])], [y[i], y[i] - R[i] * np.cos(theta[i])], 'r-')

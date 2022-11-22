@@ -125,10 +125,14 @@ int main(int argc, char **argv){
     int event;
 //     int PMT_QTot;
     int NHits;
+    int mPMT;
+    int mPMT_pmt;
     int nHitsTot = 0;
 
     events->SetBranchAddress("Event", &event);
     events->SetBranchAddress("NHits", &NHits);
+    events->SetBranchAddress("mPMT", &mPMT);
+    events->SetBranchAddress("mPMT_pmt", &mPMT_pmt);
 //     events->SetBranchAddress("PMT_QTot", &PMT_QTot);
 
 
@@ -137,7 +141,16 @@ int main(int argc, char **argv){
     for(int i=0; i<n_entries; i++){
         events->GetEntry(i);
 //         std::cout<<"event: "<<event<< " NHits " << NHits <<std::endl;
-        nHitsTot += NHits;
+	if (mPMT == 58){
+		if (mPMT_pmt != 19){
+        		nHitsTot += NHits;
+		}
+	}
+	if (mPMT == 59){
+                if (mPMT_pmt == 19){
+                        nHitsTot += NHits;
+                }
+        }
     }
 
     std::cout << "Total number of hits : "<< nHitsTot << std::endl;
