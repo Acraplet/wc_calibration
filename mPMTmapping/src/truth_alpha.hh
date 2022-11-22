@@ -1,4 +1,26 @@
 #include<vector>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <iomanip>
+#include <vector>
+#include <TROOT.h>
+#include <TApplication.h>
+#include <TStyle.h>
+#include <TFile.h>
+#include <TChain.h>
+#include <TTree.h>
+#include <TCanvas.h>
+#include <TChain.h>
+#include <TBranch.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <TMath.h>
+#include <TGraph.h>
+#include <TVector3.h>
+#include <TRandom3.h>
+
 //code taken from Ka Ming Tsui's code
 double truth_alpha(double wavelength=401.9, double ABWFF=0.000486, double RAYFF=10e10) {
     const int NUMENTRIES_water=60;
@@ -81,3 +103,4 @@ double truth_alpha(double wavelength=401.9, double ABWFF=0.000486, double RAYFF=
         std::cout<< "photon energy = " << photoEnergy << "eV"<<std::endl;
         std::cout<<"wavelength = " << wavelength << "nm" << std::endl;
         return alpha;//,gr_ray->Eval(photoEnergy)};//, gr_mie->Eval(photoEnergy)};
+}
