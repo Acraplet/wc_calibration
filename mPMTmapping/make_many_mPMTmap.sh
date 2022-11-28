@@ -1,4 +1,4 @@
-for a in {139..144}
+for a in {146..152}
 do
     echo $a
     bash make_mPMTmap.sh $a

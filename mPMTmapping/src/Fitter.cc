@@ -1,6 +1,6 @@
 #include "truth_alpha.hh"
 #include <iostream>
-#include "../fit_data/chisq/chisq.h"
+#include "../chisq/chisq.h"
 #include "Math/Minimizer.h"
 #include "Math/Functor.h"
 #include "Math/Factory.h"
@@ -18,7 +18,7 @@ int main(int argc, char **argv){
     std::cout << truth_alpha(401.9, 0.000486, 10e10) << std::endl;
 
     std::fstream newfile;
-    newfile.open("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_txtFiles/mPMT_map_ID25.txt",std::ios::in); //open a file to perform read operation using file object
+    newfile.open(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_txtFiles/mPMT_map_ID%s.txt",argv[1]),std::ios::in); //open a file to perform read operation using file object
     std::vector<double> list_R, list_A;
     char* R_test;
     if (newfile.is_open()){   //checking whether the file is open
@@ -131,6 +131,7 @@ int main(int argc, char **argv){
                 min->PrintResults();
                 std::cout << std::endl;
                 const double * res = min->X();
+                const double * err = min->Errors();
                 std::cout << min->Status() << std::endl;
                 if (min->Status() == 0) {
                     std::cout << "haye"<< std::endl;
@@ -141,11 +142,26 @@ int main(int argc, char **argv){
 
                 TF1 func = chi->getFunction(0, 220);
                 TGraphErrors *data = new TGraphErrors(data_xval.size(), &data_xval[0], &data_yval[0], &err_xval[0], &err_yval[0]);
+                TGraphErrors *fit_output;
+                if (min->Status() == 0){
+                    fit_output = new TGraphErrors(1, &res[0], &res[1], &err[0], &err[1]);
+                }
+                else {
+                    auto a = res[0] * 0;
+                    fit_output = new TGraphErrors(1, &a, &a, &a, &a);
+                }
 
                 TFile *outf = new TFile(Form("reference_root/results_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
 
                 func.Write();
+                data->SetTitle("Charge vs attenuation lenght (absorption only)");
+                data->GetXaxis()->SetTitle("Attenuation lenght (absorption only) (cm)");
+                data->GetYaxis()->SetTitle("Charge collected for 1000 photons");
                 data->Write("data_distribution");
+                fit_output->SetTitle("Exponential fit output");
+                fit_output->GetXaxis()->SetTitle("Amplitude (nb of charge collected per 1000 photon)");
+                fit_output->GetYaxis()->SetTitle("Distance R to the mPMT dome (cm)");
+                fit_output->Write("fit_output_xA_yR");
                 outf->Close();
             }//fiunished reading the reference file for the given position
         }
