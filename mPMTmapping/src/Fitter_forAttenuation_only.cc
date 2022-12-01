@@ -6,7 +6,6 @@
 #include "Math/Factory.h"
 #include "TFile.h"
 #include "TRandom3.h"
-// #include "TSpline3.h"
 #include "TGraph.h"
 #include "TH1.h"
 #include "TGraphErrors.h"
@@ -65,8 +64,8 @@ int main(int argc, char **argv){
 
             if (position_file.is_open()){   //checking whether the file is open
                 std::string tp_ref;
-                std::vector<double> data_xval, err_xval, data_scat_xval, err_scat_xval; //the variable you're fitting in
-                std::vector<double> data_yval, err_yval, data_scat_yval, err_scat_yval;
+                std::vector<double> data_xval, err_xval; //the variable you're fitting in
+                std::vector<double> data_yval, err_yval;
                 while(getline(position_file, tp_ref)){ //each reference point
 //                     std::cout << tp_ref << "  " << std::endl;
                     char *ptr_ref;
@@ -111,21 +110,11 @@ int main(int argc, char **argv){
                         err_yval.push_back(TMath::Sqrt(Q_ref * (1 - Q_ref/1000)));
 //                         std::cout << std::endl;
                     }
-
-                    if (abwff >= 1e10 && rayff <= 1e10){
-                        double alpha_scat = truth_alpha(401.9, abwff, rayff);
-                        data_scat_xval.push_back(alpha_scat);
-                        //std::cout << "Value :" << alpha_abs << " " << abwff << " "<< Q_ref << std::endl;
-                        data_scat_yval.push_back(Q_ref);
-                        err_scat_xval.push_back(0);
-                        err_scat_yval.push_back(TMath::Sqrt(Q_ref * (1 - Q_ref/1000)));
-                        //                         std::cout << std::endl;
-                    }
                 }//each reference point - now set up the fitting
                 const int nPars = 2;
 
 //                 std::cout << data_yval[4] << std::endl;
-//              This is the absorption part
+
                 Chisq *chi = new Chisq(nPars);
                 chi->setData(data_xval, data_yval);
                 ROOT::Math::Functor f(chi, &Chisq::fcn, nPars);
@@ -162,15 +151,7 @@ int main(int argc, char **argv){
                     fit_output = new TGraphErrors(1, &a, &a, &a, &a);
                 }
 
-
-//              This will be the scattering part
-//              Need to fit a spline to the data we have and save the data and the fit
-
-//                 TSpline3 *scatSpline = new TSpline3(data_scat_xval, data_scat_yval, 3, 0, 300);
-//                 scatSpline->Draw();
-
-//              This is saving everything
-                TFile *outf = new TFile(Form("reference_root/results_Abs_Scat_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
+                TFile *outf = new TFile(Form("reference_root/results_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
 
                 func.Write();
                 data->SetTitle("Charge vs attenuation lenght (absorption only)");

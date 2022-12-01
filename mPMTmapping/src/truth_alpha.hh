@@ -22,7 +22,7 @@
 #include <TRandom3.h>
 
 //code taken from Ka Ming Tsui's code
-double truth_alpha(double wavelength=401.9, double ABWFF=10e10, double RAYFF=0.001111) {
+double truth_alpha(double wavelength=401.9, double ABWFF=10e10, double RAYFF=0.0106) {
     const int NUMENTRIES_water=60;
     const double GeV=1.e9;
     const double cm=1;

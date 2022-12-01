@@ -30,10 +30,12 @@ PMT_x = PMT[2]
 PMT_y = PMT[3]
 PMT_z = PMT[4]
 
+filename_ref = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_txtFiles/mPMT_map_ID116.txt'
+
 def exponential(alpha_abs, A, R):
     #print(u)
     #print(alpha_abs)
-    return A  * np.exp(-R *alpha_abs)
+    return A  * np.exp(-R / alpha_abs)
 
 def least_squares_np(params): #a= amplitude, o=offset, p=phase, l=wavelength xx = portion to fit in x and yy in y
   sigma=0.01
@@ -71,20 +73,37 @@ for opt, arg in opts:
             outputfile_name = str(arg)
 
 
-theta_ref = float(filename.split("_theta")[1].split("_")[0])
-phi_ref = float(filename.split("_phi")[1].split("_")[0])
-R_ref = float(filename.split("_R")[1].split(".")[0])
+theta_target = float(filename.split("_theta")[1].split("_")[0])
+phi_target = float(filename.split("_phi")[1].split("_")[0])
+R_target = float(filename.split("_R")[1].split(".")[0])
 
-color = ['black', 'red', 'blue', 'green', 'darkorange', 'cyan']
+color = ['black', 'red', 'blue', 'green', 'darkorange', 'cyan', 'magenta']
 
 a = 0
 plt.figure(0, figsize =(25,20) )
 base = filename.split("_R")[0]
-outname = 'OnePosition_theta%.2f_phi%.2f_allR'%(theta_ref, phi_ref)
-R_list = [5.00, 10.00, 20.00, 40, 160, 320]
+outname = 'OnePosition_theta%.2f_phi%.2f_allR'%(theta_target, phi_target)
+R_list = [5.00, 10.00, 20.00, 40, 80, 160, 320]
 alpha_list = [10, 20, 40, 60, 100,150,220]
 
+table_ref = rd.read_data3(filename_ref )
+source_xyz_ref  = [table_ref[0], table_ref[1], table_ref[2]]
+source_Rtp_ref  = [table_ref[3], table_ref[4], table_ref[5]]
+x_ref , y_ref , z_ref  = np.array(table_ref [0]), np.array(table_ref [1]), np.array(table_ref [2])
+R_ref , theta_ref , phi_ref  = np.array(table_ref [5]), np.array(table_ref [3]), np.array(table_ref [4])
+Q_tot_ref  =  np.array(table_ref[6])
+nEvents_ref  = np.array(table_ref[7])
 
+df_ref  = pd.DataFrame()
+for i in range(len(x_ref)):
+    c = [x_ref [i], y_ref [i],  z_ref [i],  theta_ref [i], phi_ref [i],  R_ref [i],  Q_tot_ref [i],  nEvents_ref [i]]
+    row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events'], dtype=np.float64)
+    df_ref  = df_ref.append(row, ignore_index=True)
+
+df_ref = df_ref[df_ref['theta']==theta_target]
+df_ref = df_ref[df_ref['phi'] == phi_target]
+
+print( df_ref[df_ref['phi'] == phi_target])
 
 
 for j in R_list:
@@ -107,15 +126,15 @@ for j in R_list:
         row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events', 'abwff', 'rayff'], dtype=np.float64)
         df = df.append(row, ignore_index=True)
 
-
-
     df_abwff = df[df['rayff'] >= 10000]
     df_rayff = df[df['abwff'] >= 10000]
     df_abwff = df_abwff.sort_values(["abwff"], axis = 0, ascending = True).reset_index()
     df_rayff = df_rayff.sort_values(["rayff"], axis = 0, ascending = True).reset_index()
 
+    xs = np.linspace(10, 220, 1000)
 
-    xs = np.linspace(1/220, 1/10, 1000)
+    if float(df_ref['Q']) == 0:
+        df_ref['Q'] = 0.00001
     #plt.figure(1)
     #plt.subplot(2,1,1)
     #plt.plot(df_abwff['abwff'], alpha_list, 'x')
@@ -134,17 +153,19 @@ for j in R_list:
     plt.figure(0)
     #df_abwff['abwff']
     plt.subplot(2,1,1)
-    plt.title('Charge as a function of scattering and abosption - spline interpolation \n parameters at position: theta= %.2frad phi= %.2frad R= %icm'%(theta_ref, phi_ref, R_ref))
-    plt.plot(1/np.array(alpha_list), df_abwff['Q']/df_abwff['events'], 'o', color = color[a], markersize = 10)
+    plt.title('Charge as a function of scattering and abosption - spline interpolation \n parameters at position: theta= %.2frad phi= %.2frad R= %icm'%(theta_target, phi_target, R_target))
+    plt.errorbar(np.array(alpha_list), df_abwff['Q']/float(df_ref['Q']), yerr = np.sqrt(df_abwff['Q'] * (1-df_abwff['Q']/df_abwff['events']))/float(df_ref['Q']), fmt = 'o', color = color[a], markersize = 10)
 
 
-    y = df_abwff['Q']/df_abwff['events']
-    cs = spi.CubicSpline(alpha_list, y )
+    y = df_abwff['Q']/float(df_ref['Q'])
+    y_err = np.sqrt(df_abwff['Q'] * (1-df_abwff['Q']/df_abwff['events']))/float(df_ref['Q'])
+    print(y)
+    #cs = spi.CubicSpline(alpha_list, y )
 
-    #print(df_abwff['abwff'], df_abwff['Q']/df_abwff['events'])
-    #res = scipy.optimize.curve_fit(exponential, df_abwff['abwff'], df_abwff['Q']/df_abwff['events'])
-    xx = 1/np.array(alpha_list) #df_abwff['abwff']
-    yy =  df_abwff['Q']/df_abwff['events']
+    #print(df_abwff['abwff'], df_abwff['Q']/df_ref['Q'])
+    #res = scipy.optimize.curve_fit(exponential, df_abwff['abwff'], df_abwff['Q']/df_ref['Q'])
+    xx = np.array(alpha_list) #df_abwff['abwff']
+    yy =  df_abwff['Q']/float(df_ref['Q'])
     po = [0.3, j]
     m=im.Minuit(least_squares_np, (po[0], po[1]))
     m.migrad()
@@ -158,22 +179,24 @@ for j in R_list:
 
 
     plt.xlabel(f'1/Alpha Absorption')
-    plt.ylabel('Charge collected\nin mPMT58 per photon')
+    plt.ylabel('Charge collected\nin fraction of the max charge')
     plt.subplot(2,1,2)
-    plt.plot(df_rayff['rayff'], df_rayff['Q']/df_rayff['events'], 'o', color = color[a], markersize = 10)
+    plt.errorbar(df_rayff['rayff'], df_rayff['Q']/float(df_ref['Q']), yerr = np.sqrt(df_rayff['Q'] * (1-df_rayff['Q']/df_rayff['events']))/float(df_ref['Q']), fmt = 'o', color = color[a], markersize = 10)
     plt.xlabel(f'Rayleigh scattering parameter')
-    plt.ylabel('Charge collected\nin mPMT58 per photon')
+    plt.ylabel('Charge collected\nin fraction of the max charge')
 
 
 
     xs = np.linspace(0, 0.013, 1000)
-    cs = spi.CubicSpline(df_rayff['rayff'], df_rayff['Q']/df_rayff['events'])
+    cs = spi.CubicSpline(df_rayff['rayff'], df_rayff['Q']/float(df_ref['Q']))
     plt.plot(xs,cs(xs), label="R = %icm"%j,color = color[a])
 
 
 
     a = a+1
     #plt.yscale('log')
+
+
 
 
 

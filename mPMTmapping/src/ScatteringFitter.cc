@@ -74,7 +74,7 @@ int main(int argc, char **argv){
                 //Next: open the reference txt file for this position and from there extract the fitting information we are looking for
         //             std::fstream position_file;
                 std::fstream position;
-                position.open(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_Reference/OnePosition_theta%s_phi%s_R20.00.txt", theta_test, phi_test),std::ios::in);
+                position.open(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_Reference/OnePosition_theta%s_phi%s.txt", theta_test, phi_test),std::ios::in);
                 if (position.is_open()){   //checking whether the file is open
                     std::string tp2;
 //                     std::cout << "HUUU" << std::endl;
