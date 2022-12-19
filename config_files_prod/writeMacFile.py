@@ -1,4 +1,4 @@
-#This is a python file to write multiple occurences of a WCSim file
+#This is a python file to write multiple occurences of a WCSim config file stored in WCSim_config folder
 
 #It runs with the following inputs:
 # (R) R - distance from the PMT to the source
