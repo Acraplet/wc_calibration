@@ -52,7 +52,7 @@ if absff>=10:
 if rayff>=10:
     alpha_mode = "Absff%.3e_Rayff%.1e"%(absff, rayff)
 
-def makeConfigFile():
+def makeTuningConfigFile(FileID, abwff=10e10, rayff = 10e10):
     template_txtFile = open("WCSim_tuning_template.txt","r")
     config_saving_path = "/home/ac4317/Laptops/Year1/WCTE/wc_calibration/WCSim_tuningFiles"
 
@@ -65,7 +65,7 @@ def makeConfigFile():
     #print(config_file_name)
     template_txtFile.close()
 
-makeConfigFile()
+makeTuningConfigFile(FileID, absff, rayff)
 
 
 

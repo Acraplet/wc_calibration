@@ -5,8 +5,8 @@
 #include "Math/Functor.h"
 #include "Math/Factory.h"
 #include "TFile.h"
-#include "TRandom3.h"
-// #include "TSpline3.h"
+// #include "TRandom3.h"
+#include "TSpline.h"
 #include "TGraph.h"
 #include "TH1.h"
 #include "TGraphErrors.h"
@@ -15,7 +15,7 @@
 
 int main(int argc, char **argv){
     //we need the true value of alpha
-    std::cout << "hello world" << std::endl; 
+    std::cout << "hello world" << std::endl;
     std::cout << truth_alpha(401.9, 0.000486, 10e10) << std::endl;
 
     std::fstream newfile;
@@ -111,7 +111,7 @@ int main(int argc, char **argv){
                         err_yval.push_back(TMath::Sqrt(Q_ref * (1 - Q_ref/1000)));
 //                         std::cout << std::endl;
                     }
-
+//                  This is the scattering part
                     if (abwff >= 1e10 && rayff <= 1e10){
                         double alpha_scat = truth_alpha(401.9, abwff, rayff);
                         data_scat_xval.push_back(alpha_scat);
@@ -122,7 +122,7 @@ int main(int argc, char **argv){
                         //                         std::cout << std::endl;
                     }
                 }//each reference point - now set up the fitting
-                const int nPars = 2;
+                int nPars = 2;
 
 //                 std::cout << data_yval[4] << std::endl;
 //              This is the absorption part
@@ -139,44 +139,113 @@ int main(int argc, char **argv){
                 min->SetVariable(1, "radius", 1.0, 0.01);
 
                 min->Minimize();
-                min->PrintResults();
-                std::cout << std::endl;
+//                 min->PrintResults();
+//                 std::cout << std::endl;
                 const double * res = min->X();
                 const double * err = min->Errors();
-                std::cout << min->Status() << std::endl;
+//                 std::cout << min->Status() << std::endl;
                 if (min->Status() == 0) {
-                    std::cout << "haye"<< std::endl;
                     list_A.push_back(res[0]);
                     list_R.push_back(res[1]);
                 }
                 std::cout << res[0] << std::endl;
 
-                TF1 func = chi->getFunction(0, 220);
+                TF1 func = chi->getFunction(0, 220, "best_fit_abs");
                 TGraphErrors *data = new TGraphErrors(data_xval.size(), &data_xval[0], &data_yval[0], &err_xval[0], &err_yval[0]);
                 TGraphErrors *fit_output;
                 if (min->Status() == 0){
                     fit_output = new TGraphErrors(1, &res[0], &res[1], &err[0], &err[1]);
                 }
                 else {
+                    //save 0 if the fit didn't work
                     auto a = res[0] * 0;
                     fit_output = new TGraphErrors(1, &a, &a, &a, &a);
                 }
 
 
+                //This is the scattering part
+                nPars = 5;
+                Chisq *chi_scat = new Chisq(nPars);
+                chi_scat->setData(data_scat_xval, data_scat_yval);
+
+                ROOT::Math::Functor f_scat(chi_scat, &Chisq::fcn_rayff, nPars);
+
+                ROOT::Math::Minimizer *min_scat = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
+                min_scat->SetStrategy(3);
+                min_scat->SetFunction(f_scat);
+                min_scat->SetMaxFunctionCalls(10000);
+
+                min_scat->SetVariable(0, "a", 0.0, 0.01);
+                min_scat->SetVariable(1, "b", 1.0, 0.01);
+                min_scat->SetVariable(2, "c", 0.0, 0.01);
+                min_scat->SetVariable(3, "d", 1.0, 0.01);
+                min_scat->SetVariable(4, "e", 1.0, 0.01);
+//                 min_scat->SetVariable(5, "f", 0.0, 0.01);
+//                 min_scat->SetVariable(6, "g", 1.0, 0.01);
+//                 min_scat->SetVariable(7, "h", 0.0, 0.01);
+//                 min_scat->SetVariable(8, "i", 1.0, 0.01);
+//                 min_scat->SetVariable(9, "j", 1.0, 0.01);
+
+                min_scat->Minimize();
+                min_scat->PrintResults();
+
+                //Save as an histogram the result? yes cause it is a single position?
+                const double * res_scat = min_scat->X();
+                const double * err_scat = min_scat->Errors();
+                double x_pos[5] = {5., 25., 75., 150., 220.};
+                double x_err[5] = {0., 0., 0., 0., 0.};
+
+//                 for (int r = 0; r<=res.size(); r++){
+//                     node_x.push_back();
+//
+                TGraphErrors *gr = new TGraphErrors(5,x_pos,res_scat,x_err,err_scat);
+                gr->SetTitle("Scattering Spline nodes");
+
+
+//                 const double * res = min->X();
+//                 const double * err = min->Errors();
+
+//                 if (min->Status() == 0) {
+//                     list_A.push_back(res[0]);
+//                     list_R.push_back(res[1]);
+//                 }
+
+                TF1 func_scat = chi_scat->getFunction_rayff(0, 240, "best_fit_scat");
+
+                TGraphErrors *data_scat = new TGraphErrors(data_scat_xval.size(), &data_scat_xval[0], &data_scat_yval[0],&err_scat_xval[0], &err_scat_yval[0]);
+//                 TGraphErrors *fit_output_scat;
+// //                 if (min_scat->Status() == 0){
+//                     fit_output_scat = new TGraphErrors(1, &res_scat[0], &res_scat[1], &err_scat[0], &err_scat[1]);
+// //                 }
+//                 else {
+//                     auto a_scat = res_scat[0] * 0;
+//                     fit_output_scat = new TGraphErrors(1, &a_scat, &a_scat, &a_scat, &a_scat);
+//                 }
+
 //              This will be the scattering part
 //              Need to fit a spline to the data we have and save the data and the fit
 
-//                 TSpline3 *scatSpline = new TSpline3(data_scat_xval, data_scat_yval, 3, 0, 300);
+//                 TSpline *scatSpline = new TSpline("scatterning spline", 10., 5., 220., 10, false);
 //                 scatSpline->Draw();
 
 //              This is saving everything
                 TFile *outf = new TFile(Form("reference_root/results_Abs_Scat_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
 
+                func.SetTitle("absorption_best_fit");
                 func.Write();
-                data->SetTitle("Charge vs attenuation lenght (absorption only)");
-                data->GetXaxis()->SetTitle("Attenuation lenght (absorption only) (cm)");
+                func_scat.SetTitle("scattering_best_fit");
+                func_scat.Write();
+                gr->Write();
+                data->SetTitle("Charge vs attenuation lenght");
+                data->GetXaxis()->SetTitle("Attenuation lenght (cm)");
                 data->GetYaxis()->SetTitle("Charge collected for 1000 photons");
+
+                data_scat->SetTitle("Charge vs attenuation lenght");
+                data_scat->GetXaxis()->SetTitle("Attenuation lenght (cm)");
+                data_scat->GetYaxis()->SetTitle("Charge collected for 1000 photons");
+
                 data->Write("data_distribution");
+                data_scat->Write("data_scat_distribution");
                 fit_output->SetTitle("Exponential fit output");
                 fit_output->GetXaxis()->SetTitle("Amplitude (nb of charge collected per 1000 photon)");
                 fit_output->GetYaxis()->SetTitle("Distance R to the mPMT dome (cm)");
@@ -189,7 +258,7 @@ int main(int argc, char **argv){
     TH1* h_R = new TH1D("h_R", Form("Histogram of Fitted R - R True: %s", R_test), 100,0.,100.);
     TH1* h_A = new TH1D("h_A", Form("Histogram of Fitted A - R True: %s", R_test), 100,200.,400.);
     for (int u=0; u<list_R.size(); u++){
-        std::cout <<  list_R[u] << std::endl;
+//         std::cout <<  list_R[u] << std::endl;
         h_R->Fill(list_R[u]);
         h_A->Fill(list_A[u]);
 

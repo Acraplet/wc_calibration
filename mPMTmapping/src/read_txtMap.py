@@ -132,25 +132,31 @@ if comparision_file != 'none':
 
 if comparision_file == 'none':
     plt.style.use(["science", "notebook", "grid"])
-    distance_to_closest_PMT = []
-    Q_array = []
-    #check the closet distance to PMT
-    for index, row in df.iterrows():
-        dist_min = 100000
-        for index_geom, row_geom in df_geom.iterrows():
-        #for PMT in df_geom['mPMT_pmt'].unique():
-           #print()
-           distance = dist(row_geom, row)
-           if distance <= dist_min:
-               dist_min = distance
-        distance_to_closest_PMT.append(dist_min)
-        Q_array.append(row['Q']/row['events'])
-    plt.title('Charge collected vs distance to closest PMT\nFileID%s'%filename)
-    plt.xlabel('Distance to the closest PMT (cm)')
-    plt.ylabel('Charge collected per photon')
-    plt.plot(distance_to_closest_PMT, Q_array, 'x')
-    plt.xscale('log')
-    plt.show()
+    ####Binned approach
+    #first calculate the distance to each bin center
+
+
+
+
+    ###distance_to_closest_PMT = []
+    ###Q_array = []
+    ####check the closet distance to PMT
+    ###for index, row in df.iterrows():
+        ###dist_min = 100000
+        ###for index_geom, row_geom in df_geom.iterrows():
+        ####for PMT in df_geom['mPMT_pmt'].unique():
+           ####print()
+           ###distance = dist(row_geom, row)
+           ###if distance <= dist_min:
+               ###dist_min = distance
+        ###distance_to_closest_PMT.append(dist_min)
+        ###Q_array.append(row['Q']/row['events'])
+    ###plt.title('Charge collected vs distance to closest PMT\nFileID%s'%filename)
+    ###plt.xlabel('Distance to the closest PMT (cm)')
+    ###plt.ylabel('Charge collected per photon')
+    ###plt.plot(distance_to_closest_PMT, Q_array, 'x')
+    ###plt.xscale('log')
+    ###plt.show()
 
 #    raise End
     fig = plt.figure(figsize=(20,10))
@@ -363,6 +369,9 @@ ax.scatter3D(PMT_x,PMT_z,PMT_y, marker = 'o')
 for i in range(len(x)):
     ax.plot([x[i], x[i] - R[i] *  np.sin(theta[i]) * np.cos(phi[i])], [z[i], z[i] - R[i] * np.sin(theta[i]) * np.sin(phi[i])], [y[i], y[i] - R[i] * np.cos(theta[i])], 'r-')
 plt.show()
+
+
+
 
 
 

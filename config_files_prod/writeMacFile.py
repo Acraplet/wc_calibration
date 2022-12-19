@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import getopt
-
+import random
 ###first up - get the position of the PMT we are interested in - not needed anymore
 #output_checks_file = str(sys.argv[1])
 #tree_data = uproot.open("%s"%output_checks_file)["pmt_type0"]
@@ -32,6 +32,7 @@ nPhi = 0
 R = 10
 nEvent = 10000
 
+random_positions = False #instead of a clean phi, theta array choose random theta and phi positions
 theta_min = 0
 theta_max = np.sin(1.1) # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
 
@@ -42,7 +43,7 @@ FileID = 0
 
 argv = sys.argv[1:]
 
-opts, args = getopt.getopt(argv, "t:R:p:f:e:a:r:")
+opts, args = getopt.getopt(argv, "t:R:p:f:e:a:r:d:")
 for opt, arg in opts:
         if opt in ['-R']:
             R = float(arg)
@@ -58,6 +59,9 @@ for opt, arg in opts:
             absff = float(arg)
         elif opt in ['-r']:
             rayff = float(arg)
+        elif opt in ['-d']:
+            random_positions = bool(arg)
+            print("careful - we are using random source positions instead of an array of %i pos in phi and %i pos in theta"%(nPhi, nTheta))
 
 alpha_mode = "Absff%.3e_Rayff%.3e"%(absff, rayff)
 
@@ -112,26 +116,44 @@ targetPMT_zpos = 0.0
 source_xpos = 0
 source_ypos = 0
 source_zpos = 0
+mPMT_radius = 34.2 #need to put the source away from the centre of the mPMT sphere
 #alpha_mode = "noAlpha"
 
-range_theta = np.linspace(theta_min, theta_max, nTheta)
-range_phi = np.linspace(phi_min, phi_max, nPhi)
+if random_positions == False:
+    range_theta = np.linspace(theta_min, theta_max, nTheta)
+    range_phi = np.linspace(phi_min, phi_max, nPhi)
+    range_theta = np.arcsin(range_theta)
 
-range_theta = np.arcsin(range_theta)
+    for theta in range_theta:
+        w = 0
+        for phi in range_phi:
+            if theta!=0 or w == 0:   
+              source_xpos = targetPMT_xpos + (R + mPMT_radius) * np.sin(theta) * np.cos(phi)
+              source_ypos = targetPMT_ypos + (R + mPMT_radius) * np.cos(theta) #careful, y is the "typical" vertical z coordinate
+              #print(source_ypos)
+              source_zpos = targetPMT_zpos + (R + mPMT_radius) * np.sin(theta) * np.sin(phi)
+              makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode,theta, phi, R, nEvent)
 
-mPMT_radius = 34.2 #need to put the source away from the centre of the mPMT sphere
+if random_positions == True:
+    range_theta = []
+    range_phi = []
+    for k in range(381):
+        range_theta.append(random.uniform(theta_min, theta_max)) #here random draw in sin theta
+        range_phi.append(random.uniform(phi_min, phi_max))
+    range_theta = np.arcsin(np.array(range_theta)) #convert back to theta
+    range_phi = np.array(range_phi) #for now use completely random phi
 
 
-for theta in range_theta:
-    w = 0
-    for phi in range_phi:
+    for t in range(len(range_theta)):
+        phi = range_phi[t];
+        theta = range_theta[t];
         if theta!=0 or w == 0:   
-          source_xpos = targetPMT_xpos + (R + mPMT_radius) * np.sin(theta) * np.cos(phi)
-          source_ypos = targetPMT_ypos + (R + mPMT_radius) * np.cos(theta) #careful, y is the "typical" vertical z coordinate
-          #print(source_ypos)
-          source_zpos = targetPMT_zpos + (R + mPMT_radius) * np.sin(theta) * np.sin(phi)
-          makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode,theta, phi, R, nEvent)
-          w = 1
+            source_xpos = targetPMT_xpos + (R + mPMT_radius) * np.sin(theta) * np.cos(phi)
+            source_ypos = targetPMT_ypos + (R + mPMT_radius) * np.cos(theta) #careful, y is the "typical" vertical z coordinate
+              #print(source_ypos)
+            source_zpos = targetPMT_zpos + (R + mPMT_radius) * np.sin(theta) * np.sin(phi)
+            makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode,theta, phi, R, nEvent)
+            w = 1
 
 
 
