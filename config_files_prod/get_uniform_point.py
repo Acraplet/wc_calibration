@@ -4,39 +4,23 @@ import matplotlib.pyplot as plt
 
 
 def get_tp_point(theta_max = 1.1, phi_min = 0, phi_max = np.pi/2):
+    ''' This is a function that gives back points uniformly spread accross the dome
+    This is done by ensuring that the number of points on a given ring is proportionnal 
+    to the perimeter of that ring (hence the linear function in theta in the if condition)
+    '''
     a = False
     while a != True:
         u = random()
         v = random()
         test = random()
-
         theta =  2 * np.pi * u
         phi = 2 * np.pi * v
-
         b = 0
         c = 0.4
-
         theta_max = 1.1
         if (test) <= c * u + b  and theta <= theta_max  and phi <= phi_max and phi >= phi_min:#
             a = True
             return theta, phi
-        #ax2 = fig.add_subplot(122, projection='polar')
-        #ax2.set_title("Q Comparision \n %s-%s"%(filename, comparision_file))
-
-        #zr2 = (df['Q']/df['events'] - df_compa['Q']/df_compa['events']) #/df['Q']/df['events']
-        #im2 = ax2.scatter(df['phi'], df['theta'], c = zr2, cmap = "nipy_spectral",s = 40)
-        #col3 = plt.colorbar(im2, label=f"Difference in number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
-
-        #ax2.set_thetamin(0)
-        #ax2.set_thetamax(phi_max)
-        #ax2.xaxis.labelpad = 10
-
-        #ax2.set_xlabel(f'$\Theta$(rad)')
-        #plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_pictures/Comparisions/Non-interpolated/%s.png'%outputfile_name)
-        ##plt.show()
-    #plt.plot(hist.T)
-    #plt.show()
-
 
 '''
 Notes from the meeting:
