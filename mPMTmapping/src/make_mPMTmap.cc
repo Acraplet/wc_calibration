@@ -43,11 +43,8 @@ void HelpMessage()
 }
 
 int main(int argc, char **argv){
-    bool verbose=false;
     char * filename=NULL;
     char * outfilename=NULL;
-    long int endEvent=0;
-    long int startEvent=0;
     char c;
 
     while( (c = getopt(argc,argv,"f:o:b:s:e:l:r:p:c:w:hdtv")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
@@ -71,7 +68,6 @@ int main(int argc, char **argv){
 
     if (outfilename==NULL){
         std::cout << WAR << "Warning, no output file given, using test.txt " << std::endl;
-        outfilename = "test.txt";
 //         HelpMessage();
     }
 

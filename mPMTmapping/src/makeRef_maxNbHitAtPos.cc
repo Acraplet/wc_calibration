@@ -42,10 +42,7 @@ void HelpMessage()
 }
 
 int main(int argc, char **argv){
-    bool verbose=false;
     char * filename=NULL;
-    long int endEvent=0;
-    long int startEvent=0;
     char c;
 
     while( (c = getopt(argc,argv,"f:o:b:s:e:l:r:p:c:w:hdtv")) != -1 ){

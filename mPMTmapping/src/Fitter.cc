@@ -26,7 +26,7 @@ int main(int argc, char **argv){
         std::string tp;
         while(getline(newfile, tp)){  //read data from file object and put it into string.
             //this is for each test source position
-//             std::cout << tp << "  " << std::endl;   //print the data of the string
+            //             std::cout << tp << "  " << std::endl;   //print the data of the string
             char *ptr;
             //convert to s char the string of the line we are extracting
             char* character = std::strcpy(new char[tp.length() + 1], tp.c_str());
@@ -39,7 +39,7 @@ int main(int argc, char **argv){
 
 
             while (ptr != NULL)
-            //loop over the characteristics of the given position
+                //loop over the characteristics of the given position
             {
                 if (i==3){
                     std::cout << "theta : " << ptr  << " " << i << std::endl; // print the string token
@@ -68,7 +68,7 @@ int main(int argc, char **argv){
                 std::vector<double> data_xval, err_xval, data_scat_xval, err_scat_xval; //the variable you're fitting in
                 std::vector<double> data_yval, err_yval, data_scat_yval, err_scat_yval;
                 while(getline(position_file, tp_ref)){ //each reference point
-//                     std::cout << tp_ref << "  " << std::endl;
+                    //                     std::cout << tp_ref << "  " << std::endl;
                     char *ptr_ref;
                     //convert to s char the string of the line we are extracting
                     char* character_ref = std::strcpy(new char[tp_ref.length() + 1], tp_ref.c_str());
@@ -88,7 +88,7 @@ int main(int argc, char **argv){
                             //std::cout << "abwff : " << ptr_ref  << std::endl; // print the string token
                             std::string fs(ptr_ref);
                             abwff=std::stof(fs);
-//                             float  = (float) (ptr_ref)
+                            //                             float  = (float) (ptr_ref)
                             //std::cout << truth_alpha(401.9, abwff, 10e10);
                         }
                         if (j==9){
@@ -100,7 +100,7 @@ int main(int argc, char **argv){
                         ptr_ref = std::strtok (NULL, " ");
                         j +=1;
                     }//characteristic of the given position
-//                     std::cout << abwff << " and "<< rayff<< std::endl;
+                    //                     std::cout << abwff << " and "<< rayff<< std::endl;
                     //now append to the correct data points:
                     if (abwff <= 1e10 && rayff >= 1e10){
                         double alpha_abs = truth_alpha(401.9, abwff, rayff);
@@ -109,9 +109,9 @@ int main(int argc, char **argv){
                         data_yval.push_back(Q_ref);
                         err_xval.push_back(0);
                         err_yval.push_back(TMath::Sqrt(Q_ref * (1 - Q_ref/1000)));
-//                         std::cout << std::endl;
+                        //                         std::cout << std::endl;
                     }
-//                  This is the scattering part
+                    //                  This is the scattering part
                     if (abwff >= 1e10 && rayff <= 1e10){
                         double alpha_scat = truth_alpha(401.9, abwff, rayff);
                         data_scat_xval.push_back(alpha_scat);
@@ -124,8 +124,8 @@ int main(int argc, char **argv){
                 }//each reference point - now set up the fitting
                 int nPars = 2;
 
-//                 std::cout << data_yval[4] << std::endl;
-//              This is the absorption part
+                //                 std::cout << data_yval[4] << std::endl;
+                //              This is the absorption part
                 Chisq *chi = new Chisq(nPars);
                 chi->setData(data_xval, data_yval);
                 ROOT::Math::Functor f(chi, &Chisq::fcn, nPars);
@@ -139,11 +139,11 @@ int main(int argc, char **argv){
                 min->SetVariable(1, "radius", 1.0, 0.01);
 
                 min->Minimize();
-//                 min->PrintResults();
-//                 std::cout << std::endl;
+                //                 min->PrintResults();
+                //                 std::cout << std::endl;
                 const double * res = min->X();
                 const double * err = min->Errors();
-//                 std::cout << min->Status() << std::endl;
+                //                 std::cout << min->Status() << std::endl;
                 if (min->Status() == 0) {
                     list_A.push_back(res[0]);
                     list_R.push_back(res[1]);
@@ -180,11 +180,11 @@ int main(int argc, char **argv){
                 min_scat->SetVariable(2, "c", 0.0, 0.01);
                 min_scat->SetVariable(3, "d", 1.0, 0.01);
                 min_scat->SetVariable(4, "e", 1.0, 0.01);
-//                 min_scat->SetVariable(5, "f", 0.0, 0.01);
-//                 min_scat->SetVariable(6, "g", 1.0, 0.01);
-//                 min_scat->SetVariable(7, "h", 0.0, 0.01);
-//                 min_scat->SetVariable(8, "i", 1.0, 0.01);
-//                 min_scat->SetVariable(9, "j", 1.0, 0.01);
+                //                 min_scat->SetVariable(5, "f", 0.0, 0.01);
+                //                 min_scat->SetVariable(6, "g", 1.0, 0.01);
+                //                 min_scat->SetVariable(7, "h", 0.0, 0.01);
+                //                 min_scat->SetVariable(8, "i", 1.0, 0.01);
+                //                 min_scat->SetVariable(9, "j", 1.0, 0.01);
 
                 min_scat->Minimize();
                 min_scat->PrintResults();
@@ -195,40 +195,40 @@ int main(int argc, char **argv){
                 double x_pos[5] = {5., 25., 75., 150., 220.};
                 double x_err[5] = {0., 0., 0., 0., 0.};
 
-//                 for (int r = 0; r<=res.size(); r++){
-//                     node_x.push_back();
-//
+                //                 for (int r = 0; r<=res.size(); r++){
+                //                     node_x.push_back();
+                //
                 TGraphErrors *gr = new TGraphErrors(5,x_pos,res_scat,x_err,err_scat);
                 gr->SetTitle("Scattering Spline nodes");
 
 
-//                 const double * res = min->X();
-//                 const double * err = min->Errors();
+                //                 const double * res = min->X();
+                //                 const double * err = min->Errors();
 
-//                 if (min->Status() == 0) {
-//                     list_A.push_back(res[0]);
-//                     list_R.push_back(res[1]);
-//                 }
+                //                 if (min->Status() == 0) {
+                //                     list_A.push_back(res[0]);
+                //                     list_R.push_back(res[1]);
+                //                 }
 
                 TF1 func_scat = chi_scat->getFunction_rayff(0, 240, "best_fit_scat");
 
                 TGraphErrors *data_scat = new TGraphErrors(data_scat_xval.size(), &data_scat_xval[0], &data_scat_yval[0],&err_scat_xval[0], &err_scat_yval[0]);
-//                 TGraphErrors *fit_output_scat;
-// //                 if (min_scat->Status() == 0){
-//                     fit_output_scat = new TGraphErrors(1, &res_scat[0], &res_scat[1], &err_scat[0], &err_scat[1]);
-// //                 }
-//                 else {
-//                     auto a_scat = res_scat[0] * 0;
-//                     fit_output_scat = new TGraphErrors(1, &a_scat, &a_scat, &a_scat, &a_scat);
-//                 }
+                //                 TGraphErrors *fit_output_scat;
+                // //                 if (min_scat->Status() == 0){
+                //                     fit_output_scat = new TGraphErrors(1, &res_scat[0], &res_scat[1], &err_scat[0], &err_scat[1]);
+                // //                 }
+                //                 else {
+                //                     auto a_scat = res_scat[0] * 0;
+                //                     fit_output_scat = new TGraphErrors(1, &a_scat, &a_scat, &a_scat, &a_scat);
+                //                 }
 
-//              This will be the scattering part
-//              Need to fit a spline to the data we have and save the data and the fit
+                //              This will be the scattering part
+                //              Need to fit a spline to the data we have and save the data and the fit
 
-//                 TSpline *scatSpline = new TSpline("scatterning spline", 10., 5., 220., 10, false);
-//                 scatSpline->Draw();
+                //                 TSpline *scatSpline = new TSpline("scatterning spline", 10., 5., 220., 10, false);
+                //                 scatSpline->Draw();
 
-//              This is saving everything
+                //              This is saving everything
                 TFile *outf = new TFile(Form("reference_root/results_Abs_Scat_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
 
                 func.SetTitle("absorption_best_fit");
@@ -253,22 +253,22 @@ int main(int argc, char **argv){
                 outf->Close();
             }//fiunished reading the reference file for the given position
         }
-    newfile.close();   //close the file object.
-    //now plot the histogram -
-    TH1* h_R = new TH1D("h_R", Form("Histogram of Fitted R - R True: %s", R_test), 100,0.,100.);
-    TH1* h_A = new TH1D("h_A", Form("Histogram of Fitted A - R True: %s", R_test), 100,200.,400.);
-    for (int u=0; u<list_R.size(); u++){
-//         std::cout <<  list_R[u] << std::endl;
-        h_R->Fill(list_R[u]);
-        h_A->Fill(list_A[u]);
+        newfile.close();   //close the file object.
+        //now plot the histogram -
+        TH1* h_R = new TH1D("h_R", Form("Histogram of Fitted R - R True: %s", R_test), 100,0.,100.);
+        TH1* h_A = new TH1D("h_A", Form("Histogram of Fitted A - R True: %s", R_test), 100,200.,400.);
+        for (long unsigned int u=0; u<list_R.size(); u++){
+            //         std::cout <<  list_R[u] << std::endl;
+            h_R->Fill(list_R[u]);
+            h_A->Fill(list_A[u]);
 
-    }
-    h_R->GetXaxis()->SetTitle("Fitted R(cm)");
-    h_A->GetXaxis()->SetTitle("Fitted max charge per 1000 photon");
-    TFile f(Form("histos_R%s.root", R_test), "RECREATE");
-    h_A->Write();
-    h_R->Write();
-    f.Close();
+        }
+        h_R->GetXaxis()->SetTitle("Fitted R(cm)");
+        h_A->GetXaxis()->SetTitle("Fitted max charge per 1000 photon");
+        TFile f(Form("histos_R%s.root", R_test), "RECREATE");
+        h_A->Write();
+        h_R->Write();
+        f.Close();
 
     }
 }
