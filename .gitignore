@@ -7,6 +7,11 @@
 *.o
 *.obj
 
+#large or useless files
+*.root
+*.mac
+*.txt
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -30,3 +35,6 @@
 *.exe
 *.out
 *.app
+
+#cache
+*__pycache__*
