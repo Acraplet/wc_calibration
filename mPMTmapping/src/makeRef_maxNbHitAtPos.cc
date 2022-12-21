@@ -113,7 +113,7 @@ int main(int argc, char **argv){
     //In case we made a mistake in selecting the reference code
     if (abwff <= 10 or rayff <= 10){
 	    std::cout << "Please use files that have a infinite attenuation and scattering length as reference" << std::endl;
-	    throw (Not_a_Reference);
+	    throw;
     }
     //so far we are looking at the raw Cherenkov hits instead of the digitised ones
     TFile *infile = new TFile(filename, "READ");
@@ -159,4 +159,4 @@ int main(int argc, char **argv){
     std::ofstream onePosition;
     onePosition.open(onePosition_outfile, std::ofstream::app);
     onePosition << nHitsTot << " " << n_entries << std::endl;
-
+}

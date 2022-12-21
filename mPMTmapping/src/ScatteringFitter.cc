@@ -1,5 +1,5 @@
 
-#include "truth_alpha.hh"
+#include "../include/truth_alpha.hh"
 #include <iostream>
 #include "../chisq/chisq.h"
 #include "Math/Minimizer.h"
