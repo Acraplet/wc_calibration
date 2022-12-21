@@ -1,4 +1,5 @@
 //This is a cpp code reading the WCSim files counting the number of photons hitting the mPMT from all the angles
+//It stores the information in a .txt file that has  x << " " << y << " " << z << " " << t << " " << p << " " << R << " " << nHitsTot << " " << n_entries where nEntries is the total number of photons that were simulated
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -24,8 +25,6 @@
 #include "ColorOutput.hh"
 // #include "../include/WCSimRootEvent.hh"
 
-
-//This is a work in progress - the python file needs to be translated into cpp
 //Need to:
 /*
  - open all the data with a given configurations
@@ -82,7 +81,6 @@ int main(int argc, char **argv){
     std::string T;
     std::stringstream X(filename);
     while(std::getline(X, T, '_')){
-//         std::cout << T << std::endl; // print split string
         if (!T.find("x")){
             str = T.find("x");
             x = T.erase(0,str+1);
@@ -110,20 +108,10 @@ int main(int argc, char **argv){
     }
     std::cout << "Source position : " << x << " " << y << " " << z << " " << t << " " << p << " " << R << std::endl;
 
-//     int pos = inputFilename.find("fitoutput");
-//     std::string str3 = inputFilename.substr(pos);
-//     int pos2 = str3.find(".root");
-//     std::string str4 = str3.erase(pos2);
-//     const char* folder = str4.c_str();
-/*
-    TChain *tree = new TChain("wcsimT");
-    tree->Add(filename);*/
-
     TFile *infile = new TFile(filename, "READ");
     TTree *events = (TTree*)infile->Get("CherenkovHits");
 
     int event;
-//     int PMT_QTot;
     int NHits;
     int mPMT;
     int mPMT_pmt;
@@ -133,14 +121,12 @@ int main(int argc, char **argv){
     events->SetBranchAddress("NHits", &NHits);
     events->SetBranchAddress("mPMT", &mPMT);
     events->SetBranchAddress("mPMT_pmt", &mPMT_pmt);
-//     events->SetBranchAddress("PMT_QTot", &PMT_QTot);
 
 
     int n_entries = events->GetEntries();
 
     for(int i=0; i<n_entries; i++){
         events->GetEntry(i);
-//         std::cout<<"event: "<<event<< " NHits " << NHits <<std::endl;
 	if (mPMT == 58){
 		if (mPMT_pmt != 19){
         		nHitsTot += NHits;
@@ -157,73 +143,6 @@ int main(int argc, char **argv){
     std::ofstream outfile;
     outfile.open(outfilename, std::ofstream::app);
     outfile <<  x << " " << y << " " << z << " " << t << " " << p << " " << R << " " << nHitsTot << " " << n_entries << std::endl;
-
-    //To have the output file! - obviously will need to adapt
-//     std::ofstream outfile;
-//     outfile.open(Form("Calibration_output/CleanFiles_v6/Angular_results_%s.txt", folder), std::ios_base::trunc);//
-//
-//     for (int i=1; i<h_res->GetEntries()+1 ; i++){
-//         outfile << "mPMT_angular_" << i << ": "<< h_res->GetBinContent(i) << " +/- " << h_err->GetBinContent(i) << std::endl;
 }//End of main
 
 
-
-/*
-TTree *geotree = (TTree*)file->Get("wcsimGeoT");
-
-TFile * outfile = new TFile(outfilename,"RECREATE");
-std::cout<<TAG<<"File "<<outfilename<<" is open for writing"<<std::endl;
-
-TTree* hitNb = new TTree("hitNb","hitNb");
-hitNb->Branch("nPE",&nPE)
-
-double vtxpos[3];
-wcsimrootevent = wcsimrootsuperevent->GetTrigger(0);
-for (int i=0;i<3;i++) vtxpos[i]=wcsimrootevent->GetVtx(i); //this is the source position
-*/
-
-
-//////////////// The way inspiured by KM's code: way too convoluted
-
-
-
-/*
-//     std::string single_file_name = tree->GetFile()->GetName();
-//     TFile *file = TFile::Open(single_file_name.c_str());
-
-//Number of events
-long int nevent = ((int)tree->GetEntries());
-if(verbose) printf("nevent %ld\n",nevent);
-
-//A place holder for the root event
-WCSimRootEvent* wcsimrootsuperevent = new WCSimRootEvent();
-tree->SetBranchAddress("wcsimrootevent",&wcsimrootsuperevent);
-
-WCSimRootTrigger* wcsimrootevent;
-wcsimrootevent = wcsimrootsuperevent->GetTrigger(0);
-
-double nPE; //the number of photon-electrons collected
-
-// Now loop over events
-for (long int ev=startEvent; ev<nevent; ev++)
-{
-    delete wcsimrootsuperevent;
-    wcsimrootsuperevent = 0;  // EXTREMELY IMPORTANT
-    // Read the event from the tree into the WCSimRootEvent instance
-    tree->GetEntry(ev);
-    int ncherenkovhits     = wcsimrootevent->GetNcherenkovhits(); //the total number of cherenkov hits which can induce sub events later
-    int nhits;
-    nhits = ncherenkovhits;
-
-    for (int i=0; i< nhits ; i++)
-    {
-        //if(verbose) cout << "Hit #" << i << endl;
-        WCSimRootCherenkovHit *wcsimrootcherenkovhit;
-        wcsimrootcherenkovhit = (WCSimRootCherenkovHit*) (wcsimrootevent->GetCherenkovHits())->At(i);
-        int peForTube      = wcsimrootcherenkovhit->GetTotalPe(1);
-        nPE = peForTube;
-
-    } // End of loop over Cherenkov hits
-} // End of loop over events
-}//end of main
-*/
