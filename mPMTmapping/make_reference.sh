@@ -1,14 +1,14 @@
-#This is a batch file to run a complete map for a given run ID
-#called with bash make_mPMTmap.sh ID where ID is the FileID that we want and the flat files are stored in the
-#/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/data/ folder
+#This is a batch file that stores as a one liner the max value fo the charge collected if there is no
+#absorption or scattering  we need to be very careful to use the correct reference otherwise it will
+#mess up our absorption length estimate
 ID=$1
 VAR="$(ls /home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/data/*FileID""$ID""_*_flat*)"
 make
-
-#to make sure we don't add to an existing file
+echo "Please be sure that "$ID" is a reference file as it might impact the quality of your fit later on to have non-reference file in your look up table - This file shouldn't have either scattering or attenuation"
+sleep 2s
 for name in $VAR
 do
     echo $name
-    ./bin/make_referenceMap -f $name
+    ./bin/makeRef_maxNbHitAtPos -f $name
     echo
 done

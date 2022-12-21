@@ -1,5 +1,5 @@
 #this is a file that distributes the read-out of the map in a source position (Rtp)-dependant file
-#the file just appends the information and thi sis then used for checking how this specific position 
+#the file just appends the information and this is then used for checking how this specific position
 #behaves as the scattering and absorption lengths are varied
 #Please be careful not to add configurations that are not "reference" 
 #(i.e. good stats, only scattering or absorption toggled at once, sensible R distance)
