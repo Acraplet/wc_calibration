@@ -4,6 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 '''
 This code is splitting a sphere into a lot of small triangles covering the surface to 
 make uniform bins. It is lifted and adapted from the internet.
+It stores the 3D coordinate of each bin in mPMTmapping/uniform_304_bins.txt
 '''
 total_data = []
 total_points = []
@@ -124,7 +125,7 @@ z = z + origin [2]
 
 #Saving the uniform bins - be careful these are for the 58th mPMT
 table = [x, y, z]
-np.savetxt('uniform_304_bins.txt', table)
+np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_304_bins.txt', table)
 
 #here convert back the positions so we can plot them nicely 
 x = x - origin[0]
