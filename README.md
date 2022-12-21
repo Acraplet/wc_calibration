@@ -96,10 +96,10 @@ For absorption, the max charge that gets collected at a given position when ther
 ```
 bash make_reference ID_ref
 ```
-## Fit the response
+### Fit the response
 The typical response function for absorption is an exponential function Q_pred = A_max * exp(-R/abs_length). A_max is the reference value that we have saved just before and the R value (dome-source distance) is known and lifted from the dataset. abs_length is obtained from minimising the chi2 between Q_true and Q_pred. The code that does this is
 ```
-mPMTmapping/bin/AbsorptionFitter ID1 ID2 ... IDn
+./bin/AbsorptionFitter ID1 ID2 ... IDn
 ```
 The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be resolved by using a binned approach but until then we need to have a reference max charge for each source position at each R that we want to use. 
 
@@ -119,7 +119,7 @@ as well as files with a give rayff and an infinite abwff, we can also use this c
 
 The code
 ```
-Fitter ID
+./bin/Fitter ID
 ```
 looks up the reference values in the OnePosition files and then fits separately the attenuation and scattering response to this data. For the absorption fit, an exponential with two free parameters is fitted to these reference points with Q_pred = A * exp(-R/abs_length_true). the output of this fit is saved in the mPMTmapping/reference_root file corresponding to this (R, theta, phi) position. A quick comparision between the mean estimate of R and A over all of the source positions and the corresponding true values, respectively input to WCSim and the A_max obtained from datasets without any attenuation are a check of the hypothesis we made previously. 
 
@@ -129,7 +129,7 @@ This code looks in a second time at the scattering length and fits to the refere
 After the source position-dependant mPMT response to scattering has been fitted, we use it to extract the scattering length of any test mPMT map with
 
 ```
-mPMTmapping/bin/ScatteringFitter ID1 ID2 ... IDn
+./bin/ScatteringFitter ID1 ID2 ... IDn
 ```
 
 just like with absorption we try to minimise the difference between Q_pred and Q_true as a function of the scattering length but this time Q_pred = TSpline3_fakedata(*y_of_nodes_from above) at scattering_length_pred. Again we can use multiple files to refine the approach. unlike for absorption the results are not very convincing so far...
