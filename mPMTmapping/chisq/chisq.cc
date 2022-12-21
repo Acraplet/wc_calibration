@@ -38,13 +38,8 @@ void Chisq::setRef(std::vector<double> Ain, std::vector<double> Rin){
 }
 
 void Chisq::setRef_spline(std::vector<TF1*> Ref_splines_rayff){
-    //y_pred.resize(xin.size());
     std::cout << "uwu"<<std::endl;
     ray_spline = Ref_splines_rayff;
-//     for(int i=0; i<Ref_splines_rayff.size(); i++){
-// //         ray_spline[i] = &Ref_splines_rayff[i];
-//          memcpy(ray_spline[i], Ref_splines_rayff[i], 1);
-//     }
     std::cout << ray_spline[0]<<std::endl;
 }
 
@@ -61,13 +56,11 @@ void Chisq::setPars(const double *parameters){
 }
 double Chisq::makePredictionX(double xval){
     //put your user defined function here
-    //return xval*pars[0] + pars[1] + pars[2]*TMath::Gaus(xval, pars[3], pars[4], true);
     return pars[0] * TMath::Exp(- 1/xval * pars[1]); // + pars[2]; // + pars[2] + pars[3]- pars[4];
 
 }
 
 double Chisq::makePredictionX_abwff(int xval){
-    //std::cout << A[xval] << std::endl;
     return A[xval] * TMath::Exp(- 1/pars[0] * R[xval]); // + pars[2]; // + pars[2] + pars[3]- pars[4];
 
 }
@@ -100,12 +93,8 @@ void Chisq::makePrediction_rayleigh(){
     for(int i=0; i<x.size(); i++){
         y_pred[i] = makePredictionX_rayleigh(i);
     }
-
-        //at position i we are looking up the value of the reference spline
-        //correspionding to this scattering length where i in theta, phi, R pos
-//         std::cout << ray_spline.size() << std::endl;
-//         y_pred[i] = ray_spline[i]->Eval(pars[0]);
 }
+
 
 void Chisq::makePrediction_rayff(){
     //put your user defined function in here
@@ -122,7 +111,6 @@ double Chisq::fcn_abwff(const double *parameters){
 	if (y[i]== 0. and y_pred[i] <= 10.e-5) continue;
 	if (y_pred[i] <= 10e-5 ){
 		ret_val += (y[i]-y_pred[i])*(y[i]-y_pred[i])/0.01;
-		//std::cout << "y_pred is 0 " << std::endl;
 	}
 	else {
         	ret_val += (y[i]-y_pred[i])*(y[i]-y_pred[i])/y_pred[i];
@@ -139,7 +127,6 @@ double Chisq::fitter_rayleigh(const double *parameters){
         if (y[i]== 0. and y_pred[i] <= 10.e-5) continue;
         if (y_pred[i] <= 10e-5 ){
             ret_val += (y[i]-y_pred[i])*(y[i]-y_pred[i])/0.0001;
-            //std::cout << "y_pred is 0 " << std::endl;
         }
         else {
             ret_val += (y[i]-y_pred[i])*(y[i]-y_pred[i])/y_pred[i];
@@ -156,12 +143,10 @@ double Chisq::fcn_rayff(const double *parameters){
         if (y[i]== 0. and y_pred[i] <= 10.e-5) continue;
         if (y_pred[i] <= 10e-5 ){
                 ret_val += (y[i]-y_pred[i])*(y[i]-y_pred[i])/0.001;
-                //std::cout << "y_pred is 0 " << std::endl;
         }
         else {
                 ret_val += (y[i]-y_pred[i])*(y[i]-y_pred[i])/y_pred[i];
         }
-//         std::cout << "xval: " << x[i] << " y_pred: " << y_pred[i] << " y: " << y[i] << std::endl;
     }
 
     return 2*ret_val; //-2Ln(L)
@@ -177,7 +162,6 @@ double Chisq::fcn(const double *parameters){
 	if (y[i]== 0. and y_pred[i] <= 10.e-5) continue;
         if (y_pred[i] <= 10e-5 ){
                 ret_val += (y[i]-y_pred[i])*(y[i]-y_pred[i])/0.01;
-        //        std::cout << "y_pred is 0 " << std::endl;
         }
         else {
                 ret_val += (y[i]-y_pred[i])*(y[i]-y_pred[i])/y_pred[i];
@@ -185,7 +169,6 @@ double Chisq::fcn(const double *parameters){
     }
     std::cout << std::endl;
     return 2*ret_val; //-2Ln(L)
-//    return ret_val;
 }
 
 double Chisq::spline_4nodes(double xval)
@@ -193,11 +176,9 @@ double Chisq::spline_4nodes(double xval)
     int nNodes = pars.size();
     double xx[nNodes], yy[nNodes];
     for (int i=0; i<=nNodes; i++){
-        //use this for equidistand nodes: doesn't work as well
-           // xx[i] = 5. + i*(215./nNodes);
-        //the fit parameters are the y of the nodes
             yy[i] = pars[i];
     }
+    //These are the hard coded source positions: TODO: write a proper way to do it
     xx[0] = 5;
     xx[1] = 25;
     xx[2] = 75;
@@ -207,8 +188,6 @@ double Chisq::spline_4nodes(double xval)
     TSpline3 *spline3 = new TSpline3("Test",xx,yy,nNodes,"b1e1", (y[1]-y[0])/5, 0.);
 
     return spline3->Eval(xval);
-
-//     return pars[0] + pars[1]* xval + pars[2] * xval * xval + pars[3] * xval * xval * xval +  pars[4] * 1/xval;
 }
 
 double Chisq::makePredictionX_rayleigh(int i){
@@ -217,40 +196,11 @@ double Chisq::makePredictionX_rayleigh(int i){
         yy[k] = spline_Y[i][k];
         xx[k] = spline_X[i][k];
     }
-    //QUESTION: what of the dreivatives at the end?
+    //set the end point derivative to be 0 and the start point derivative to be the gradient betweeen the 
+    //first two data points
     TSpline3 *spline3 = new TSpline3("Test",xx,yy, 5,"b1e1", (yy[1]-yy[0])/20.,0.);
-    //Here pars 0 is the sctatering length guess
-    //std::cout << "Best_guess :" << spline3->Eval(pars[0]) << " True : " << y[i] << std::endl;
     return spline3->Eval(pars[0]);
 
-}
-
-    //pars[1] * TMath::Exp(pars[2] / xval) + pars[4] * TMath::Exp(-pars[3] / xval);
-    //TSpline3("my scattering spline", xval, const TF1* func, Int_t n, const char* opt = 0, Double_t valbeg = 0, Double_t valend = 0)
-
-// pars[2] * xval + pars[3] * (xval*xval)
-  //+  pars[4] * xval * xval * xval *xval;
-
-   /*Fit parameters:
-   par[0-3]=X of nodes (to be fixed in the fit!)
-   par[4-7]=Y of nodes
-   par[8-9]=first derivative at begin and end (to be fixed in the fit!)
-   */
-   //double xx = xval;
-
-   //double xn[4] = { 10.0 , 40.0, 100.0, 100.0 };// { pars[0], pars[1], pars[2], pars[3] };
-   //double yn[4] = { pars[0], pars[1], pars[2], pars[3] };
-
-   //double b1 = 10.; //pars[8];
-   //double e1 = 10.; //pars[9];
-
-   //TSpline3 sp3("sp3", xn, yn, 4, "b1e1", b1, e1);
-   //std::cout << "yn [0] : " << yn[0] << "sp3.Eval: " << sp3.Eval(xx) << std::endl;
-   //return pars[0] * TMath::Exp( - 1/xval * pars[1]); // pars[2] * TMath::Exp(- xval * pars[3]);//sp3.Eval(xx);
-
-
-void Chisq::print(){
-    std::cout<<"test"<<std::endl;
 }
 
 TF1 Chisq::getFunction(double xlow, double xhigh, const char* title = "best_fit"){
@@ -259,7 +209,7 @@ TF1 Chisq::getFunction(double xlow, double xhigh, const char* title = "best_fit"
     func.SetNpx(npoints);
     return func;
 }
-TF1 Chisq::getFunction_rayff(double xlow, double xhigh, const char* title = "best_fit"){
+TF1 Chisq::getFunction_rayff(double xlow, double xhigh, const char* title = "best_fit_scat"){
     int npoints = 1000;
     TF1 func(Form("%s",title), this, &Chisq::getPoint_rayff, xlow, xhigh, pars.size());
     func.SetNpx(npoints);

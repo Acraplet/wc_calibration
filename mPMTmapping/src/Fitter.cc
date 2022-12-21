@@ -168,6 +168,7 @@ int main(int argc, char **argv){
                 //This is saving everything the fit output in the reference_root folder
                 TFile *outf = new TFile(Form("reference_root/results_Abs_Scat_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
 
+                TF1 func_scat = chi_scat->getFunction(0, 220, "best_fit_scat");
                 func.SetTitle("absorption_best_fit");
                 func.Write();
                 func_scat.SetTitle("scattering_best_fit");
