@@ -5,14 +5,18 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
+import scipy.optimize
 import getopt
 import pandas as pd
+import iminuit as im
+import scipy.interpolate as spi
+
 
 filename = "No filename, please input one with the -f option"
 comparision_file = 'none'
 outputfile_name = 'none'
 
-#plt.style.use(["science", "notebook", "grid"])
+plt.style.use(["science", "notebook", "grid"])
 
 #filename = str(sys.argv[1])
 phi_max = 90 #for plotting - get the max phi value to show only the right portion of the circle
@@ -25,6 +29,19 @@ PMT_mPMT_pmt = PMT[1]
 PMT_x = PMT[2]
 PMT_y = PMT[3]
 PMT_z = PMT[4]
+
+filename_ref = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_txtFiles/mPMT_map_ID116.txt'
+
+def exponential(alpha_abs, A, R):
+    #print(u)
+    #print(alpha_abs)
+    return A  * np.exp(-R / alpha_abs)
+
+def least_squares_np(params): #a= amplitude, o=offset, p=phase, l=wavelength xx = portion to fit in x and yy in y
+  sigma=0.01
+  return sum((yy-exponential(xx,*params))**2/sigma)
+
+
 
 def dist(df_geom_buf, df_buf):
     #df_geom_buf = df_geom[df_geom['mPMT_pmt'] == PMT]
@@ -43,8 +60,6 @@ for i in range(len(PMT[0])):
         row =  pd.Series(data=c, index=['mPMT', 'mPMT_pmt', 'x', 'y', 'z'], dtype=np.float64)
         df_geom = df_geom.append(row, ignore_index=True)
 
-interpolation_mode = 'linear' # 'linear'
-
 
 opts, args = getopt.getopt(argv, "m:o:p:f:c:a:")
 for opt, arg in opts:
@@ -58,12 +73,42 @@ for opt, arg in opts:
             outputfile_name = str(arg)
 
 
-if outputfile_name == 'none':
-    print("No outputfile_name given - naming the output 'output.png'")
-    outputfile_name = 'output'
+theta_target = float(filename.split("_theta")[1].split("_")[0])
+phi_target = float(filename.split("_phi")[1].split("_")[0])
+R_target = float(filename.split("_R")[1].split(".")[0])
+
+color = ['black', 'red', 'blue', 'green', 'darkorange', 'cyan', 'magenta']
+
+a = 0
+plt.figure(0, figsize =(25,20) )
+base = filename.split("_R")[0]
+outname = 'OnePosition_theta%.2f_phi%.2f_allR'%(theta_target, phi_target)
+R_list = [5.00, 10.00, 20.00, 40, 80, 160, 320]
+alpha_list = [10, 20, 40, 60, 100,150,220]
+
+table_ref = rd.read_data3(filename_ref )
+source_xyz_ref  = [table_ref[0], table_ref[1], table_ref[2]]
+source_Rtp_ref  = [table_ref[3], table_ref[4], table_ref[5]]
+x_ref , y_ref , z_ref  = np.array(table_ref [0]), np.array(table_ref [1]), np.array(table_ref [2])
+R_ref , theta_ref , phi_ref  = np.array(table_ref [5]), np.array(table_ref [3]), np.array(table_ref [4])
+Q_tot_ref  =  np.array(table_ref[6])
+nEvents_ref  = np.array(table_ref[7])
+
+df_ref  = pd.DataFrame()
+for i in range(len(x_ref)):
+    c = [x_ref [i], y_ref [i],  z_ref [i],  theta_ref [i], phi_ref [i],  R_ref [i],  Q_tot_ref [i],  nEvents_ref [i]]
+    row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events'], dtype=np.float64)
+    df_ref  = df_ref.append(row, ignore_index=True)
+
+df_ref = df_ref[df_ref['theta']==theta_target]
+df_ref = df_ref[df_ref['phi'] == phi_target]
+
+print( df_ref[df_ref['phi'] == phi_target])
 
 
-if comparision_file == 'none':
+for j in R_list:
+    print(j)
+    filename = "%s_R%.2f.txt"%(base, float(j))
     table = rd.read_data3(filename)
     source_xyz = [table [0], table[1], table [2]]
     source_Rtp = [table [3], table [4], table[5]]
@@ -71,12 +116,126 @@ if comparision_file == 'none':
     R, theta, phi = np.array(table[5]), np.array(table[3]), np.array(table[4])
     Q_tot =  np.array(table[6])
     nEvents = np.array(table[7])
+    abwff =  np.array(table[8])
+    rayff = np.array(table[9])
+
     phi_max = max(phi) * 180/np.pi
     df = pd.DataFrame()
     for i in range(len(x)):
-        c = [x[i], y[i],  z[i],  theta[i], phi[i],  R[i],  Q_tot[i],  nEvents[i]]
-        row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events'], dtype=np.float64)
+        c = [x[i], y[i],  z[i],  theta[i], phi[i],  R[i],  Q_tot[i],  nEvents[i], abwff[i], rayff[i]]
+        row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events', 'abwff', 'rayff'], dtype=np.float64)
         df = df.append(row, ignore_index=True)
+
+    df_abwff = df[df['rayff'] >= 10000]
+    df_rayff = df[df['abwff'] >= 10000]
+    df_abwff = df_abwff.sort_values(["abwff"], axis = 0, ascending = True).reset_index()
+    df_rayff = df_rayff.sort_values(["rayff"], axis = 0, ascending = True).reset_index()
+
+    xs = np.linspace(10, 220, 1000)
+
+    if float(df_ref['Q']) == 0:
+        df_ref['Q'] = 0.00001
+    #plt.figure(1)
+    #plt.subplot(2,1,1)
+    #plt.plot(df_abwff['abwff'], alpha_list, 'x')
+    #res = scipy.optimize.curve_fit(exponential, df_abwff['abwff'],  alpha_list)
+    #plt.plot(xs,exponential(xs, *res[0]), label="R = %icm"%j,color = color[a])
+    #plt.xlabel('abwff')
+    #plt.ylabel('alpha (attenuation length)')
+    #plt.subplot(2,1,2)
+    #xs = np.linspace(0, 0.013, 1000)
+    #plt.plot(df_rayff['rayff'], alpha_list, 'x')
+    #res = scipy.optimize.curve_fit(exponential, df_rayff['rayff'],  alpha_list)
+    #plt.plot(xs,exponential(xs, *res[0]), label="R = %icm"%j,color = color[a])
+    #plt.show()
+
+
+    plt.figure(0)
+    #df_abwff['abwff']
+    plt.subplot(2,1,1)
+    plt.title('Charge as a function of scattering and abosption - spline interpolation \n parameters at position: theta= %.2frad phi= %.2frad R= %icm'%(theta_target, phi_target, R_target))
+    plt.errorbar(np.array(alpha_list), df_abwff['Q']/float(df_ref['Q']), yerr = np.sqrt(df_abwff['Q'] * (1-df_abwff['Q']/df_abwff['events']))/float(df_ref['Q']), fmt = 'o', color = color[a], markersize = 10)
+
+
+    y = df_abwff['Q']/float(df_ref['Q'])
+    y_err = np.sqrt(df_abwff['Q'] * (1-df_abwff['Q']/df_abwff['events']))/float(df_ref['Q'])
+    print(y)
+    #cs = spi.CubicSpline(alpha_list, y )
+
+    #print(df_abwff['abwff'], df_abwff['Q']/df_ref['Q'])
+    #res = scipy.optimize.curve_fit(exponential, df_abwff['abwff'], df_abwff['Q']/df_ref['Q'])
+    xx = np.array(alpha_list) #df_abwff['abwff']
+    yy =  df_abwff['Q']/float(df_ref['Q'])
+    po = [0.3, j]
+    m=im.Minuit(least_squares_np, (po[0], po[1]))
+    m.migrad()
+    res=m.values
+    print(res)
+
+    #plt.plot(xs,cs(xs), label="R = %icm"%j,color = color[a], alpha = 0.5)
+    #plt.yscale('log')
+    plt.plot(xs,exponential(xs, *res),label="R = %icm"%j,color = color[a], alpha = 0.5)
+
+
+
+    plt.xlabel(f'1/Alpha Absorption')
+    plt.ylabel('Charge collected\nin fraction of the max charge')
+    plt.subplot(2,1,2)
+    plt.errorbar(df_rayff['rayff'], df_rayff['Q']/float(df_ref['Q']), yerr = np.sqrt(df_rayff['Q'] * (1-df_rayff['Q']/df_rayff['events']))/float(df_ref['Q']), fmt = 'o', color = color[a], markersize = 10)
+    plt.xlabel(f'Rayleigh scattering parameter')
+    plt.ylabel('Charge collected\nin fraction of the max charge')
+
+
+
+    xs = np.linspace(0, 0.013, 1000)
+    cs = spi.CubicSpline(df_rayff['rayff'], df_rayff['Q']/float(df_ref['Q']))
+    plt.plot(xs,cs(xs), label="R = %icm"%j,color = color[a])
+
+
+
+    a = a+1
+    #plt.yscale('log')
+
+
+
+
+
+
+plt.subplot(2,1,2)
+plt.legend()
+plt.subplot(2,1,1)
+plt.legend()
+plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_pictures/Maps/OnePosition/%s.png'%outname)
+#plt.show()
+#plt.show()
+
+raise End
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     #print(phi_max)
 
@@ -132,33 +291,27 @@ if comparision_file != 'none':
 
 if comparision_file == 'none':
     plt.style.use(["science", "notebook", "grid"])
-    ####Binned approach
-    #first calculate the distance to each bin center
+    distance_to_closest_PMT = []
+    Q_array = []
+    #check the closet distance to PMT
+    for index, row in df.iterrows():
+        dist_min = 100000
+        for index_geom, row_geom in df_geom.iterrows():
+        #for PMT in df_geom['mPMT_pmt'].unique():
+           #print()
+           distance = dist(row_geom, row)
+           if distance <= dist_min:
+               dist_min = distance
+        distance_to_closest_PMT.append(dist_min)
+        Q_array.append(row['Q']/row['events'])
+    plt.title('Charge collected vs distance to closest PMT\nFileID%s'%filename)
+    plt.xlabel('Distance to the closest PMT (cm)')
+    plt.ylabel('Charge collected per photon')
+    plt.plot(distance_to_closest_PMT, Q_array, 'x')
+    plt.xscale('log')
+    plt.show()
 
-
-
-
-    ###distance_to_closest_PMT = []
-    ###Q_array = []
-    ####check the closet distance to PMT
-    ###for index, row in df.iterrows():
-        ###dist_min = 100000
-        ###for index_geom, row_geom in df_geom.iterrows():
-        ####for PMT in df_geom['mPMT_pmt'].unique():
-           ####print()
-           ###distance = dist(row_geom, row)
-           ###if distance <= dist_min:
-               ###dist_min = distance
-        ###distance_to_closest_PMT.append(dist_min)
-        ###Q_array.append(row['Q']/row['events'])
-    ###plt.title('Charge collected vs distance to closest PMT\nFileID%s'%filename)
-    ###plt.xlabel('Distance to the closest PMT (cm)')
-    ###plt.ylabel('Charge collected per photon')
-    ###plt.plot(distance_to_closest_PMT, Q_array, 'x')
-    ###plt.xscale('log')
-    ###plt.show()
-
-#    raise End
+    raise End
     fig = plt.figure(figsize=(20,10))
     ax = fig.add_subplot(projection='polar')
     #only the points
@@ -178,7 +331,7 @@ if comparision_file == 'none':
     ax.set_xlabel(f'$\Theta$(rad)')
     ax.xaxis.labelpad = 10
     ax.yaxis.labelpad = 20
-    plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Maps/Non-interpolated/%s.png'%outputfile_name)
+    plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_pictures/Maps/Non-interpolated/%s.png'%outputfile_name)
     plt.show()
 
     #Now the interpolate
@@ -202,7 +355,7 @@ if comparision_file == 'none':
     ax.xaxis.labelpad = 10
     ax.yaxis.labelpad = 20
     ax.set_xlabel(f'$\Theta$(rad)')
-    plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Maps/Interpolated/%s.png'%outputfile_name)
+    plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_pictures/Maps/Interpolated/%s.png'%outputfile_name)
     plt.show()
 
 
@@ -260,7 +413,7 @@ if comparision_file != 'none':
     ax2.xaxis.labelpad = 10
 
     ax2.set_xlabel(f'$\Theta$(rad)')
-    plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Comparisions/Non-interpolated/%s.png'%outputfile_name)
+    plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_pictures/Comparisions/Non-interpolated/%s.png'%outputfile_name)
     plt.show()
 
 #### NOW with the interpolation
@@ -311,12 +464,10 @@ if comparision_file != 'none':
 
     zr2 = df['Q']/df['events'] - df_compa['Q']/df_compa['events'] ##the difference in number of p.e. per event
     #zr2 = (df['Q']/df['events'] - df_compa['Q']/df_compa['events'])/df['Q']/df['events']
-    vmim = zr2.min()
-    vmax=zr2.max()
     xi, yi = np.linspace(min(df['phi']), max(df['phi']), 200), np.linspace(min(df['theta']), max(df['theta']), 200)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate
-    rbf = scipy.interpolate.Rbf(df['phi'], df['theta'], zr2, function=interpolation_mode, vmin = vmin, vmax = vmax)
+    rbf = scipy.interpolate.Rbf(df['phi'], df['theta'], zr2, function=interpolation_mode)
     zi = rbf(xi, yi)
     ax3.contourf(xi, yi, zi, 500, cmap='nipy_spectral')
     im2 = ax3.scatter(df['phi'], df['theta'], c = zr2, cmap = "nipy_spectral",s = 40)
@@ -327,7 +478,7 @@ if comparision_file != 'none':
     ax3.xaxis.labelpad = 10
 
     ax3.set_xlabel(f'$\Theta$(rad)')
-    plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Comparisions/Interpolated/%s.png'%outputfile_name)
+    plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_pictures/Comparisions/Interpolated/%s.png'%outputfile_name)
     plt.show()
 
 source_Rtp = np.array(source_Rtp)
@@ -369,9 +520,6 @@ ax.scatter3D(PMT_x,PMT_z,PMT_y, marker = 'o')
 for i in range(len(x)):
     ax.plot([x[i], x[i] - R[i] *  np.sin(theta[i]) * np.cos(phi[i])], [z[i], z[i] - R[i] * np.sin(theta[i]) * np.sin(phi[i])], [y[i], y[i] - R[i] * np.cos(theta[i])], 'r-')
 plt.show()
-
-
-
 
 
 
