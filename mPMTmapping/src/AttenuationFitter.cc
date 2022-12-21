@@ -107,7 +107,7 @@ int main(int argc, char **argv){
         } //finished reading all of the positions, now need to fit_output_xA_y
     } //finished reading all of the test positions at the same abwff but different R that we wanted to fit togther
     //Here the fitting begins
-    const int nPars = 1; //the only parameter we fit is abwff
+    const int nPars = 1; //the only parameter we fit is absorption length
     Chisq *chi = new Chisq(nPars);
     chi->setData(list_i, list_Q);
     chi->setRef(list_A, list_R);
