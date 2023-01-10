@@ -37,10 +37,18 @@ random_positions = False
 uniform_positions = False
 
 #The limits for our theta and phi
-theta_min = 0
-theta_max = np.sin(1.1) # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
-phi_min = 0
-phi_max = np.pi/2 #up to 90 degrees for now
+#These are for a 'classic' quarter of the mPMT dome
+#theta_min = 0
+#theta_max = 1.1 # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
+#phi_min = 0
+#phi_max = np.pi/2 #up to 90 degrees for now
+
+#This is for an intensive scan around a given bin
+theta_min = 0.23445 
+theta_max = 0.3917
+phi_min = 0.94205
+phi_max = 1.0899
+
 
 #Read the user inputs
 argv = sys.argv[1:]
@@ -69,7 +77,7 @@ for opt, arg in opts:
             uniform_positions = True
             ordered_positions = False
             nPositions = int(arg)
-
+            print("careful - we are using %i uniform source positions instead of an array of %i pos in phi and %i pos in theta"%(nPositions, nPhi, nTheta))
 
 
 #need a file name and print the config we are choosing
@@ -81,6 +89,7 @@ except NameError:
     print("Error: No Filename  detected")
 print("Config:\n  R = %.2f \n  nEvent = %i \n  abwff = %.3e \n  rayff = %.3e"%(R, nEvent, absff, rayff))
 print("Sampling method: \n  ordered = %s (%i x %i pos) \n  random = %s (%i pos) \n  uniform = %s (%i pos)"%(ordered_positions, nTheta, nPhi, random_positions, nPositions, uniform_positions, nPositions))
+print("\n%.2f < theta < %.2f and %.2f < phi < %.2f"%(theta_min, theta_max, phi_min, phi_max))
 print("---------------------------------------------------------------------------------------------------------\n")
 
 #get the correct name for the file
@@ -96,7 +105,7 @@ md.makeTuningConfigFile(FileID, absff, rayff)
 
 ########################## The make the config files : if ordered ######################################
 if ordered_positions == True:
-    range_theta = np.linspace(theta_min, theta_max, nTheta)
+    range_theta = np.linspace(np.sin(theta_min), np.sin(theta_max), nTheta)
     range_phi = np.linspace(phi_min, phi_max, nPhi)
     range_theta = np.arcsin(range_theta)
 
@@ -112,7 +121,7 @@ if random_positions == True:
     range_theta = []
     range_phi = []
     for k in range(int(nPositions)):
-        range_theta.append(random.uniform(theta_min, theta_max)) #here random draw in sin theta
+        range_theta.append(random.uniform(np.sin(theta_min), np.sin(theta_max))) #here random draw in sin theta
         range_phi.append(random.uniform(phi_min, phi_max))
     range_theta = np.arcsin(np.array(range_theta)) #convert back to theta
     range_phi = np.array(range_phi) #for now use completely random phi
@@ -129,7 +138,7 @@ if uniform_positions == True:
     range_theta = []
     range_phi = []
     for k in range(nPositions):
-        theta, phi = gp.get_tp_point(theta_max = theta_max, phi_min = phi_min, phi_max = phi_max)
+        theta, phi = gp.get_tp_point(theta_min = theta_min, theta_max = theta_max, phi_min = phi_min, phi_max = phi_max)
         range_theta.append(float("%.2f"%theta))
         range_phi.append(float("%.2f"%phi))
     range_phi = np.array(range_phi) #for now use completely random phi

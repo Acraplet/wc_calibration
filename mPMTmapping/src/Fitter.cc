@@ -54,13 +54,13 @@ int main(int argc, char **argv){
             }
             //Now we have the coordinate of the position we are looking for
             //Next: open the reference txt file for this position and from 
-	    //there extract the fitting information we are looking for
+            //there extract the fitting information we are looking for
             std::fstream position_file;
             position_file.open(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_onePosition/OnePosition_theta%s_phi%s_R%s.txt", theta_test, phi_test, R_test),std::ios::in);
 
             if (position_file.is_open()){   //checking whether the file is open
                 std::string tp_ref;
-		//the variable you're fitting in
+            //the variable you're fitting in
                 std::vector<double> data_xval, err_xval, data_scat_xval, err_scat_xval; 
                 std::vector<double> data_yval, err_yval, data_scat_yval, err_scat_yval;
                 while(getline(position_file, tp_ref)){ //each reference point
@@ -94,6 +94,7 @@ int main(int argc, char **argv){
                         data_xval.push_back(alpha_abs);
                         data_yval.push_back(Q_ref);
                         err_xval.push_back(0);
+                        //note: maybe have to change this 1000 by the nEvents
                         err_yval.push_back(TMath::Sqrt(Q_ref * (1 - Q_ref/1000)));
                     }
                     //Scattering data points
@@ -155,6 +156,7 @@ int main(int argc, char **argv){
                 min_scat->SetVariable(2, "c", 0.0, 0.01);
                 min_scat->SetVariable(3, "d", 1.0, 0.01);
                 min_scat->SetVariable(4, "e", 1.0, 0.01);
+		min_scat->Minimize();
                 min_scat->PrintResults();
                 //Save as a TGraphError the charge collected at this given position as a function 
 		//of the attenuation and then scattering length
@@ -168,7 +170,7 @@ int main(int argc, char **argv){
                 //This is saving everything the fit output in the reference_root folder
                 TFile *outf = new TFile(Form("reference_root/results_Abs_Scat_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
 
-                TF1 func_scat = chi_scat->getFunction(0, 220, "best_fit_scat");
+                TF1 func_scat = chi_scat->getFunction_rayff(0, 240, "best_fit_scat");
                 func.SetTitle("absorption_best_fit");
                 func.Write();
                 func_scat.SetTitle("scattering_best_fit");

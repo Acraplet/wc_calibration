@@ -167,7 +167,7 @@ double Chisq::fcn(const double *parameters){
                 ret_val += (y[i]-y_pred[i])*(y[i]-y_pred[i])/y_pred[i];
         }
     }
-    std::cout << std::endl;
+//std::cout << std::endl;
     return 2*ret_val; //-2Ln(L)
 }
 

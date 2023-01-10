@@ -10,6 +10,6 @@ rm maps_txtFiles/mPMT_map_ID"$ID".txt
 for name in $VAR
 do
     echo $name
-    ./bin/make_mPMTmap -f $name -o "Maps/maps_txtFiles/PMT_map_ID"$ID".txt"
+    ./bin/make_mPMTmap -f $name -o "Maps/maps_txtFiles/mPMT_map_ID"$ID".txt"
     echo
 done

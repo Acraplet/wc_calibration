@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def get_tp_point(theta_max = 1.1, phi_min = 0, phi_max = np.pi/2):
+def get_tp_point(theta_min = 0, theta_max = 1.1, phi_min = 0, phi_max = np.pi/2):
     ''' This is a function that gives back points uniformly spread accross the dome
     This is done by ensuring that the number of points on a given ring is proportionnal 
     to the perimeter of that ring (hence the linear function in theta in the if condition)
@@ -17,8 +17,8 @@ def get_tp_point(theta_max = 1.1, phi_min = 0, phi_max = np.pi/2):
         phi = 2 * np.pi * v
         b = 0
         c = 0.4
-        theta_max = 1.1
-        if (test) <= c * u + b  and theta <= theta_max  and phi <= phi_max and phi >= phi_min:#
+#        theta_max = 1.1
+        if (test) <= c * u + b  and theta <= theta_max  and phi <= phi_max and phi >= phi_min and theta >= theta_min:#
             a = True
             return theta, phi
 

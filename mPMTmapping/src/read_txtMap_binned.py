@@ -34,7 +34,11 @@ for i in range(len(PMT[0])):
 
 bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_304_bins.txt'
 bins = np.array(rd.read_data3(bins_position))
-#so this is a [[all x], [all y], [all z]] array
+
+#Now look at the theta and phi - is a simple distance in theta and phi enough for the full distance?
+bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_304_bins_theta_phi.txt'
+bins_theta = np.array(rd.read_data3(bins_position)).T
+#so this is a [[all x], [all y], [all z]] array with .T
 #alternatively we can have an array
 #[[x0,y0,z0], [x1, y1, z1], ...] which I think is better so that's bins without the .T at the end
 
@@ -72,16 +76,24 @@ for i in range(len(x)):
 
 #place each source position in a bin
 count_uniform_bins = np.zeros(len(bins))
+count_uniform_bins_theta = np.zeros(len(bins))
 charge_uniform_bins = np.zeros(len(bins))
 for source_position_ID in range(len(df['x'])):
     source_position = np.array([df['x'][source_position_ID], df['y'][source_position_ID], df['z'][source_position_ID]])
-    #Calculate the distance bwteen the source position and each bin centre
+    #Calculate the distance xyz bwteen the source position and each bin centre
     distance = np.linalg.norm(bins - source_position, axis = 1)
     id_of_closest_bin = np.argmin(distance)
+    #now calculate the theta-phi distance 
+    source_theta_phi = np.array([df['theta'][source_position_ID], df['phi'][source_position_ID]])
+    distance_theta_phi = np.linalg.norm(np.array([bins_theta[1], bins_theta[0]]).T - source_theta_phi, axis = 1)
+    id_of_closest_bin_theta = np.argmin(distance_theta_phi)
+    print(id_of_closest_bin_theta, id_of_closest_bin)
+
     #Store the data in the relevant bins
     count_uniform_bins[id_of_closest_bin] += 1
+    count_uniform_bins_theta[id_of_closest_bin_theta] += 1
     charge_uniform_bins[id_of_closest_bin] += df['Q'][source_position_ID]
-print(count_uniform_bins)
+print(count_uniform_bins-count_uniform_bins_theta, 'the difference between the two ways of putting source pos into bins')
 
 ax = plt.axes(projection = '3d')
 for b in range(len(bins.T[0])):
