@@ -155,6 +155,7 @@ int main(int argc, char **argv){
                 min_scat->SetVariable(2, "c", 0.0, 0.01);
                 min_scat->SetVariable(3, "d", 1.0, 0.01);
                 min_scat->SetVariable(4, "e", 1.0, 0.01);
+		min_scat->Minimize();
                 min_scat->PrintResults();
                 //Save as a TGraphError the charge collected at this given position as a function 
 		//of the attenuation and then scattering length
@@ -168,7 +169,7 @@ int main(int argc, char **argv){
                 //This is saving everything the fit output in the reference_root folder
                 TFile *outf = new TFile(Form("reference_root/results_Abs_Scat_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
 
-                TF1 func_scat = chi_scat->getFunction(0, 220, "best_fit_scat");
+                TF1 func_scat = chi_scat->getFunction_rayff(0, 220, "best_fit_scat");
                 func.SetTitle("absorption_best_fit");
                 func.Write();
                 func_scat.SetTitle("scattering_best_fit");
