@@ -3,6 +3,7 @@
 //for a given bin we are storing all the source positions that fit  it
 //of the reference "oneBin" files. These are intended as a profile for how he charge collected evolves with
 //absorption and scattering length and from there be a look-up table for extracting the attenuation length 
+//This is a file to sum directly the positions in the same bin
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -74,9 +75,18 @@ int main(int argc, char **argv){
     std::string T;
     float theta_pos, phi_pos;
     std::string abwff;
+    int fileID;
     std::string rayff;
     std::stringstream X(filename);
     while(std::getline(X, T, '_')){
+        if (!T.find("FileID")){
+            str = T.find("FileID");
+            p = T.erase(0,str+6);
+            fileID = std::stoi(p);
+
+            std::cout<< fileID << std::endl;
+        }
+	
         if (!T.find("Absff")){
             str = T.find("Absff");
             abwff = T.erase(0,str+5);
@@ -160,7 +170,7 @@ int main(int argc, char **argv){
     const char* phi = p.c_str();
     const char* dist = R.c_str();
 
-    std::string onePosition_outfile = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_oneBin/OneBin_bin%d_theta%.2f_phi%.2f_R%s.txt", minID, theta_bin, phi_bin, dist);
+    std::string onePosition_outfile = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/test_maps_oneBin/OneBin_bin%d_theta%.2f_phi%.2f_R%s.txt", minID, theta_bin, phi_bin, dist);
     //bin_theta, bin_phi
 
     std::cout << onePosition_outfile << std::endl;

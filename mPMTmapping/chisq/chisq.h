@@ -12,6 +12,7 @@ class Chisq{
     void setRef_spline(std::vector<TF1*> Ref_splines_rayff);
     void setRef_scat(std::vector<std::vector<double>> spline_X_ref, std::vector<std::vector<double>> spline_Y_ref);
     void setPars(const double *pars);
+    void setNodesX(std::vector<double> xx);
     double makePredictionX(double xval);
     double makePredictionX_abwff(int xval);
     double makePredictionX_rayleigh(int xval);
@@ -40,6 +41,7 @@ class Chisq{
     std::vector<std::vector<double>> spline_Y;
     std::vector<double> y_pred;
     std::vector<double> pars;
-
+    int nNodes;
+    std::vector<double> XNodes;
 };
 

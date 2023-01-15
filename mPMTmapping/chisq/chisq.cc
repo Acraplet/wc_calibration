@@ -23,6 +23,11 @@ void Chisq::setData(std::vector<double> xin, std::vector<double> yin){
     }
 }
 
+void Chisq::setNodesX(std::vector<double> xx){
+	nNodes = xx.size();
+	for (double node : xx) XNodes.push_back(node);
+}
+
 void Chisq::setRef(std::vector<double> Ain, std::vector<double> Rin){
     if(Ain.size() != Rin.size()){
         std::cerr<<"Chisq::setReference(A, R) mismatch between size of A and R vectors"<<std::endl;
@@ -38,12 +43,18 @@ void Chisq::setRef(std::vector<double> Ain, std::vector<double> Rin){
 }
 
 void Chisq::setRef_spline(std::vector<TF1*> Ref_splines_rayff){
-    std::cout << "uwu"<<std::endl;
+//     /*std::cout*/ << "uwu"<<std::endl;
     ray_spline = Ref_splines_rayff;
-    std::cout << ray_spline[0]<<std::endl;
+//     std::cout << ray_spline[0]<<std::endl;
 }
 
 void Chisq::setRef_scat(std::vector<std::vector<double>> nodes_X, std::vector<std::vector<double>> nodes_Y){
+     //This is storing in the reference nodes position and their positions
+    //carefull! here nodes_X is a vecotr of vector of nodes {for each reference position}
+    //TODO: change this so we can use reference files that have different number of nodes each time (a simple array with nNodes also being looked up as a function of i) - for now not nmecessary
+     nNodes = nodes_X[0].size();
+//      std::cout << nNodes << std::endl;
+     //here we append the reference for each of our different distances R
      for(int i=0; i<nodes_X.size(); i++){
          spline_X.push_back(nodes_X[i]);
          spline_Y.push_back(nodes_Y[i]);
@@ -173,32 +184,40 @@ double Chisq::fcn(const double *parameters){
 
 double Chisq::spline_4nodes(double xval)
 {
-    int nNodes = pars.size();
+    //int nNodes = pars.size();
+    if (nNodes!= pars.size()){
+	    //a bit of proofchechking that we have given the right number of nodes cooordinates
+	    std::cout << "Number of nodes : " << nNodes << " is different to the number of fitted parameters : " << pars.size() << " which is an ISSUE " << std::endl;
+    }
     double xx[nNodes], yy[nNodes];
     for (int i=0; i<=nNodes; i++){
             yy[i] = pars[i];
+	    xx[i] = XNodes[i];
+		
     }
-    //These are the hard coded source positions: TODO: write a proper way to do it
-    xx[0] = 5;
-    xx[1] = 25;
-    xx[2] = 75;
-    xx[3] = 150;
-    xx[4] = 220;
-
-    TSpline3 *spline3 = new TSpline3("Test",xx,yy,nNodes,"b1e1", (y[1]-y[0])/5, 0.);
+    //These are the hard coded source positions: DONE: write a proper way to do it
+//    xx[0] = 5;
+//    xx[1] = 25;
+//    xx[2] = 75;
+//    xx[3] = 150;
+//    xx[4] = 220;
+    TSpline3 *spline3 = new TSpline3("Test",xx,yy,nNodes,"b1e1", (y[1]-y[0])/float(x[1]-x[0]), 0.);
 
     return spline3->Eval(xval);
 }
 
 double Chisq::makePredictionX_rayleigh(int i){
-    double yy[5], xx[5];
+//     std::cout << "a" << std::endl;
+    double yy[nNodes], xx[nNodes];
+//     std::cout << spline_Y[i].size() << " " << nNodes<< std::endl;
     for (int k = 0; k < spline_X[i].size(); k++){
         yy[k] = spline_Y[i][k];
         xx[k] = spline_X[i][k];
+//         std::cout << k << " "<<yy[k] << " "<< xx[k] <<std::endl;
     }
     //set the end point derivative to be 0 and the start point derivative to be the gradient betweeen the 
     //first two data points
-    TSpline3 *spline3 = new TSpline3("Test",xx,yy, 5,"b1e1", (yy[1]-yy[0])/20.,0.);
+    TSpline3 *spline3 = new TSpline3("Test",xx,yy, nNodes,"b1e1", (yy[1]-yy[0])/float(xx[1]-xx[0]), 0.);
     return spline3->Eval(pars[0]);
 
 }

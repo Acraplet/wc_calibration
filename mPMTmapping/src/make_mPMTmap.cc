@@ -71,12 +71,21 @@ int main(int argc, char **argv){
 //         HelpMessage();
     }
 
-    std::string x, y, z, t, p, R; //the cartesian and polar coordinate, careful R is from the surface of the mPMT dome and not from its centre of the mPMT
+    std::string x, y, z, t, p, R, abwff, rayff; //the cartesian and polar coordinate, careful R is from the surface of the mPMT dome and not from its centre of the mPMT
     int str; //this will help break down the string
     //To read the characteristics of the thing
     std::string T;
     std::stringstream X(filename);
     while(std::getline(X, T, '_')){
+        if (!T.find("Absff")){
+            str = T.find("Absff");
+            abwff = T.erase(0,str+5);
+        }
+        if (!T.find("Rayff")){
+            str = T.find("Rayff");
+            rayff = T.erase(0,str+5);
+            // Deletes str+5 characters from index number 0
+        }
         if (!T.find("x")){
             str = T.find("x");
             x = T.erase(0,str+1);
@@ -102,7 +111,7 @@ int main(int argc, char **argv){
             R = T.erase(0,str+1);
         }
     }
-    std::cout << "Source position : " << x << " " << y << " " << z << " " << t << " " << p << " " << R << std::endl;
+    std::cout << "Source position : " << x << " " << y << " " << z << " " << t << " " << p << " " << R << " " << abwff << " " << rayff <<  std::endl;
 
     TFile *infile = new TFile(filename, "READ");
     TTree *events = (TTree*)infile->Get("CherenkovHits");
@@ -138,7 +147,7 @@ int main(int argc, char **argv){
     std::cout << "Total number of hits : "<< nHitsTot << std::endl;
     std::ofstream outfile;
     outfile.open(outfilename, std::ofstream::app);
-    outfile <<  x << " " << y << " " << z << " " << t << " " << p << " " << R << " " << nHitsTot << " " << n_entries << std::endl;
+    outfile <<  x << " " << y << " " << z << " " << t << " " << p << " " << R << " " << nHitsTot << " " << n_entries << " " << abwff << " " << rayff << std::endl;
 }//End of main
 
 
