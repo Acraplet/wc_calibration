@@ -27,6 +27,9 @@ int main(int argc, char **argv){
     char* theta_test;
     double  theta_test_num, Q_test_num;
     char* phi_test;
+    long int config_number = 0.0;
+    double w = 0.0;
+    double true_attLen;
 
     std::cout << "The total number of files to read together is: " << argc << std::endl;
     for (int f=1; f<= argc-1; f++){
@@ -35,7 +38,7 @@ int main(int argc, char **argv){
 //         newfile.open(,std::ios::in); //open a file to perform read operation using file object
 //         std::cout << argv[f] << std::endl;
         char * filename = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]);
-        double w = 0.0;
+
 
         //For the next step: not useful just yet as we only have ref for bin 24
 //         std::vector<int> binID;
@@ -63,7 +66,7 @@ int main(int argc, char **argv){
         //Now we are fitting for bin 24
         //Now the fitting
         //For bin in bin range -> that is the next bit
-        std::string position_file = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/reference_root/reference_bin24/5nodesRef/results_5nodesRef_Abs_Scat_bin24_theta0.31_phi1.02_R%.2f.root", test_positions[0].R);
+        std::string position_file = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/reference_root/reference_bin24/SimpleSpline/results_SimpleSpline_Abs_Scat_bin24_theta0.31_phi1.02_R%.2f.root", test_positions[0].R);
         //Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/reference_root/results_Abs_Scat_theta%s_phi%s_R%.2f.root", bin_theta, bin_phi, test_positions[0].R);
         TFile *file_ref = new TFile(position_file.c_str(), "READ");
         TGraphErrors *h = (TGraphErrors*)file_ref->Get("Graph");
@@ -78,13 +81,24 @@ int main(int argc, char **argv){
         list_i.push_back(w);
         list_Q.push_back(total_bin_charge);
         //TODO: add the node output: << " Nodes used" << &list_xnodes[0]
-        std::cout << "File " << argv[f] << " excat scattering length =" << truth_alpha(401.9, 10e10,test_positions[0].rayff) << " " << test_positions[0].rayff  << " R = " <<   test_positions[0].R << " charge for 1000 photons: " << total_bin_charge  << std::endl;
+        std::cout << "File " << argv[f] << " excat scattering length =" << truth_alpha(401.9, 10e10,test_positions[0].rayff) << " " << test_positions[0].rayff  << " R = " <<   test_positions[0].R << " charge for 1000 photons: " << total_bin_charge  << " config " << pow(10., w) << std::endl;
+
+        true_attLen = truth_alpha(401.9, 10e10,test_positions[0].rayff);
+
+        double temp = pow(10., w);
+        std::cout << temp << std::endl;
+        temp *= std::stoi(argv[f]) % 10;
+        std::cout << temp << std::endl;
+        std::cout << config_number << std::endl;
+        config_number += (double) temp;
+
+
         w+=1;
         file_ref->Close();
     } //finished reading all of the test maps
     //Here the fitting begins
 
-
+    std::cout << "Config number = " << config_number << std::endl;
     const int nPars = 1; //the only parameter we fit is scattering length
     Chisq *chi = new Chisq(nPars);
     //In this case list_i is a index storing, later we will have as many entries as our number of bins
@@ -98,6 +112,15 @@ int main(int argc, char **argv){
     min->SetVariable(0, "scattering_length", 5.0, 0.01);
     min->Minimize();
     min->PrintResults();
+    const double * res_scat = min->X();
+    const double * err_scat = min->Errors();
+
+
+    	//Here output some numbers for easier analysis
+    std::ofstream outfile;
+    outfile.open("Bin24_ScatteringLengthEstimation_SimpleSpline_testRuns.txt", std::ofstream::app);
+    outfile << true_attLen << " " << config_number << " " << res_scat[0] << " " << err_scat[0] << std::endl;
+
 }
 
 

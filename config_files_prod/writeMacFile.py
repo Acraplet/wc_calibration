@@ -38,16 +38,16 @@ uniform_positions = False
 
 #The limits for our theta and phi
 #These are for a 'classic' quarter of the mPMT dome
-#theta_min = 0
-#theta_max = 1.1 # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
-#phi_min = 0
-#phi_max = np.pi/2 #up to 90 degrees for now
+theta_min = 0
+theta_max = 1.1 # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
+phi_min = 0
+phi_max = 2 * np.pi #up to 90 degrees for now
 
 #This is for an intensive scan around a given bin
-theta_min = 0.23445 
-theta_max = 0.3917
-phi_min = 0.94205
-phi_max = 1.0899
+#theta_min = 0.23445 
+#theta_max = 0.3917
+#phi_min = 0.94205
+#phi_max = 1.0899
 
 
 #Read the user inputs

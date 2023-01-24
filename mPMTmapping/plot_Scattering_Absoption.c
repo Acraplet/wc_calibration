@@ -132,7 +132,7 @@ void plot_Scattering_Absoption(float R){
 	TLegend *legend = new TLegend(0.5,0.55,0.66,0.72);
 	legend->AddEntry(data_scat_distribution,"Scattering","f");
 	legend->AddEntry(data_distribution,"Absorption","f");
-	legend->AddEntry(test,"Test data points","f");
+// 	legend->AddEntry(test,"Test data points","f");
 	data_scat_distribution->Draw("AE*");
 	test->SetFillColor(kBlack);
 	test->SetMarkerColor(kBlack);

@@ -220,6 +220,11 @@ if comparision_file != 'none':
     zr2 = df_compa["Q"]/df_compa["events"] #needed to have a common colorbar
     vmin = min(min(zr2), min(zr))
     vmax = max(max(zr2), max(zr))
+
+    zr3 = np.array(df['Q']/df['events']) - np.array(df_compa['Q']/df_compa['events']) ##the difference in number of p.e. per event
+    #zr2 = (df['Q']/df['events'] - df_compa['Q']/df_compa['events'])/df['Q']/df['events']
+    vmin = zr3.min()
+
     im = ax.scatter(df["phi"], df["theta"], c = zr, cmap = "nipy_spectral",s = 40,vmin = vmin, vmax = vmax)
     col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
     ax.set_thetamax(phi_max)
@@ -309,18 +314,19 @@ if comparision_file != 'none':
     ax3 = fig.add_subplot(122, projection='polar')
     ax3.set_title("Q Comparision \n %s-%s"%(filename, comparision_file))
 
-    zr2 = df['Q']/df['events'] - df_compa['Q']/df_compa['events'] ##the difference in number of p.e. per event
+    zr3 = np.array(df['Q']/df['events']) - np.array(df_compa['Q']/df_compa['events']) ##the difference in number of p.e. per event
     #zr2 = (df['Q']/df['events'] - df_compa['Q']/df_compa['events'])/df['Q']/df['events']
-    vmim = zr2.min()
-    vmax=zr2.max()
+    vmin = zr3.min()
+    #vmax= zr2.max()
+    print(vmin, vmax)
     xi, yi = np.linspace(min(df['phi']), max(df['phi']), 200), np.linspace(min(df['theta']), max(df['theta']), 200)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate
-    rbf = scipy.interpolate.Rbf(df['phi'], df['theta'], zr2, function=interpolation_mode, vmin = vmin, vmax = vmax)
+    rbf = scipy.interpolate.Rbf(df['phi'], df['theta'], zr3, function=interpolation_mode, vmin = vmin, vmax = vmax)
     zi = rbf(xi, yi)
-    ax3.contourf(xi, yi, zi, 500, cmap='nipy_spectral')
-    im2 = ax3.scatter(df['phi'], df['theta'], c = zr2, cmap = "nipy_spectral",s = 40)
-    col3 = plt.colorbar(im2, label=f"Difference in number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
+    im8 = ax3.contourf(xi, yi, zi, 500, cmap='nipy_spectral',vmin = vmin, vmax = vmax)
+    im2 = ax3.scatter(df['phi'], df['theta'], c = zr3, cmap = "nipy_spectral",s = 40, vmin = vmin, vmax = vmax)
+    col3 = plt.colorbar(im8, label=f"Difference in number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
 
     ax3.set_thetamin(0)
     ax3.set_thetamax(phi_max)

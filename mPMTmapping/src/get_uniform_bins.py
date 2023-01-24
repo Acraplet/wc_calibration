@@ -95,7 +95,10 @@ total_points = np.asarray(total_points)
 #Save the points that are on the correct corner of the sphere 
 for view in total_points:
     color.append('r')
-    if view[0] >= 0 and view[1] >= 0 and view[2] >= 0:
+    #this is to have only the quarter
+    #if view[0] >= 0 and view[1] >= 0 and view[2] >= 0:
+    #This is to get only the top of the mPMT
+    if view[1] >= 0 :
         total_quarter.append(view)
 total_quarter = np.array(total_quarter)
 
@@ -103,7 +106,7 @@ triangles = np.array(triangles)
 for a in triangles.T[0]:
     colors.append('b')
 
-ax.scatter(total_quarter.T[0], total_quarter.T[1], total_quarter.T[2], color=color[:len(total_quarter)], s=4)
+ax.scatter(total_quarter.T[0], total_quarter.T[2], total_quarter.T[1], color=color[:len(total_quarter)], s=4)
 plt.show()
 
 #trying to plot a 2D version
@@ -123,7 +126,7 @@ plt.show()
 bin_number = np.arange(0, len(phi), 1)
 
 table = [theta, phi, bin_number]
-np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_304_bins_theta_phi.txt', table, fmt = "%.2e")
+np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_theta_phi.txt', table, fmt = "%.2e")
 
 #this is the origin of the mPMT dome
 #need to switch back from z in the heigh to y is the hieght
@@ -139,9 +142,10 @@ x = x + origin [0]
 y = y + origin [1]
 z = z + origin [2]
 
+
 #Saving the uniform bins - be careful these are for the 58th mPMT
 table = np.array([x, y, z, theta, phi, bin_number]).T
-np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_304_bins_withBinNumber.txt', table)
+np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_withBinNumber.txt', table)
 
 #here convert back the positions so we can plot them nicely 
 x = x - origin[0]
