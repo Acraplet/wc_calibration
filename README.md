@@ -132,6 +132,6 @@ After the source position-dependant mPMT response to scattering has been fitted,
 ./bin/ScatteringFitterBinned ID1 ID2 ... IDn
 ```
 
-just like with absorption we try to minimise the difference between Q_pred and Q_true as a function of the scattering length but this time Q_pred = TSpline3_fakedata(*y_of_nodes_from above) at scattering_length_pred. Again we can use multiple files to refine the approach. unlike for absorption the results are not very convincing so far...
+just like with absorption we try to minimise the difference between Q_pred and Q_true as a function of the scattering length but this time Q_pred = TSpline3_fakedata(this_bin) at scattering_length_pred. Again we can use multiple files to refine the approach.
 
 
