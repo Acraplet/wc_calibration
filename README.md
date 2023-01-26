@@ -1,7 +1,7 @@
 # wc_calibration
 _"Les mPMTs sont des fleurs dont les PMTs seraient les pétales"_
 
-WCTE calibration code - PMT timing response, angular response, water attenuation length etc... 
+WCTE calibration code -eventually for PMT timing response and angular response so far only for water attenuation length measurement... 
 
 ## Make config files
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
@@ -78,7 +78,7 @@ Note: the source coordinates need to be identical for the comparision to be made
 
 In later version of the code we will be looking at binned response to get away from edge effects. To have a look at the binned charge distribution for a given configuration do
 ```
-bash plot_binned.sh ID
+bash plot_binned.sh ID (ID2 ID3 ID4)
 ``` 
 where the bins are stored in uniform_304_bins.txt and made via 
 ```
@@ -104,14 +104,14 @@ The typical response function for absorption is an exponential function Q_pred =
 The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be resolved by using a binned approach but until then we need to have a reference max charge for each source position at each R that we want to use. 
 
 
-## Extract the scattering length
+## Extract the scattering length (binned approach)
 
 ### Obtain the data of the reference scattering behaviour
 
-To understand how the charge collected by the mPMT is dependant on the scattering we need to collect reference data, at each (R, theta, phi) positions we have simulated data with a bunch of scattering lengths. These serve as reference points for the behaviour and are stacked together in Maps/maps_onePosition with 
+To understand how the charge collected by the mPMT is dependant on the scattering we need to collect reference data, at each (R, theta, phi) bin we have simulated data with a bunch of scattering lengths. These serve as reference points for the behaviour and are stacked together in Maps/ref_maps_oneBin with 
 
 ```
-bash make_onePositionMap.sh ID_ref
+bash make_oneBin_reference.sh ID_ref
 ```
 as well as files with a give rayff and an infinite abwff, we can also use this code on files with an infinite rayff and a given abwff this is useful later on to verify the hypothesis we made of there being an exponential response for the absorption coefficient 
 
@@ -119,17 +119,17 @@ as well as files with a give rayff and an infinite abwff, we can also use this c
 
 The code
 ```
-./bin/Fitter ID
+./bin/BinnedFitter ID
 ```
-looks up the reference values in the OnePosition files and then fits separately the attenuation and scattering response to this data. For the absorption fit, an exponential with two free parameters is fitted to these reference points with Q_pred = A * exp(-R/abs_length_true). the output of this fit is saved in the mPMTmapping/reference_root file corresponding to this (R, theta, phi) position. A quick comparision between the mean estimate of R and A over all of the source positions and the corresponding true values, respectively input to WCSim and the A_max obtained from datasets without any attenuation are a check of the hypothesis we made previously. 
+looks up the reference values in the OneBin files and then fits separately the attenuation and scattering response to this data. For the absorption fit, an exponential with two free parameters is fitted to these reference points with Q_pred = A * exp(-R/abs_length_true). the output of this fit is saved in the mPMTmapping/reference_root/file corresponding to this (R, theta, phi) bin. A quick comparision between the mean estimate of R and A over all of the source positions and the corresponding true values, respectively input to WCSim and the A_max obtained from datasets without any attenuation are a check of the hypothesis we made previously. 
 
-This code looks in a second time at the scattering length and fits to the reference datapoints a piece-wise continuous polynomial with fixed boundaries. To do this the code fits a fake data TSpline3 of which the nodes are fixed at a given x and the nodes' y are the fitted parameters for this fit. The density of nodes follows the magnitude of the gradient of the response which has a steeper evolution at low scattering lengths. the overall number of nodes is always smaller than the number of datapoints. The start- and end-points gradient to the spline are fixed respectively as the gradient between the two first data points and 0 as can be easily justified physically. 
+This code looks in a second time at the scattering length and fits to the reference datapoints a piece-wise continuous polynomial with fixed boundaries. To do this the code fits a fake data TSpline3 of which the nodes are fixed at a given x and the nodes' y are the fitted parameters for this fit. The density of nodes follows the magnitude of the gradient of the response which has a steeper evolution at low scattering lengths. the overall number of nodes is always smaller or equal to the number of datapoints. The start- and end-points gradient to the spline are fixed respectively as the gradient between the two first data points and 0 as can be easily justified physically. 
 
 ### Use the response function to extract the scattering length
 After the source position-dependant mPMT response to scattering has been fitted, we use it to extract the scattering length of any test mPMT map with
 
 ```
-./bin/ScatteringFitter ID1 ID2 ... IDn
+./bin/ScatteringFitterBinned ID1 ID2 ... IDn
 ```
 
 just like with absorption we try to minimise the difference between Q_pred and Q_true as a function of the scattering length but this time Q_pred = TSpline3_fakedata(*y_of_nodes_from above) at scattering_length_pred. Again we can use multiple files to refine the approach. unlike for absorption the results are not very convincing so far...
