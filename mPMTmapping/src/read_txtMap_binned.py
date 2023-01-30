@@ -11,6 +11,8 @@ import pandas as pd
 filename = "No filename, please input one with the -f option"
 comparision_file = 'none'
 outputfile_name = 'none'
+filename = []
+
 
 plt.style.use(["science", "notebook", "grid"])
 
@@ -36,10 +38,10 @@ bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/unif
 bins = np.array(rd.read_data3(bins_position))
 
 #Now look at the theta and phi - is a simple distance in theta and phi enough for the full distance?
-bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_304_bins_theta_phi.txt'
+bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_theta_phi.txt'
 bins_theta = np.array(rd.read_data3(bins_position)).T
 
-bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_304_bins_withBinNumber.txt'
+bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_withBinNumber.txt'
 bins_all = np.array(rd.read_data3(bins_position))
 #so this is a [[all x], [all y], [all z]] array with .T
 #alternatively we can have an array
@@ -51,9 +53,9 @@ for opt, arg in opts:
         if opt in ['-m']:
             phi_max = float(arg)
         elif opt in ['-f']:
-            filename = str(arg)
+            filename.append(str(arg))
         elif opt in ['-c']:
-            comparision_file = str(arg)
+            filename.append(str(arg))
         elif opt in ['-o']:
             outputfile_name = str(arg)
 
@@ -63,25 +65,28 @@ if outputfile_name == 'none':
     outputfile_name = 'output'
 
 #When we have a single file
-table = rd.read_data3(filename)
-source_xyz = [table [0], table[1], table [2]]
-source_Rtp = [table [3], table [4], table[5]]
-x, y, z = np.array(table[0]), np.array(table[1]), np.array(table[2])
-R, theta, phi = np.array(table[5]), np.array(table[3]), np.array(table[4])
-Q_tot =  np.array(table[6])
-nEvents = np.array(table[7])
-phi_max = max(phi) * 180/np.pi
 df = pd.DataFrame()
-for i in range(len(x)):
-    c = [x[i], y[i],  z[i],  theta[i], phi[i],  R[i],  Q_tot[i],  nEvents[i]]
-    row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events'], dtype=np.float64)
-    df = df.append(row, ignore_index=True)
+
+for f in filename:
+    table = rd.read_data3(f)
+    print(f)
+    source_xyz = [table [0], table[1], table [2]]
+    source_Rtp = [table [3], table [4], table[5]]
+    x, y, z = np.array(table[0]), np.array(table[1]), np.array(table[2])
+    R, theta, phi = np.array(table[5]), np.array(table[3]), np.array(table[4])
+    Q_tot =  np.array(table[6])
+    nEvents = np.array(table[7])
+    phi_max = 360
+    for i in range(len(x)):
+        c = [x[i], y[i],  z[i],  theta[i], phi[i],  R[i],  Q_tot[i],  nEvents[i]]
+        row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events'], dtype=np.float64)
+        df = df.append(row, ignore_index=True)
 
 #place each source position in a bin
-count_uniform_bins = np.zeros(len(bins))
-count_uniform_bins_theta = np.zeros(len(bins))
-charge_uniform_bins = np.zeros(len(bins))
-charge_uniform_bins_theta = np.zeros(len(bins))
+count_uniform_bins = np.zeros(len(bins_all[0]))
+count_uniform_bins_theta = np.zeros(len(bins_all[0]))
+charge_uniform_bins = np.zeros(len(bins_all[0]))
+charge_uniform_bins_theta = np.zeros(len(bins_all[0]))
 for source_position_ID in range(len(df['x'])):
     source_position = np.array([df['x'][source_position_ID], df['y'][source_position_ID], df['z'][source_position_ID]])
     #Calculate the distance xyz bwteen the source position and each bin centre
@@ -92,13 +97,14 @@ for source_position_ID in range(len(df['x'])):
     distance_theta_phi = np.linalg.norm(np.array([bins_all[3], bins_all[4]]).T - source_theta_phi, axis = 1)
     id_of_closest_bin_theta = np.argmin(distance_theta_phi)
     #print(id_of_closest_bin_theta, id_of_closest_bin)
+    #print(id_of_closest_bin_theta, bins_all[3][id_of_closest_bin_theta], bins_all[4][id_of_closest_bin_theta], source_theta_phi)
 
     #Store the data in the relevant bins
     #count_uniform_bins[id_of_closest_bin] += 1
     count_uniform_bins_theta[id_of_closest_bin_theta] += 1
     #charge_uniform_bins[id_of_closest_bin] += df['Q'][source_position_ID]
     charge_uniform_bins_theta[id_of_closest_bin_theta] += df['Q'][source_position_ID]
-print(count_uniform_bins_theta, charge_uniform_bins_theta)
+#print(count_uniform_bins_theta, charge_uniform_bins_theta)
 
 ax = plt.axes(projection = 'polar')
 ax.set_thetamin(0)
@@ -107,25 +113,42 @@ ax.set_thetamax(phi_max)
 for b in range(len(bins_all[0])):
     #if count_uniform_bins_theta[b]>0:
     #/( count_uniform_bins_theta[b]* nEvents[0]
-    sc = ax.scatter(bins_all[4][b], bins_all[3][b], c = charge_uniform_bins_theta[b]/(count_uniform_bins_theta[b] * nEvents[0]), cmap = "nipy_spectral",vmin = 0, vmax = 0.33, s = 60)
+    sc = ax.scatter(bins_all[4][b], bins_all[3][b], c = charge_uniform_bins_theta[b]/(count_uniform_bins_theta[b] * nEvents[0]), cmap = "Blues",vmin = 0, vmax = 0.33, s = 120)
+
 plt.colorbar(sc)
 ax.set_title('Charge collected per photon in this bin')
 plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Binned_visualisation/Non-interpolated/%s.png'%outputfile_name)
 plt.show()
+plt.close()
+#print(count_uniform_bins_theta)
+
+ax2 = plt.axes(projection = 'polar')
+ax2.set_thetamin(0)
+ax2.set_ylabel("Q %s "%(filename))
+ax2.set_thetamax(phi_max)
+for b in range(len(bins_all[0])):
+    if count_uniform_bins_theta[b]>0:
+    #/( count_uniform_bins_theta[b]* nEvents[0]
+        print(bins_all[4][b], bins_all[3][b], count_uniform_bins_theta[b])
+        sc2 = ax2.scatter(bins_all[4][b], bins_all[3][b], c = count_uniform_bins_theta[b], cmap = "Blues",vmin = 0, vmax = count_uniform_bins_theta.max(), s = 120)
+plt.colorbar(sc2)
+ax2.set_title('Number of source positions in this bin')
+#plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Binned_visualisation/Non-interpolated/%s.png'%outputfile_name)
+plt.show()
 
 
 ax = plt.axes(projection = '3d')
-for b in range(len(bins.T[0])):
-    if count_uniform_bins_theta[b]>0:
-        sc = ax.scatter(bins_all[0][b] ,  bins_all[2][b] ,bins_all[1][b], c = count_uniform_bins_theta[b], cmap = "Blues", vmin=0, vmax=count_uniform_bins_theta.max(), s = 60)
+for b in range(len(bins_all[0])):
+    #if count_uniform_bins_theta[b]>0:
+        sc = ax.scatter(bins_all[0][b] ,  bins_all[2][b] ,bins_all[1][b], c = count_uniform_bins_theta[b], cmap = "Blues", vmin=0, vmax=count_uniform_bins_theta.max(), s = 120)
 plt.colorbar(sc)
 ax.set_title('Number of source positions in this bin')
 plt.show()
 
 ax = plt.axes(projection = '3d')
-for b in range(len(bins.T[0])):
-    if count_uniform_bins_theta[b]>0:
-        sc = ax.scatter(bins_all[0][b] ,  bins_all[1][b], bins_all[2][b], c = charge_uniform_bins_theta[b]/( count_uniform_bins_theta[b]* nEvents[0]), cmap = "Blues", vmin=0, vmax=0.4, s = 60)
+for b in range(len(bins_all[0])):
+    #if count_uniform_bins_theta[b]>0:
+        sc = ax.scatter(bins_all[0][b] ,  bins_all[2][b], bins_all[1][b], c = charge_uniform_bins_theta[b]/( count_uniform_bins_theta[b]* nEvents[0]), cmap = "Blues", vmin=0, vmax=0.4, s = 60)
 plt.colorbar(sc)
 ax.set_title('Charge collected per photon in this bin')
 plt.show()
@@ -137,8 +160,8 @@ fig = plt.figure(figsize=(20,10))
 ax = fig.add_subplot(projection='polar')
 #only the points
 ax.set_title("Q")
-zr = Q_tot/nEvents
-im = ax.scatter(phi, theta, c = zr, cmap = "nipy_spectral",s = 40)
+zr = df['Q']/df['events']
+im = ax.scatter(df['phi'], df['theta'], c = zr, cmap = "nipy_spectral",s = 40)
 col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="horizontal", format= "%.2f")
 ax.set_thetamin(0)
 ax.set_ylabel("Q %s "%(filename))
@@ -154,15 +177,15 @@ fig = plt.figure(figsize=(20,10))
 ax = fig.add_subplot(projection='polar')
 ax.set_title("Q")
 ax.set_ylabel("Q %s "%(filename))
-zr = Q_tot/nEvents
-xi, yi = np.linspace(min(phi), max(phi), 100), np.linspace(min(theta), max(theta), 100)
+zr = df['Q']/10000
+xi, yi = np.linspace(min(df['phi']), max(df['phi']), 100), np.linspace(min(df['theta']), max(df['theta']), 100)
 xi, yi = np.meshgrid(xi, yi)
 # Interpolate
-rbf = scipy.interpolate.Rbf(phi, theta, zr, function=interpolation_mode)
+rbf = scipy.interpolate.Rbf(df['phi'], df['theta'], zr, function=interpolation_mode, vmin = zr.min(), vmax = zr.max())
 zi = rbf(xi, yi)
-ax.contourf(xi, yi, zi, 500, cmap='nipy_spectral')
-im = ax.scatter(phi, theta, c = zr, cmap = "nipy_spectral",s = 40)
-col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="horizontal", format= "%.2f")
+ax.contourf(xi, yi, zi, 500, cmap='nipy_spectral', vmin = zr.min(), vmax = zr.max())
+#im = ax.scatter(phi, theta, c = zr, cmap = "nipy_spectral",s = 40)
+col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
 ax.set_thetamin(0)
 ax.set_thetamax(phi_max)
 ax.xaxis.labelpad = 10
@@ -170,6 +193,8 @@ ax.yaxis.labelpad = 20
 ax.set_xlabel(f'$\Theta$(rad)')
 plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Maps/Interpolated/%s.png'%outputfile_name)
 plt.show()
+
+raise end
 
 #Now plot the source positions overlayed with the position of the maps
 source_Rtp = np.array(source_Rtp)
@@ -203,8 +228,8 @@ ax.scatter3D(x, z, y, marker = 'x', color ='r')
 #ax.scatter3D(PMT_x,PMT_z,PMT_y, marker = 'o')
 
 #This is the position of the centre of the uniform bins
-for b in range(len(bins)):
-    ax.scatter3D(bins[b][0],bins[b][2], bins[b][1], 'o', color = 'k')
+for b in range(len(bins_all)):
+    ax.scatter3D(bins_all[0][b],bins_all[2][b], bins_all[1][b], 'o', color = 'k')
 
 for i in range(len(x)):
     ax.plot([x[i], x[i] - R[i] *  np.sin(theta[i]) * np.cos(phi[i])], [z[i], z[i] - R[i] * np.sin(theta[i]) * np.sin(phi[i])], [y[i], y[i] - R[i] * np.cos(theta[i])], 'r-')

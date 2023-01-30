@@ -27,7 +27,7 @@ import Module_writeFiles as md
 nTheta = 10
 nPhi = 0
 R = 10
-nEvent = 10000
+nEvent = 1000 #default number of events: 1000
 
 #Works naively  with neatly arranged (nTheta, nPhi) positions 
 ordered_positions = True 
@@ -36,18 +36,21 @@ random_positions = False
 #Now true uniformity over the sphere (i.e. constant number of points per unit area)
 uniform_positions = False
 
+offset = 1/6 * np.pi#add a bit of margin not to cut into the middle of a bin (the ones on the edge of the quarter)
+
 #The limits for our theta and phi
 #These are for a 'classic' quarter of the mPMT dome
-theta_min = 0
-theta_max = 1.1 # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
-phi_min = 0
-phi_max = 2 * np.pi #up to 90 degrees for now
+#theta_min = 0
+#theta_max = 1.1 # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
+#phi_min = np.pi/2 - offset/2 #3*np.pi/2 - have checked the symmetry: we can extrapolate a quarter to the full map 
+#phi_max = np.pi + offset #2*np.pi  #up to 90 degrees for now -  second ring of bins is causing the problem 
+#so we need a bit less offset
 
-#This is for an intensive scan around a given bin
-#theta_min = 0.23445 
-#theta_max = 0.3917
-#phi_min = 0.94205
-#phi_max = 1.0899
+#This is for an intensive scan around a given bin (24)
+theta_min = 0.23445
+theta_max = 0.3917
+phi_min = 0.94205
+phi_max = 1.0899
 
 
 #Read the user inputs
@@ -89,7 +92,7 @@ except NameError:
     print("Error: No Filename  detected")
 print("Config:\n  R = %.2f \n  nEvent = %i \n  abwff = %.3e \n  rayff = %.3e"%(R, nEvent, absff, rayff))
 print("Sampling method: \n  ordered = %s (%i x %i pos) \n  random = %s (%i pos) \n  uniform = %s (%i pos)"%(ordered_positions, nTheta, nPhi, random_positions, nPositions, uniform_positions, nPositions))
-print("\n%.2f < theta < %.2f and %.2f < phi < %.2f"%(theta_min, theta_max, phi_min, phi_max))
+print("\n%.3f < theta < %.3f and %.3f < phi < %.3f"%(theta_min, theta_max, phi_min, phi_max))
 print("---------------------------------------------------------------------------------------------------------\n")
 
 #get the correct name for the file
@@ -139,8 +142,8 @@ if uniform_positions == True:
     range_phi = []
     for k in range(nPositions):
         theta, phi = gp.get_tp_point(theta_min = theta_min, theta_max = theta_max, phi_min = phi_min, phi_max = phi_max)
-        range_theta.append(float("%.2f"%theta))
-        range_phi.append(float("%.2f"%phi))
+        range_theta.append(float("%.3f"%theta))
+        range_phi.append(float("%.3f"%phi))
     range_phi = np.array(range_phi) #for now use completely random phi
     range_theta = np.array(range_theta)
     for t in range(len(range_theta)):

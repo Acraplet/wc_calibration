@@ -70,9 +70,9 @@ int main(int argc, char **argv){
             double theta_bin = closestBin.theta;
             double phi_bin = closestBin.phi;
 
-            if (minID == 24){
+            if (minID == 83){
 
-                char * referenceFile = (char *)Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_oneBin/OneBin_bin%i_theta%.2f_phi%.2f_R%s.txt", minID, theta_bin, phi_bin, R_test);
+                char * referenceFile = (char *)Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/ref_maps_oneBin/OneBin_bin%i_theta%.2f_phi%.2f_R%s.txt", minID, theta_bin, phi_bin, R_test);
 
                 std::cout << referenceFile << std::endl;
 
@@ -184,7 +184,7 @@ int main(int argc, char **argv){
 
                 //This is the scattering part
                 //decide where we place the nodes of the TSpline - in cm
-                std::vector<double> nodes = {40, 100, 200, 400, 700, 1000, 2000, 3000, 5000, 6000};
+                std::vector<double> nodes = {40, 100, 200, 400, 700, 1000, 2000, 3000, 4000, 5000, 6000};
 //                 {40, 100, 200, 400, 700, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000}; //15nodes
 //                 {50, 200, 400, 850, 4000}; 5nodesRef//
                 //{40, 100, 200, 400, 700, 1000, 2000, 3000, 5000, 6000}; //simpleSpline
@@ -227,7 +227,7 @@ int main(int argc, char **argv){
 
                 TGraphErrors *data_scat = new TGraphErrors(data_scat_xval.size(), &data_scat_xval[0], &data_scat_yval[0],&err_scat_xval[0], &err_scat_yval[0]);
                 //This is saving everything the fit output in the reference_root folder
-                TFile *outf = new TFile(Form("reference_root/reference_bin24/SimpleSpline/results_SimpleSpline_Abs_Scat_bin%i_theta%.2f_phi%.2f_R%s.root", minID, theta_bin, phi_bin, R_test), "RECREATE");
+                TFile *outf = new TFile(Form("reference_root/reference_bin83/SimpleSpline/results_SimpleSpline_Abs_Scat_bin%i_theta%.2f_phi%.2f_R%s.root", minID, theta_bin, phi_bin, R_test), "RECREATE");
 
                 TF1 func_scat = chi_scat->getFunction_rayff(0, 6050, "best_fit_scat");
                 func.SetTitle("absorption_best_fit");
@@ -252,7 +252,7 @@ int main(int argc, char **argv){
                 outf->Close();
                 //to only have it once  but looking at the bin of insterest (24 here)
             }//only do it if we are on the 24th bin for now otherwise if it shows up second we have is
-            if (minID == 24) a = true;
+            if (minID == 83) a = true;
         }
         newfile.close();   //close the file object.
         //now plot the histogram - to check whether the fitted attenuation is consistent with

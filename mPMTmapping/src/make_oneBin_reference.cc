@@ -160,7 +160,7 @@ int main(int argc, char **argv){
     const char* phi = p.c_str();
     const char* dist = R.c_str();
 
-    std::string onePosition_outfile = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_oneBin/OneBin_bin%d_theta%.2f_phi%.2f_R%s.txt", minID, theta_bin, phi_bin, dist);
+    std::string onePosition_outfile = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/ref_maps_oneBin/firstTry/OneBin_bin%d_theta%.2f_phi%.2f_R%s.txt", minID, theta_bin, phi_bin, dist);
     //bin_theta, bin_phi
 
     std::cout << onePosition_outfile << std::endl;

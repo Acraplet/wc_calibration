@@ -114,18 +114,20 @@ x = total_quarter.T[0]
 z = total_quarter.T[1]
 y = total_quarter.T[2]
 R =1
-theta = np.arcsin(y/R)
-phi = np.arccos(x/(R*np.cos(theta)))
+theta = np.arcsin(abs(y)/R)
+phi = np.arccos(x/(R*np.cos(theta))) + np.pi * (1-np.heaviside(y, 1))
 #floating point error when phi = 0.0 -> Easy fix
 phi = np.where(x/np.cos(theta) >= 0.9999,0.0, phi)
-plt.plot(phi, theta, 'x')
+phi = np.where(x/np.cos(theta) <= -0.9999, np.pi, phi)
+
+plt.plot(phi, np.pi/2 - theta, 'x')
 plt.xlabel('phi')
-plt.ylabel('(theta)')
+plt.ylabel('theta')
 plt.show()
 
 bin_number = np.arange(0, len(phi), 1)
 
-table = [theta, phi, bin_number]
+table = [np.pi/2 - theta, phi, bin_number]
 np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_theta_phi.txt', table, fmt = "%.2e")
 
 #this is the origin of the mPMT dome
@@ -144,7 +146,8 @@ z = z + origin [2]
 
 
 #Saving the uniform bins - be careful these are for the 58th mPMT
-table = np.array([x, y, z, theta, phi, bin_number]).T
+print(phi)
+table = np.array([x, y, z, np.pi/2 - theta, phi, bin_number]).T
 np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_withBinNumber.txt', table)
 
 #here convert back the positions so we can plot them nicely 
