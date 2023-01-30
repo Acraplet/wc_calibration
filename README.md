@@ -1,7 +1,7 @@
 # wc_calibration
 _"Les mPMTs sont des fleurs dont les PMTs seraient les pétales"_
 
-WCTE calibration code -eventually for PMT timing response and angular response so far only for water attenuation length measurement... 
+WCTE calibration code -eventually for PMT timing response and angular response so far only for water attenuation length measurement... It requires a root version supporting Minuit2, I use root 6.24/08. 
 
 ## Make config files
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
