@@ -44,22 +44,23 @@ def Rtp_to_xyz_source(R, theta, phi):
 def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode, theta, phi, R, FileID, nEvent = 10000):
     ''' 
     This function write a config file from the template we have and with the given inputs
+    Craefull - now we have a 3 s.f. precision on the source position -> this will have to be updated everywhere
     '''
     run_beam_on = nEvent
     template_txtFile = open("WCSim_template.txt","r")
     data_saving_path = "/vols/t2k/users/ac4317/WCTE/WCSim/mPMTmapping/data"
     config_saving_path = "/home/ac4317/Laptops/Year1/WCTE/wc_calibration/WCSim_configFiles"
-    config_file_name = "%s/WCSim_config_mPMTmapping_401nm_FileID%i_%s_x%.2f_y%.2f_z%.2f_t%.2f_p%.2f_R%.2f.mac"%(config_saving_path, FileID,alpha_mode,source_xpos,source_ypos,source_zpos, theta, phi, R)
-    data_file_name = "wcsim_mPMTmapping_401nm_FileID%i_%s_x%.2f_y%.2f_z%.2f_t%.2f_p%.2f_R%.2f.root"%(FileID, alpha_mode,source_xpos,source_ypos,source_zpos, theta, phi, R)
+    config_file_name = "%s/WCSim_config_mPMTmapping_401nm_FileID%i_%s_x%.3f_y%.3f_z%.3f_t%.3f_p%.3f_R%.2f.mac"%(config_saving_path, FileID,alpha_mode,source_xpos,source_ypos,source_zpos, theta, phi, R)
+    data_file_name = "wcsim_mPMTmapping_401nm_FileID%i_%s_x%.3f_y%.3f_z%.3f_t%.3f_p%.3f_R%.2f.root"%(FileID, alpha_mode,source_xpos,source_ypos,source_zpos, theta, phi, R)
     #making sure the value we write down is the correct value we implement in the config file
-    theta = float("%.2f"%theta)
-    phi = float("%.2f"%phi)
+    theta = float("%.3f"%theta)
+    phi = float("%.3f"%phi)
     source_dirx = - np.sin(theta) * np.cos(phi)
     source_diry = - np.cos(theta)
     source_dirz = - np.sin(theta) * np.sin(phi)
     orientation_string = "/gun/direction %.5f %.5f %.5f\n"%(source_dirx, source_diry, source_dirz)
     #can be more precise once we save the source direction infp
-    position_string = "/gun/position %.2f %.2f %.2f \n"%(source_xpos, source_ypos, source_zpos)
+    position_string = "/gun/position %.3f %.3f %.3f \n"%(source_xpos, source_ypos, source_zpos)
 
     with open("%s"%config_file_name, "w") as file:
         for line in template_txtFile:

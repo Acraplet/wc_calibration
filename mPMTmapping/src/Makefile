@@ -2,8 +2,10 @@ CXXFLAGS=`root-config --cflags --libs`
 LIBS := -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 
-all: ScatteringFitterBinned BinnedFitter Fitter make_mPMTmap AttenuationFitter make_oneBin_reference make_oneBin_test Fitter makeRef_maxNbHitAtPos ScatteringFitter make_onePositionMap
+all: plot_Scattering_Absorption_ExtrapolateR ScatteringFitterBinned BinnedFitter Fitter make_mPMTmap AttenuationFitter make_oneBin_reference make_oneBin_test Fitter makeRef_maxNbHitAtPos ScatteringFitter make_onePositionMap
 
+plot_Scattering_Absorption_ExtrapolateR: plot_Scattering_Absorption_ExtrapolateR.cc
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 make_mPMTmap: make_mPMTmap.cc
 	g++ -Wall -Wextra $(CXXFLAGS) -o ../bin/make_mPMTmap make_mPMTmap.cc
 make_onePositionMap: make_onePositionMap.cc

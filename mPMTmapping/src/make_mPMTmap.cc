@@ -132,6 +132,7 @@ int main(int argc, char **argv){
 
     for(int i=0; i<n_entries; i++){
         events->GetEntry(i);
+    //this is for the _flat issue
 	if (mPMT == 58){
 		if (mPMT_pmt != 19){
         		nHitsTot += NHits;

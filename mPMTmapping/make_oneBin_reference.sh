@@ -8,7 +8,7 @@ make_onePositionMap: make_onePositionMap.cc
 #later on we will move away from this to got to a binned approach
 ID=$1
 VAR="$(ls /home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/data/*FileID""$ID""_*_flat*)"
-make
+#make
 echo "Please be sure that "$ID" is a reference file as it might impact the quality of your fit later on to have non-reference file in your look up table"
 sleep 2s
 for name in $VAR
