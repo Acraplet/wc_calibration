@@ -140,4 +140,8 @@ just like with absorption we try to minimise the difference between Q_pred and Q
 The \_flat root  files should be put in a new empty folder within wc_calibration/mPMTmapping called data and accessed from there. The code relies quite a lot on filename format consistency so we should either keep that as is or improve this method. 
 
 
+The code is running with Root 6.26/10 (need to have that in the wc_calibration/mPMTmapping/
+/source_me.sh code and to run this code before starting the analysis). 
+
+
 
