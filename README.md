@@ -135,3 +135,9 @@ After the source position-dependant mPMT response to scattering has been fitted,
 just like with absorption we try to minimise the difference between Q_pred and Q_true as a function of the scattering length but this time Q_pred = TSpline3_fakedata(*y_of_nodes_from above) at scattering_length_pred. Again we can use multiple files to refine the approach. unlike for absorption the results are not very convincing so far...
 
 
+
+### Notes about install
+The \_flat root  files should be put in a new empty folder within wc_calibration/mPMTmapping called data and accessed from there. The code relies quite a lot on filename format consistency so we should either keep that as is or improve this method. 
+
+
+
