@@ -21,7 +21,7 @@ interpolation_mode = 'linear' # linear interpolation of the data
 argv = sys.argv[1:]
 
 #set up the geometry of the tank i.e. read the PMT positions
-PMT_position_file = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/PMT_positions.txt'
+PMT_position_file = './PMT_positions.txt'
 PMT = np.array(rd.read_data3(PMT_position_file)).T
 PMT_mPMT = PMT[0]
 PMT_mPMT_pmt = PMT[1]

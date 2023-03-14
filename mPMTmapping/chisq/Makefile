@@ -1,4 +1,4 @@
-CXXFLAGS=`root-config --cflags --glibs` -fPIC
+CXXFLAGS=`root-config --cflags --glibs` -fPIC -I../include
 LIBDIR=../lib
 OBJECTS := chisq.o
 ROOTCFLAGS := $(shell root-config --cflags)

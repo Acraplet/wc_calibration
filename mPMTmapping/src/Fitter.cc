@@ -10,6 +10,7 @@
 #include "TGraph.h"
 #include "TH1.h"
 #include "TGraphErrors.h"
+#include <cstring>
 
 int main(int argc, char **argv){
     //we need the true value of alpha
