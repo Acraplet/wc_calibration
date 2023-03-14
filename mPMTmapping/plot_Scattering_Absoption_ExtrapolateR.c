@@ -8,28 +8,30 @@
 //This is the fitter part - copied and adapted from the cern home page: https://root.cern/doc/master/classTGraph2D.html
 void graph2dfit(TGraph2D *dt)
 {
-	const char* fimpName = "/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/test_maps_oneBin/all_test_files_bin83.txt";
+	const char* fimpName = "/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/test_maps_oneBin/all_test_files_bin356.txt";
 	std::ifstream in(fimpName);
 	double temp;
-	int count;
+	int count = 0;
 //The reference datasets to use for comparision
 	std::vector<double> x_vector, y_vector, z_vector;
 	while ((in >> temp)) {
-		if (count %3 == 1) {
+// 		std::cout << "aa" << count << std::endl;
+		if (count %3 == 0) {
 // 			double r = std::strtod(in, NULL);
+
 			x_vector.push_back(truth_alpha(401.9,10e10,temp));
 			std::cout << truth_alpha(401.9,10e10,temp) << " ";
 // 			std::cout << truth_alpha(401.9,10e10,temp) << " " << temp << std::endl;
 		}//scat len
-		if (count %3 == 2) {
+		if (count %3 == 1) {
 			y_vector.push_back(temp); //R
-			std::cout << temp << " ";
+// 			std::cout << temp <<"uwu " << " ";
 		}
-		if (count %3 == 0){
+		if (count %3 == 2){
 			z_vector.push_back(temp); //Q per 1000 photons
-			std::cout << temp << std::endl;
+// 			std::cout << temp << std::endl;
 		}
-		count++;
+		count+=1;
 // 		first rayff
 // 		then R
 // 		then charge per 1000
@@ -58,13 +60,13 @@ void graph2dfit(TGraph2D *dt)
 	f2->SetParameters(1,1,1,1, 1);
 // 	auto dt = new TGraph2D()
 
-	double hr = 50;
+	double hr = 0.5;
 	auto h1 = new TH1D("h1",
 					   "Difference between Original splitline{function and Function}{with noise}",
 					100, -hr, hr);
 	auto h2 = new TH1D("h2",
 					   "Test - Delaunay interpolation",
-					50, -hr, hr);
+					50, -hr/5, hr/5);
 	auto h3 = new TH1D("h3",
 					   "Test - Minuit fit : p0 + (1/(-x + p1)) * p2",
 					50, -hr, hr);
@@ -84,7 +86,7 @@ void graph2dfit(TGraph2D *dt)
 		double y = y_vector[N];
 		double z_true = z_vector[N];
 
-		// 		std::cout << x << " " << y << " "<< z_true << std::endl;
+// 		std::cout << "Nope" << x << " " << y << " "<< z_true << std::endl;
 
 		f3->SetPoint(N, x, y, z_true);
 		// Generate a random number in [-e,e]
@@ -92,14 +94,14 @@ void graph2dfit(TGraph2D *dt)
 		//this is the function (without plus noise)
 		z = f2->Eval(x,y); //*(1+rnd);
 
-		h1->Fill(z_true-z);
+		h1->Fill((z_true-z)/z_true);
 		//this is a simple interpolation
 		z = dt->Interpolate(x,y);
-		h2->Fill(z_true-z);
+		h2->Fill((z_true-z)/z_true);
 
 		//this is the function fited
 		z = fit2->Eval(x,y);
-		h3->Fill(z_true-z);
+		h3->Fill((z_true-z)/z_true);
 	}
 
 
@@ -118,7 +120,7 @@ void graph2dfit(TGraph2D *dt)
 	dt->SetFillColor(36);
 	dt->SetTitle("Delaunay interp.");
 // 	dt->SetTitleSize(0.03);
-	dt->Draw("surf4");
+	dt->Draw("surf1");
 	f3->Draw("same p0");
 // 	dt->Draw("same p0");
 
@@ -135,8 +137,8 @@ void graph2dfit(TGraph2D *dt)
 
 // 	c->cd(2); h1->Fit("gaus","Q") ; h1->Draw();
 // 	h2->SetTitleSize(1);
-	h2->GetXaxis()->SetTitle("True-Pred charge");
-	h3->GetXaxis()->SetTitle("True-Pred charge");
+	h2->GetXaxis()->SetTitle("True-Pred/True charge");
+	h3->GetXaxis()->SetTitle("True-Pred/True charge");
 	cq->cd(2); h2->Fit("gaus","Q") ; h2->Draw();
 	cq->cd(4); h3->Fit("gaus","Q") ; h3->Draw();
 	cq->cd();
@@ -156,7 +158,7 @@ void plot_Scattering_Absoption_ExtrapolateR(){
 	std::vector<double> x_true, y_true, z_true;
 	for (int ri=0; ri < R_list.size(); ri++)
 	{
-		TFile f(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/reference_root/reference_bin83/SimpleSpline/results_SimpleSpline_Abs_Scat_bin83_theta0.31_phi1.02_R%.2f.root", R_list[ri]));
+		TFile f(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/reference_root/reference_bin_all/5nodesRef/results_5nodesRef_Abs_Scat_bin356_theta0.90_phi3.04_R%.2f.root", R_list[ri]));
 
 		TGraphErrors *data_distribution = (TGraphErrors*)f.Get("data_distribution");
 		TGraphErrors *data_scat_distribution = (TGraphErrors*)f.Get("data_scat_distribution");

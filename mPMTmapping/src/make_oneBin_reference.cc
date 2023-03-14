@@ -68,6 +68,72 @@ int main(int argc, char **argv){
         std::cout << WAR << "Warning, output file given : we are working without giving names to the filename, it is automatically done w.r.t the bin that the source position lies in" << std::endl;
     }
 
+
+    double x, y, z, t, p, R,nHitsTot, n_entries, abwff, rayff; //the cartesian and polar coordinate of the source position, careful R is from the surface of the mPMT dome and not from its centre of the mPMT
+    //     int str; //this will help break down the string
+    //To read the characteristics of the file
+    //     std::string T;
+    //     float theta_pos, phi_pos;
+    //     std::string abwff;
+    //     int fileID;
+    //     std::string rayff;
+    //     std::stringstream X(filename);
+    std::ifstream in(filename);
+    double temp;
+    int count = 0;
+
+    while ((in >> temp)) {
+        //every entry in the txt map test
+        // 		std::cout << "aa" << count << std::endl;
+        if (count %10 == 0) x = temp;
+        if (count %10 == 1) y = temp;
+        if (count %10 == 2) z = temp;
+        if (count %10 == 3) t = temp;
+        if (count %10 == 4) p = temp;
+        if (count %10 == 5) R = temp;
+        if (count %10 == 6) nHitsTot = temp; //number of p.e. collected in mPMT58
+        if (count %10 == 7) n_entries = temp;
+        if (count %10 == 8) abwff = temp;
+        if (count %10 == 9) {
+            //we have finished a line
+            rayff = temp;
+            //             std::cout << "Total number of hits : "<< nHitsTot << std::endl;
+
+            //Here we need to choose which bin we are into for then appending the given source position to the
+            //correct bin reference text file
+            Bin closestBin = findBin(t, p);
+            int minID = closestBin.ID;
+            double theta_bin = closestBin.theta;
+            double phi_bin = closestBin.phi;
+
+            //         std::cout << x << " " << y << " " << z << " closest to bin " << minID << " at " << xbins[minID]<< " " << ybins[minID] << " "<< zbins[minID] <<std::endl;
+
+            /*onst char* theta = t.c_str();
+             *            const char* phi = p.c_str();
+             *            const char* dist = R.c_str();*/
+
+            std::string onePosition_outfile = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/ref_maps_oneBin/OneBin_bin%d_theta%.2f_phi%.2f_R%.2f.txt", minID, theta_bin, phi_bin, R);
+            //            std::cout << onePosition_outfile << std::endl;
+            //carefull, we are appending to the end of the existing file,
+            //if this file is not a test file it will cause problems
+            std::ofstream onePosition;
+            onePosition.open(onePosition_outfile, std::ofstream::app);
+            onePosition <<  x << " " << y << " " << z << " " << t << " " << p << " " << R << " " << nHitsTot << " " << n_entries << " " << abwff << " " << rayff << std::endl;
+        }//only at the end of the line do we add it to the correct bin test
+        count+=1;
+
+    }
+
+    std::cout << "File " << filename << " has been added to the reference files" << std::endl;
+
+    //moving it to looking at the text file directly
+
+
+
+}//End of main
+
+
+/*
     std::string x, y, z, t, p, R; //the cartesian and polar coordinate of the source position, careful R is from the surface of the mPMT dome and not from its centre of the mPMT
     int str; //this will help break down the string
     //To read the characteristics of the file
@@ -170,3 +236,4 @@ int main(int argc, char **argv){
     onePosition.open(onePosition_outfile, std::ofstream::app);
     onePosition <<  x << " " << y << " " << z << " " << t << " " << p << " " << R << " " << nHitsTot << " " << n_entries << " " << abwff << " " << rayff << std::endl;
 }//End of main
+*/

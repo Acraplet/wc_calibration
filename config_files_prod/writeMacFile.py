@@ -36,21 +36,21 @@ random_positions = False
 #Now true uniformity over the sphere (i.e. constant number of points per unit area)
 uniform_positions = False
 
-offset = 1/6 * np.pi#add a bit of margin not to cut into the middle of a bin (the ones on the edge of the quarter)
+offset = 0 #1/6 * np.pi#add a bit of margin not to cut into the middle of a bin (the ones on the edge of the quarter)
 
 #The limits for our theta and phi
 #These are for a 'classic' quarter of the mPMT dome
-#theta_min = 0
-#theta_max = 1.1 # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
-#phi_min = np.pi/2 - offset/2 #3*np.pi/2 - have checked the symmetry: we can extrapolate a quarter to the full map 
-#phi_max = np.pi + offset #2*np.pi  #up to 90 degrees for now -  second ring of bins is causing the problem 
+theta_min = 0
+theta_max = 1.1 # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
+phi_min = np.pi/2 - offset/2 #3*np.pi/2 - have checked the symmetry: we can extrapolate a quarter to the full map 
+phi_max = np.pi + offset #2*np.pi  #up to 90 degrees for now -  second ring of bins is causing the problem 
 #so we need a bit less offset
 
 #This is for an intensive scan around a given bin (24)
-theta_min = 0.23445
-theta_max = 0.3917
-phi_min = 0.94205
-phi_max = 1.0899
+#theta_min = 0.23445
+#theta_max = 0.3917
+#phi_min = 0.94205
+#phi_max = 1.0899
 
 
 #Read the user inputs
@@ -82,7 +82,8 @@ for opt, arg in opts:
             nPositions = int(arg)
             print("careful - we are using %i uniform source positions instead of an array of %i pos in phi and %i pos in theta"%(nPositions, nPhi, nTheta))
 
-
+if ordered_positions == True:
+    nPositions = nTheta * nPhi
 #need a file name and print the config we are choosing
 print("\n---------------------------------------------------------------------------------------------------------")
 try:
