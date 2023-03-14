@@ -24,7 +24,7 @@ void plot_Scattering_Absoption_ExtrapolateR(){
     float R = 120.;
 
     std::unique_ptr<TFile> myFile( TFile::Open("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/reference_root/reference_bin24/SimpleSpline/results_SimpleSpline_Abs_Scat_bin24_theta0.31_phi1.02_R120.00.root") );
-    std::unique_ptr<TF1> best_fit_scat(myFile->Get<TF1>("best_fit_scat"));
+    std::unique_ptr<TF1> best_fit_scat = std::unique_ptr<TF1>(myFile->Get("best_fit_scat"));
     std::unique_ptr<TF1> best_fit_abs(myFile->Get<TF1>("best_fit_abs"));
     std::unique_ptr<TGraphErrors> data_distribution(myFile->Get<TGraphErrors>("data_distribution"));
     std::unique_ptr<TGraphErrors> data_scat_distribution(myFile->Get<TGraphErrors>("data_scat_distribution"));

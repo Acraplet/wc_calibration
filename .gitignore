@@ -11,6 +11,7 @@
 *.root
 *.mac
 *.txt
+*.png
 
 # Precompiled Headers
 *.gch
@@ -30,11 +31,14 @@
 *.la
 *.a
 *.lib
+*.so
 
 # Executables
 *.exe
 *.out
 *.app
+mPMTmapping/bin/
+mPMTmapping/lib/
 
 #cache
 *__pycache__*
