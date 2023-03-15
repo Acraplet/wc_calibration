@@ -18,7 +18,7 @@ outputfile_name = 'none'
 phi_max = 90 #for plotting - get the max phi value to show only the right portion of the circle
 argv = sys.argv[1:]
 
-PMT_position_file = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/PMT_positions.txt'
+PMT_position_file = './PMT_positions.txt'
 PMT = np.array(rd.read_data3(PMT_position_file)).T
 PMT_mPMT = PMT[0]
 PMT_mPMT_pmt = PMT[1]
@@ -131,7 +131,7 @@ if comparision_file != 'none':
 
 
 if comparision_file == 'none':
-    plt.style.use(["science", "notebook", "grid"])
+    #plt.style.use(["science", "notebook", "grid"])
     ####Binned approach
     #first calculate the distance to each bin center
 
@@ -178,7 +178,7 @@ if comparision_file == 'none':
     ax.set_xlabel(f'$\Theta$(rad)')
     ax.xaxis.labelpad = 10
     ax.yaxis.labelpad = 20
-    plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Maps/Non-interpolated/%s.png'%outputfile_name)
+    plt.savefig('./Maps/maps_pictures/Maps/Non-interpolated/%s.png'%outputfile_name)
     plt.show()
 
     #Now the interpolate

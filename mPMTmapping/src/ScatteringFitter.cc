@@ -15,6 +15,7 @@
 #include "TGraph.h"
 #include "TH1.h"
 #include "TGraphErrors.h"
+#include <cstring>
 
 int main(int argc, char **argv){
     std::vector<double> list_Q, list_i;

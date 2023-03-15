@@ -1,6 +1,6 @@
 #include <iostream>
 #include "chisq.h"
-#include "TSpline.h"
+#include <TSpline.h>
 
 Chisq::Chisq(int npars){
     pars.resize(npars);

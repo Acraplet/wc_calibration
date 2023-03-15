@@ -21,6 +21,7 @@
 #include <TGraph.h>
 #include <TVector3.h>
 #include <TRandom3.h>
+#include <cstring>
 
 struct binInfo {
     int ID;
