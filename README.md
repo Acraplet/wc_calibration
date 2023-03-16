@@ -16,7 +16,7 @@ The config files for WCSim are stored using a FileID which indicates which group
 In the file name is stored the absoption (abwff) and Rayleigh scattering coefficients that are input into WCSim.
 Then the file name saves the source position x, y, z coordinates in space as well as its relative angles theta and phi with respect to the mPMT centre and distance R to the mPMT surface
 
-The config files are produced in wc_calibration/WCSim_configFiles/ and the corresponding tuning files produced in wc_calibration/WCSim_tuningFiles/ by calling 
+The config files are produced in `WCSim_configFiles/` and the corresponding tuning files produced in `WCSim_tuningFiles/` by calling 
 ```
 python config_files_prod/writeMacFile.py
 ```
@@ -52,11 +52,15 @@ The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapp
 ## Extract and look at the maps as .txt file from WCSim 
 
 *C++ (recommended)*
-After the WCSim files have been produced, copy the \_flat files in your home /wc\_calibration/mPMTmapping/data folder. In the /wc_calibration/mPMTmapping folder you can then call 
+After the WCSim files have been produced, copy the `_flat.root` files to `mPMTmapping/data` folder. In the `mPMTmapping/` folder first do a make
+```
+make
+```
+Then you can then call 
 ```
 bash make_mPMTmap.sh ID
 ```
-replacing ID with the run ID you want. This saved a .txt file named /wc_calibration/mPMTmapping/Maps/maps\_txtFiles/map\_FileIDxx.txt with the following entries:
+replacing ID with the run ID you want. This saved a .txt file named `mPMTmapping/Maps/maps_txtFiles/mPMT_map_IDxx.txt` with the following entries:
 
 1. Source x position
 2. Source y position

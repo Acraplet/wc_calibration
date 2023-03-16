@@ -4,7 +4,7 @@
 ID=$1
 VAR="$(ls ./data/*FileID""$ID""_*_flat*)"
 #VAR="$(/vols/t2k/users/ac4317/WCTE/WCSim/mPMTmapping/data/*FileID""$ID""_*_flat*)"
-make
+#make
 
 #rm Maps/maps_txtFiles/mPMT_map_ID"$ID".txt
 #to make sure we don't add to an existing file
