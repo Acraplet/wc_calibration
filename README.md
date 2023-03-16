@@ -3,6 +3,12 @@ _"Les mPMTs sont des fleurs dont les PMTs seraient les pétales"_
 
 WCTE calibration code - PMT timing response, angular response, water attenuation length etc... 
 
+Some setup before starting
+```
+export WCCALIB=$PWD # the wc_calibration directory
+
+```
+
 ## Make config files
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
 
@@ -12,7 +18,7 @@ Then the file name saves the source position x, y, z coordinates in space as wel
 
 The config files are produced in wc_calibration/WCSim_configFiles/ and the corresponding tuning files produced in wc_calibration/WCSim_tuningFiles/ by calling 
 ```
-python /config_files_prod/writeMacFile.py
+python config_files_prod/writeMacFile.py
 ```
 with the options :
 
@@ -35,7 +41,7 @@ Alternatively, if you want to make many similar config files, use
 ```
 bash make_all_config.sh abwff rayff ID0
 ```
-which will make 7 config files with the input absorption and scattering params and IDs going from ID0 to ID0 + 7 with 20 points in theta, and phi and with R = 5, 10, 20, 40, 80, 160, 250 (used to be 320)cm. 
+which will make 7 sets of config files with the input absorption and scattering params and IDs going from ID0 to ID0 + 7 with 20 points in theta, and phi and with R = 5, 10, 20, 40, 80, 160, 250 (used to be 320)cm. 
 
 ## Run WCSim on the batch system (efficiently) 
 

@@ -11,7 +11,7 @@
 # r - rayff the Rayleigh scattering coef in WCSim
 # 
 
-import uproot
+#import uproot
 import os
 import numpy as np
 import matplotlib.pyplot as plt
