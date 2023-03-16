@@ -1,6 +1,6 @@
 //This code is going to plot and then extrapolate the mPMT behaviour at different R and rayff
 
-#include "/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/include/truth_alpha.hh"
+#include "./include/truth_alpha.hh"
 
 
 
@@ -8,14 +8,13 @@
 //This is the fitter part - copied and adapted from the cern home page: https://root.cern/doc/master/classTGraph2D.html
 void graph2dfit(TGraph2D *dt)
 {
-	const char* fimpName = "/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/test_maps_oneBin/all_test_files_bin356.txt";
+	const char* fimpName = "./Maps/test_maps_oneBin/all_test_files_bin356.txt";
 	std::ifstream in(fimpName);
 	double temp;
 	int count = 0;
 //The reference datasets to use for comparision
 	std::vector<double> x_vector, y_vector, z_vector;
 	while ((in >> temp)) {
-// 		std::cout << "aa" << count << std::endl;
 		if (count %3 == 0) {
 // 			double r = std::strtod(in, NULL);
 
@@ -25,17 +24,14 @@ void graph2dfit(TGraph2D *dt)
 		}//scat len
 		if (count %3 == 1) {
 			y_vector.push_back(temp); //R
-// 			std::cout << temp <<"uwu " << " ";
 		}
 		if (count %3 == 2){
 			z_vector.push_back(temp); //Q per 1000 photons
-// 			std::cout << temp << std::endl;
 		}
 		count+=1;
 // 		first rayff
 // 		then R
 // 		then charge per 1000
-// 		std::cout << temp << std::endl;
 // 		hist->Fill(x);
 	}
 
@@ -85,9 +81,6 @@ void graph2dfit(TGraph2D *dt)
 		double x = x_vector[N];
 		double y = y_vector[N];
 		double z_true = z_vector[N];
-
-// 		std::cout << "Nope" << x << " " << y << " "<< z_true << std::endl;
-
 		f3->SetPoint(N, x, y, z_true);
 		// Generate a random number in [-e,e]
 		//rnd = 2*r.Rndm()*e-e;
@@ -158,7 +151,7 @@ void plot_Scattering_Absoption_ExtrapolateR(){
 	std::vector<double> x_true, y_true, z_true;
 	for (int ri=0; ri < R_list.size(); ri++)
 	{
-		TFile f(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/reference_root/reference_bin_all/5nodesRef/results_5nodesRef_Abs_Scat_bin356_theta0.90_phi3.04_R%.2f.root", R_list[ri]));
+		TFile f(Form("./reference_root/reference_bin_all/5nodesRef/results_5nodesRef_Abs_Scat_bin356_theta0.90_phi3.04_R%.2f.root", R_list[ri]));
 
 		TGraphErrors *data_distribution = (TGraphErrors*)f.Get("data_distribution");
 		TGraphErrors *data_scat_distribution = (TGraphErrors*)f.Get("data_scat_distribution");
@@ -172,7 +165,6 @@ void plot_Scattering_Absoption_ExtrapolateR(){
 // 			x_true.push_back(x);
 // 			y_true.push_back(R_list[ri]);
 // 			z_true.push_back(y);
-// 			std::cout << y << std::endl;
 			n +=1;
 		}
 
@@ -314,7 +306,6 @@ void plot_Scattering_Absoption_ExtrapolateR_safe(){
 
 	double total_y = 0;
 	for (int i=0; i<data_scat_distribution->GetN(); i++){
-		std::cout << i << std::endl;
 		x =(double) data_scat_distribution->GetX()[i];
 		y = data_scat_distribution->GetY()[i];
 		double yerr = data_scat_distribution->GetErrorY(i);
@@ -367,7 +358,7 @@ void plot_Scattering_Absoption_ExtrapolateR_safe(){
 	data_distribution->Draw("sameE*");
 	best_fit_abs->Draw("same");
 	legend->Draw("same");
-	c->SaveAs(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Pictures/Bin24_Scattering_FitQuality_15nodes/Bin24_15nodes_R%.2f.pdf", R));
+	c->SaveAs(Form("./Pictures/Bin24_Scattering_FitQuality_15nodes/Bin24_15nodes_R%.2f.pdf", R));
 
 
 

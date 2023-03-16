@@ -2,7 +2,7 @@
 #absorption or scattering  we need to be very careful to use the correct reference otherwise it will
 #mess up our absorption length estimate
 ID=$1
-VAR="$(ls /home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/data/*FileID""$ID""_*_flat*)"
+VAR="$(ls ./data/*FileID""$ID""_*_flat*)"
 make
 echo "Please be sure that "$ID" is a reference file as it might impact the quality of your fit later on to have non-reference file in your look up table - This file shouldn't have either scattering or attenuation"
 sleep 2s
