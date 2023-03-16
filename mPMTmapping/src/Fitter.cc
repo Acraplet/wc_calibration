@@ -17,7 +17,7 @@ int main(int argc, char **argv){
     std::fstream newfile;
     //This is the configuration of which we are going to fit all of the source positions to get the reference
     //from the OnePositon files
-    newfile.open(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[1]),std::ios::in); //open a file to perform read operation using file object
+    newfile.open(Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[1]),std::ios::in); //open a file to perform read operation using file object
     std::vector<double> list_R, list_A;
     char* R_test;
     if (newfile.is_open()){   //checking whether the file is open
@@ -57,7 +57,7 @@ int main(int argc, char **argv){
             //Next: open the reference txt file for this position and from 
             //there extract the fitting information we are looking for
             std::fstream position_file;
-            position_file.open(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_onePosition/OnePosition_theta%s_phi%s_R%s.txt", theta_test, phi_test, R_test),std::ios::in);
+            position_file.open(Form("./Maps/maps_onePosition/OnePosition_theta%s_phi%s_R%s.txt", theta_test, phi_test, R_test),std::ios::in);
 
             if (position_file.is_open()){   //checking whether the file is open
                 std::string tp_ref;
@@ -169,7 +169,7 @@ int main(int argc, char **argv){
                 gr->SetTitle("Scattering Spline nodes");
                 TGraphErrors *data_scat = new TGraphErrors(data_scat_xval.size(), &data_scat_xval[0], &data_scat_yval[0],&err_scat_xval[0], &err_scat_yval[0]);
                 //This is saving everything the fit output in the reference_root folder
-                TFile *outf = new TFile(Form("reference_root/results_Abs_Scat_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
+                TFile *outf = new TFile(Form("./reference_root/results_Abs_Scat_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test), "RECREATE");
 
                 TF1 func_scat = chi_scat->getFunction_rayff(0, 240, "best_fit_scat");
                 func.SetTitle("absorption_best_fit");
@@ -192,12 +192,13 @@ int main(int argc, char **argv){
                 fit_output->GetYaxis()->SetTitle("Distance R to the mPMT dome (cm)");
                 fit_output->Write("fit_output_xA_yR");
                 outf->Close();
+		std::cout << "Reference behaviour saved as " << Form("./reference_root/results_Abs_Scat_theta%s_phi%s_R%s.root", theta_test, phi_test, R_test) << std::endl;
             }//finished reading the reference file for the given position
         }
         newfile.close();   //close the file object.
         //now plot the histogram - to check whether the fitted attenuation is consistent with
 	//an exponential behaviour
-        TH1* h_R = new TH1D("h_R", Form("Histogram of Fitted R - R True: %s", R_test), 100,0.,100.);
+	TH1* h_R = new TH1D("h_R", Form("Histogram of Fitted R - R True: %s", R_test), 100,0.,100.);
         TH1* h_A = new TH1D("h_A", Form("Histogram of Fitted A - R True: %s", R_test), 100,200.,400.);
         for (long unsigned int u=0; u<list_R.size(); u++){
             h_R->Fill(list_R[u]);
