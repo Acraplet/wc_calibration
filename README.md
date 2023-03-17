@@ -6,7 +6,7 @@ WCTE calibration code - PMT timing response, angular response, water attenuation
 Some setup before starting
 ```
 export WCCALIB=$PWD # the wc_calibration directory
-
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCCALIB/mPMTmapping/lib
 ```
 
 ## Make config files
@@ -78,6 +78,7 @@ replacing ID with the run ID you want. This saved a .txt file named `mPMTmapping
 
 Once these maps have been made, they can be plotted individually from the `mPMTmapping/` folder with 
 ```
+cd mPMTmapping
 bash plot_mPMTmap.sh ID
 ```
 Or compared with
@@ -102,14 +103,14 @@ Some left-over python codes are available but not maintained to do similar thing
 ## Extract the absorption length
 
 ### Get the reference max amplitude
-For absorption, the max charge that gets collected at a given position when there is no scattering and no absorption is saved in Maps/maps_Reference by the code
+For absorption, the max charge that gets collected at a given position when there is no scattering and no absorption is saved in `mPMTmapping/Maps/maps_Reference` by the code
 ```
-bash make_reference ID_ref
+bash make_reference.sh ID_ref
 ```
 ### Fit the response
 The typical response function for absorption is an exponential function Q_pred = A_max * exp(-R/abs_length). A_max is the reference value that we have saved just before and the R value (dome-source distance) is known and lifted from the dataset. abs_length is obtained from minimising the chi2 between Q_true and Q_pred. The code that does this is
 ```
-./bin/AbsorptionFitter ID1 ID2 ... IDn
+./bin/AttenuationFitter ID1 ID2 ... IDn
 ```
 The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be resolved by using a binned approach but until then we need to have a reference max charge for each source position at each R that we want to use. 
 

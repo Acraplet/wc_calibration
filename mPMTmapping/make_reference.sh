@@ -3,7 +3,7 @@
 #mess up our absorption length estimate
 ID=$1
 VAR="$(ls ./data/*FileID""$ID""_*_flat*)"
-make
+#make
 echo "Please be sure that "$ID" is a reference file as it might impact the quality of your fit later on to have non-reference file in your look up table - This file shouldn't have either scattering or attenuation"
 sleep 2s
 for name in $VAR
