@@ -114,8 +114,21 @@ The typical response function for absorption is an exponential function Q_pred =
 ```
 The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be resolved by using a binned approach but until then we need to have a reference max charge for each source position at each R that we want to use. 
 
+## Extract the scattering length - in 2D
 
-## Extract the scattering length
+### Obtain the data of the reference scattering behaviour
+
+
+To understand how the charge collected by the mPMT is dependant on the scattering we need to collect reference data, at each (R, theta, phi) positions we have simulated data with a bunch of scattering lengths. These serve as reference points for the behaviour. In this case, for each bin we need to look at all the reference positions that have been simulated for that given bin and at a given attenuation and scattering length, to improve the statistics, we sum up all the positions that are in the same bin with the same scattering parameters. This is done by running
+
+
+``` 
+bash combine_ref_files.sh
+```
+which has to be modified to have the ID of the reference simulated runs you have. This code calls ``` src/SumUpBins_testFiles.py``` and stores the reference files in ```/Maps/2D_ref_maps```. A sample of R distances and scattering length combo is already provided as an example. 
+
+
+## Extract the scattering length - in 1D (very convoluted - not to be used for the analysis, just for checking things)
 
 ### Obtain the data of the reference scattering behaviour
 
