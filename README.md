@@ -76,13 +76,13 @@ replacing ID with the run ID you want. This saved a .txt file named `mPMTmapping
 ## Plot and compare the maps
 
 
-Once these maps have been made, they can be plotted individually from the mPMTmapping folder with 
+Once these maps have been made, they can be plotted individually from the `mPMTmapping/` folder with 
 ```
-bash plotting_mPMTmap.sh ID
+bash plot_mPMTmap.sh ID
 ```
 Or compared with
 ```
-bash plotting_mPMTmap.sh ID1 ID2
+bash plot_mPMTmap.sh ID1 ID2
 ```
 Note: the source coordinates need to be identical for the comparision to be made.
 
@@ -90,12 +90,12 @@ In later version of the code we will be looking at binned response to get away f
 ```
 bash plot_binned.sh ID
 ``` 
-where the bins are stored in uniform_304_bins.txt and made via 
+where the bins are stored in `uniform_304_bins.txt` and made via 
 ```
 python src/get_uniform_bins.py
 ```
-So far we are only looking at a quarter of the sphere but is is easy to modify this code to extrand the range of uniform bins.
-Some examples of maps are already present in the maps_txtFiles folder for testing/understanding purposes.
+So far we are only looking at a quarter of the sphere but is is easy to modify this code to extend the range of uniform bins.
+Some examples of maps are already present in the `mPMTmapping/Maps/maps_txtFiles/` folder for testing/understanding purposes. **Remember to implement those files**
 
 Some left-over python codes are available but not maintained to do similar things as the c++ code. 
 

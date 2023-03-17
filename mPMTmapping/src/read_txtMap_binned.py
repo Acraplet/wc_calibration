@@ -7,21 +7,24 @@ import matplotlib.pyplot as plt
 import scipy.interpolate
 import getopt
 import pandas as pd
+import os
 
 filename = "No filename, please input one with the -f option"
 comparision_file = 'none'
 outputfile_name = 'none'
 filename = []
 
+# Get environment variables
+WORKDIR = os.getenv('WCCALIB')
 
-plt.style.use(["science", "notebook", "grid"])
+#plt.style.use(["science", "notebook", "grid"])
 
 phi_max = 90 #for plotting - get the max phi value to show only the right portion of the circle
 interpolation_mode = 'linear' # linear interpolation of the data
 argv = sys.argv[1:]
 
 #set up the geometry of the tank i.e. read the PMT positions
-PMT_position_file = './PMT_positions.txt'
+PMT_position_file = WORKDIR+'/mPMTmapping/PMT_positions.txt'
 PMT = np.array(rd.read_data3(PMT_position_file)).T
 PMT_mPMT = PMT[0]
 PMT_mPMT_pmt = PMT[1]
@@ -34,14 +37,14 @@ for i in range(len(PMT[0])):
         row =  pd.Series(data=c, index=['mPMT', 'mPMT_pmt', 'x', 'y', 'z'], dtype=np.float64)
         df_geom = df_geom.append(row, ignore_index=True)
 
-bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_304_bins.txt'
+bins_position = WORKDIR+'/mPMTmapping/uniform_304_bins.txt'
 bins = np.array(rd.read_data3(bins_position))
 
 #Now look at the theta and phi - is a simple distance in theta and phi enough for the full distance?
-bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_theta_phi.txt'
+bins_position = WORKDIR+'/mPMTmapping/uniform_top_bins_theta_phi.txt'
 bins_theta = np.array(rd.read_data3(bins_position)).T
 
-bins_position = '/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_withBinNumber.txt'
+bins_position = WORKDIR+'/mPMTmapping/uniform_top_bins_withBinNumber.txt'
 bins_all = np.array(rd.read_data3(bins_position))
 #so this is a [[all x], [all y], [all z]] array with .T
 #alternatively we can have an array
@@ -117,7 +120,7 @@ for b in range(len(bins_all[0])):
 
 plt.colorbar(sc)
 ax.set_title('Charge collected per photon in this bin')
-plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Binned_visualisation/Non-interpolated/%s.png'%outputfile_name)
+plt.savefig(WORKDIR+'/mPMTmapping/Maps/maps_pictures/Binned_visualisation/Non-interpolated/%s.png'%outputfile_name)
 plt.show()
 plt.close()
 #print(count_uniform_bins_theta)
@@ -169,7 +172,7 @@ ax.set_thetamax(phi_max)
 ax.set_xlabel(f'$\Theta$(rad)')
 ax.xaxis.labelpad = 10
 ax.yaxis.labelpad = 20
-plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Maps/Non-interpolated/%s.png'%outputfile_name)
+plt.savefig(WORKDIR+'/mPMTmapping/Maps/maps_pictures/Maps/Non-interpolated/%s.png'%outputfile_name)
 plt.show()
 
 #Now the interpolate
@@ -191,10 +194,11 @@ ax.set_thetamax(phi_max)
 ax.xaxis.labelpad = 10
 ax.yaxis.labelpad = 20
 ax.set_xlabel(f'$\Theta$(rad)')
-plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Maps/Interpolated/%s.png'%outputfile_name)
+plt.savefig(WORKDIR+'/mPMTmapping/Maps/maps_pictures/Maps/Interpolated/%s.png'%outputfile_name)
 plt.show()
 
-raise end
+#raise end
+sys.exit()
 
 #Now plot the source positions overlayed with the position of the maps
 source_Rtp = np.array(source_Rtp)
