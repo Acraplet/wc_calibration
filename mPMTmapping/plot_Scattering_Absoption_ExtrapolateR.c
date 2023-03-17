@@ -8,7 +8,7 @@
 //This is the fitter part - copied and adapted from the cern home page: https://root.cern/doc/master/classTGraph2D.html
 void graph2dfit(TGraph2D *dt)
 {
-	const char* fimpName = "./Maps/test_maps_oneBin/all_test_files_bin356.txt";
+	const char* fimpName = "./Maps/test_maps_oneBin/all_test_files_bin83.txt";
 	std::ifstream in(fimpName);
 	double temp;
 	int count = 0;
@@ -95,6 +95,9 @@ void graph2dfit(TGraph2D *dt)
 		//this is the function fited
 		z = fit2->Eval(x,y);
 		h3->Fill((z_true-z)/z_true);
+
+
+
 	}
 
 
@@ -135,6 +138,11 @@ void graph2dfit(TGraph2D *dt)
 	cq->cd(2); h2->Fit("gaus","Q") ; h2->Draw();
 	cq->cd(4); h3->Fit("gaus","Q") ; h3->Draw();
 	cq->cd();
+	//Now try to save the delaunay interpolation
+	TFile *outf = new TFile(Form("./test_Delaunay_bin365.root"), "RECREATE");
+	dt->Write();
+	f3->Write();
+	outf->Close();
 }
 
 
@@ -143,7 +151,7 @@ void plot_Scattering_Absoption_ExtrapolateR(){
 
 	TCanvas *c = new TCanvas("c", "c",0,0,600,400);
 	c->cd(0);
-	auto f2 = new TGraph2D();
+	auto f2 = new TGraph2D("AAA");
 	gStyle->SetPalette(1);
 	int n = 0;
 	double x, y;

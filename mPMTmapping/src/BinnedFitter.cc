@@ -19,7 +19,7 @@ int main(int argc, char **argv){
     std::fstream newfile;
     //This is the configuration of which we are going to fit all of the source positions to get the reference
     //from the OnePositon files
-    newfile.open(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[1]),std::ios::in); //open a file to perform read operation using file object
+    newfile.open(Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[1]),std::ios::in); //open a file to perform read operation using file object
     std::vector<double> list_R, list_A;
     char* R_test;
     bool a = false;
@@ -72,7 +72,7 @@ int main(int argc, char **argv){
 
             
 
-           char * referenceFile = (char *)Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/ref_maps_oneBin/OneBin_bin%i_theta%.2f_phi%.2f_R%s.txt", minID, theta_bin, phi_bin, R_test);
+           char * referenceFile = (char *)Form("./Maps/ref_maps_oneBin/OneBin_bin%i_theta%.2f_phi%.2f_R%s.txt", minID, theta_bin, phi_bin, R_test);
 
            std::cout << referenceFile << std::endl;
 
@@ -90,31 +90,25 @@ int main(int argc, char **argv){
     //                 std::cout << "Pos " << pos << std::endl;
 
                Data line = referenceData[pos];
-                    //need to circle over the reference that we already have to merge the positions instead of making new data points
+//need to circle over the reference that we already have to merge the positions instead of making new data points
                int check = 0;
                bool added = false;
-
                while (check < data_rayff.size() and added == false){
-    //                     std::cout << referenceData[pos].Q << " check " << check << std::endl;
                    if (data_rayff[check] == line.rayff and data_abwff[check] == line.abwff){
-    //                         std::cout << check << " data_Q " << data_Q[0]  << std::endl;
                    	data_Q[check] += line.Q;
                    	data_nEvents[check] += line.nEvents;
                    	added = true;
                         }
                     check += 1;
                 }
-                    //If it is the first time we encounter this rayff, abwff combo:
+               //If it is the first time we encounter this rayff, abwff combo:
                if (added == false){
-    //                     std::cout << "New entry : rayff = " << line.rayff << " abwff = " << line.abwff << std::endl;
                    data_Q.push_back(line.Q);
                    data_nEvents.push_back(line.nEvents);
                    data_rayff.push_back(line.rayff);
                    data_abwff.push_back(line.abwff);
                 }
            }//read a new entry of the reference dataset
-
-    //             std::cout << "Bin uum" << closestBin.ID << std::endl;
 
            std::vector<double> data_xval, err_xval, data_scat_xval, err_scat_xval;
            std::vector<double> data_yval, err_yval, data_scat_yval, err_scat_yval;
@@ -185,10 +179,8 @@ int main(int argc, char **argv){
             //This is the scattering part
             //decide where we place the nodes of the TSpline - in cm
 	    std::vector<double> nodes = {200, 400, 850, 4000, 6000};
-	    
-	    //{100, 200, 400, 700, 1000, 2000, 3000, 4000, 5000, 6000};
-//                 {40, 100, 200, 400, 700, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000}; //15nodes
-            //{40, 100, 200, 400, 700, 1000, 2000, 3000, 5000, 6000}; //simpleSpline
+//           {40, 100, 200, 400, 700, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000}; //15nodes
+//           {40, 100, 200, 400, 700, 1000, 2000, 3000, 5000, 6000}; //simpleSpline
 //           {50, 200, 400, 850, 4000}; 5nodesRef//
             std::vector<double> nodes_err;
             for (int n=0; n<nodes.size(); n++) nodes_err.push_back(0.);
@@ -206,20 +198,13 @@ int main(int argc, char **argv){
             std::vector<char *> letters = {"a", "b", "c", "d", "e", "f", "g", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u"};
             for (int u=0; u < nPars; u++){
                 min_scat->SetVariable(u, Form("%s", letters[u]), 300.0, 0.01);
-//                     std::cout << u << " letter " << Form("%s", letters[u]) << std::endl;
             }
-//                 min_scat->SetVariable(0, "a", 300.0, 0.01);
-//                 min_scat->SetVariable(1, "b", 300.0, 0.01);
-//                 min_scat->SetVariable(2, "c", 300.0, 0.01);
-//                 min_scat->SetVariable(3, "d", 300.0, 0.01);
-//                 min_scat->SetVariable(4, "e", 300.0, 0.01);
-//                 min_scat->SetVariable(5, "f", 300.0, 0.01);
 
             std::cout << "Results scat: " << std::endl;
             min_scat->Minimize();
-    //             min_scat->PrintResults();
-                //Save as a TGraphError the charge collected at this given position as a function
-                //of the attenuation and then scattering length
+            min_scat->PrintResults();
+            //Save as a TGraphError the charge collected at this given position as a function
+            //of the attenuation and then scattering length
             const double * res_scat = min_scat->X();
             const double * err_scat = min_scat->Errors();
             double x_pos[5] = {5., 25., 75., 150., 220.};
@@ -229,7 +214,7 @@ int main(int argc, char **argv){
 
             TGraphErrors *data_scat = new TGraphErrors(data_scat_xval.size(), &data_scat_xval[0], &data_scat_yval[0],&err_scat_xval[0], &err_scat_yval[0]);
             //This is saving everything the fit output in the reference_root folder
-            TFile *outf = new TFile(Form("reference_root/reference_bin_all/5nodesRef/results_5nodesRef_Abs_Scat_bin%i_theta%.2f_phi%.2f_R%s.root", minID, theta_bin, phi_bin, R_test), "RECREATE");
+            TFile *outf = new TFile(Form("./reference_root/reference_bin_all/5nodesRef/results_5nodesRef_Abs_Scat_bin%i_theta%.2f_phi%.2f_R%s.root", minID, theta_bin, phi_bin, R_test), "RECREATE");
 
             TF1 func_scat = chi_scat->getFunction_rayff(0, 6050, "best_fit_scat");
             func.SetTitle("absorption_best_fit");
@@ -252,26 +237,42 @@ int main(int argc, char **argv){
             fit_output->GetYaxis()->SetTitle("Distance R to the mPMT dome (cm)");
             fit_output->Write("fit_output_xA_yR");
             outf->Close();
-                //to only have it once  but looking at the bin of insterest (24 here)
+	    //Clean memomry leaks
+	    //std::cout << "chi" << std::endl;
+	    //delete [] chi;
+	    //std::cout << "data" << std::endl;
+	    //delete [] data;
+	    //std::cout << "chi_scat" << std::endl;
+	    //delete [] chi_scat;
+	    //std::cout << "gr" << std::endl;
+	    //delete [] gr;
+	    //std::cout << data_scat << std::endl;
+	    //delete [] data_scat;
+	    //delete [] outf;
+	    //std::cout << "fit_output" << std::endl;
+	    //delete [] fit_output;
+
+            //to only have it once  but looking at the bin of insterest (24 here)
             //}//only do it if we are on the 24th bin for now otherwise if it shows up second we have is
             //if (minID == 83) a = true;
         }
         newfile.close();   //close the file object.
         //now plot the histogram - to check whether the fitted attenuation is consistent with
         //an exponential behaviour
-        TH1* h_R = new TH1D("h_R", Form("Histogram of Fitted R - R True: %s", R_test), 100,0.,100.);
-        TH1* h_A = new TH1D("h_A", Form("Histogram of Fitted A - R True: %s", R_test), 100,200.,400.);
-        for (long unsigned int u=0; u<list_R.size(); u++){
-            h_R->Fill(list_R[u]);
-            h_A->Fill(list_A[u]);
+	//This is only a sanity check: no need to perform everytime
+        //TH1* h_R = new TH1D("h_R", Form("Histogram of Fitted R - R True: %s", R_test), 100,0.,100.);
+        //TH1* h_A = new TH1D("h_A", Form("Histogram of Fitted A - R True: %s", R_test), 100,200.,400.);
+        //for (long unsigned int u=0; u<list_R.size(); u++){
+            //h_R->Fill(list_R[u]);
+            //h_A->Fill(list_A[u]);
 
-        }
-        h_R->GetXaxis()->SetTitle("Fitted R(cm)");
-        h_A->GetXaxis()->SetTitle("Fitted max charge per 1000 photon");
-        TFile f(Form("histogram_fit/histos_R%s.root", R_test), "RECREATE");
-        h_A->Write();
-        h_R->Write();
-        f.Close();
+        //}
+        //h_R->GetXaxis()->SetTitle("Fitted R(cm)");
+        //h_A->GetXaxis()->SetTitle("Fitted max charge per 1000 photon");
+        //TFile f(Form("histogram_fit/histos_R%s.root", R_test), "RECREATE");
+        //h_A->Write();
+       // h_R->Write();
+        //f.Close();
 
 	
     }
