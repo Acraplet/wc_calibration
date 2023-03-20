@@ -1,4 +1,4 @@
-CXXFLAGS=`root-config --cflags --libs` -std=c++17
+CXXFLAGS=`root-config --cflags --libs` -std=c++11
 LIBS := -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 
