@@ -54,6 +54,7 @@ The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapp
 *C++ (recommended)*
 After the WCSim files have been produced, copy the `_flat.root` files to `mPMTmapping/data` folder. In the `mPMTmapping/` folder first do a make
 ```
+cd mPMTmapping
 make
 ```
 Then you can then call 
@@ -78,13 +79,13 @@ replacing ID with the run ID you want. This saved a .txt file named `mPMTmapping
 
 Once these maps have been made, they can be plotted individually from the `mPMTmapping/` folder with 
 ```
-cd mPMTmapping
 bash plot_mPMTmap.sh ID
 ```
 Or compared with
 ```
 bash plot_mPMTmap.sh ID1 ID2
 ```
+The plots are saved in `mPMTmapping/Maps/maps_pictures/`.
 Note: the source coordinates need to be identical for the comparision to be made.
 
 In later version of the code we will be looking at binned response to get away from edge effects. To have a look at the binned charge distribution for a given configuration do
