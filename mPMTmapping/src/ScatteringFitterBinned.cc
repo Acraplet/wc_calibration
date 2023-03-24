@@ -33,11 +33,8 @@ int main(int argc, char **argv){
 
     std::cout << "The total number of files to read together is: " << argc << std::endl;
     for (int f=1; f<= argc-1; f++){
-//         std::fstream newfile;
 	//This is the test file we are going to extract the scattering length out of
-//         newfile.open(,std::ios::in); //open a file to perform read operation using file object
-//         std::cout << argv[f] << std::endl;
-        char * filename = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]);
+        char * filename = Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]);
 
 
         //For the next step: not useful just yet as we only have ref for bin 24
@@ -66,8 +63,7 @@ int main(int argc, char **argv){
         //Now we are fitting for bin 24
         //Now the fitting
         //For bin in bin range -> that is the next bit
-        std::string position_file = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/reference_root/reference_bin24/SimpleSpline/results_SimpleSpline_Abs_Scat_bin24_theta0.31_phi1.02_R%.2f.root", test_positions[0].R);
-        //Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/reference_root/results_Abs_Scat_theta%s_phi%s_R%.2f.root", bin_theta, bin_phi, test_positions[0].R);
+        std::string position_file = Form("./reference_root/reference_bin24/SimpleSpline/results_SimpleSpline_Abs_Scat_bin24_theta0.31_phi1.02_R%.2f.root", test_positions[0].R);
         TFile *file_ref = new TFile(position_file.c_str(), "READ");
         TGraphErrors *h = (TGraphErrors*)file_ref->Get("Graph");
         std::vector<double> bufX, bufY;

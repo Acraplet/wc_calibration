@@ -28,127 +28,120 @@ int main(int argc, char **argv){
     char* theta_test;
     double  theta_test_num, Q_test_num;
     char* phi_test;
+    //The config number is a rough way to output the distances that we have looked out 
+    //useful for run comparisions
     long int config_number = 0.0;
     double w = 0.0;
-    double true_attLen;
+    //TODO: change for a config file where the max number of bins is an entry
+    int nBins = 800;  //total max number of possible bins
+    int Q_thresh = 10; //minimum number of photons in a given test bin to be included in the fit
+    double spline_min = 925.;  //the precision and range of the 
+    double spline_max = 6000.; //spline we are drawing from the reference 2D distribution
+    double spline_increment = 100.;
+    int bin_min = 10; //for now the first bins have been messed up so we ignore them but 
+		      //eventually will change that
+    double initGuessScat = 1500.;
+    double trueScat;
 
     std::cout << "The total number of files to read together is: " << argc << std::endl;
     for (int f=1; f<= argc-1; f++){
-//         std::fstream newfile;
 	//This is the test file we are going to extract the scattering length out of
-//         newfile.open(,std::ios::in); //open a file to perform read operation using file object
-//         std::cout << argv[f] << std::endl;
         char * filename = Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]);
-        
-	double total_bin_charge[800];
-        double total_bin_photons[800];
+        //in these double we are storing the total charge, one entry per bin
+	double total_bin_charge[nBins];
+        double total_bin_photons[nBins];
 	//initialisation of the bin-dependant counters
-	for (int k=0; k<=800; k++){
+	for (int k=0; k<=nBins; k++){
 		total_bin_charge[k] = 0.;
 	        total_bin_photons[k] = 0.;	
 
 	}
-
-        //For the next step: not useful just yet as we only have ref for bin 24
-//         std::vector<int> binID;
-//         std::vector<double> total_charge;
+	//This is reading in the test file 
         std::vector<Data> test_positions = readTxtFile(filename);
 	std::cout << test_positions.size() << std::endl;
         for (int i = 0; i < test_positions.size(); i++){
-            //read each position in the file one by one
+            //read each source position in the file one by one
             Data pos =  test_positions[i];
             //Then we check which bin it belongs to
             Bin closestBin = findBin(pos.theta, pos.phi);
 	    //std::cout << "The closest bin is " << closestBin.ID<< std::endl;
-	    //std::cout << "Made it here " << i << std::endl;
-            //For now I am only looking at Bin 24 for my fit but later we will have a
-            //vector of bins with eveything in there
-//            if (closestBin.ID != binTarget) continue;
-            //add to the charge the fractionnal charge collected at this position
+	    //add to the charge the fractionnal charge collected at this position
             //we do not use direct charge because the comparision has to be made
             //with respect to 1000 photons for now
             total_bin_charge[closestBin.ID] += float(pos.Q);
             total_bin_photons[closestBin.ID] += float(pos.nEvents);
         }
 
-	for (int binTarget=10; binTarget <= 800; binTarget++){
+	for (int binTarget=bin_min; binTarget <= nBins; binTarget++){
         	total_bin_charge[binTarget] = total_bin_charge[binTarget] / total_bin_photons[binTarget] * 1000;
-		if (total_bin_charge[binTarget]>= 10){
+		if (total_bin_charge[binTarget]>= Q_thresh){
 			std::cout << "Fitting bin " << binTarget << std::endl;
-		//Now fitting multiple bins together
-	//now actually read the 2D entries into a histogram and then extract the position of the nodes from the Delaunay interpolation 
-			TGraph2D * f2 = new TGraph2D();
-		        gStyle->SetPalette(1);
 		        int n = 0;
 		        double x, y;
+		        double ref_info; //empty variable to read the file with
+		        int count = 0;
+		        std::vector<double> bufY;
+			std::vector<double> bufX;
 			
+			//Now fitting multiple bins together
+			//now actually read the 2D entries into a histogram and then extract the position of the nodes from the Delaunay interpolation 
+			TGraph2D * f2 = new TGraph2D();
+		        gStyle->SetPalette(1);
+			//This is where the 2D map is saved
 			const char* fimpName = Form("./Maps/2D_ref_maps/all_ref_files_bin%i.txt",binTarget);
 		        std::ifstream in(fimpName);
-		        double ref_info;
-		        int count = 0;
 		       //The reference datasets to use for comparision
 		        std::vector<double> x_vector, y_vector, z_vector;
-		
+
 		        while ((in >> ref_info)) {
 		                if (count %3 == 0) {
 		                        x_vector.push_back(truth_alpha(401.9,10e10,ref_info));
-		                }//scat len
+		                }//scatering len
 		                if (count %3 == 1) {
-		                        y_vector.push_back(ref_info); //R
-		                }
+		                        y_vector.push_back(ref_info);
+		                }//R i.e. mPMT-source distance
 		                if (count %3 == 2){
-		                        z_vector.push_back(ref_info); //Q per 1000 photons
-		                }
+		                        z_vector.push_back(ref_info);
+		                }//Q per 1000 photons
 		                count+=1;
 		        }
-		
+
+			//Add points to the bin reference scattering histogram
 		        for (int N=0; N<x_vector.size(); N++) {
-		                double x = x_vector[N];
-		                double y = y_vector[N];
-		                double z_true = z_vector[N];
-		                f2->SetPoint(N, x, y, z_true);
+		                f2->SetPoint(N, x_vector[N], y_vector[N], z_vector[N]);
 		        }
 			
-		        std::vector<double> bufY;
-			std::vector<double> bufX;
 			//the x values of the splines to which we will minimise, the y is drawn from the interpolation
-			for (int x_i = 925; x_i < 6000; x_i += 100){
+			for (int x_i = spline_min; x_i < spline_max; x_i += spline_increment){
 				bufX.push_back(x_i);
 			}
-		
+			//the y values of the spline are taken from the interpolation of the 2D surface	
 			for (int count=0; count < bufX.size(); count++){
-		//             std::cout << count << std::endl;
-		            //std::cout << bufX[count] << " " << test_positions[0].R << " " << f2->Interpolate(bufX[count],test_positions[0].R) << std::endl;
 		            bufY.push_back(f2->Interpolate(bufX[count],test_positions[0].R ));
 		        }
+			//Add the relevant spline coordinates to the vector of splines that we will fit together
 		        list_xnodes.push_back(bufX);
 		        list_ynodes.push_back(bufY);
+			//w is just for bookkepping of the configuration (i.e. which files we fit together)
 		        list_i.push_back(w);
 		        list_Q.push_back(total_bin_charge[binTarget]);
-        		std::cout << "File " << argv[f] << " bin " << binTarget << " excat scattering length =" << truth_alpha(401.9, 10e10,test_positions[0].rayff) << " " << test_positions[0].rayff  << " R = " <<   test_positions[0].R << " charge for 1000 photons: " << total_bin_charge[binTarget]  << " config " << pow(10., w) << std::endl;
-		}//if we have more than 100 hits in a given bin
+
+        		std::cout << "File " << argv[f] << " bin " << binTarget << " excat scattering length =" << truth_alpha(401.9, 10e10,test_positions[0].rayff);
+		        std::cout << " " << test_positions[0].rayff  << " R = " <<   test_positions[0].R << " charge for 1000 photons: " ;
+			std::cout << total_bin_charge[binTarget]  << " config " << pow(10., w) << std::endl;
+		}//if we have more than Q_thresh hits in a given bin
 	}//run through all the bins
-
-	//for (int check=0; check < bufY.size(); check++ ){
-	//	std::cout << "Test charge "<< total_bin_charge << " " << " Nodes y, x "<< bufY[check] << " " << bufX[check] <<std::endl;
-	//}
-
-        true_attLen = truth_alpha(401.9, 10e10,test_positions[0].rayff);
-
+	//The true scattering length that we know from the file
+        trueScat = truth_alpha(401.9, 10e10,test_positions[0].rayff);
+	//Keeping track of the files we fitted together
         double temp = pow(10., w);
-        std::cout << temp << std::endl;
         temp *= std::stoi(argv[f]) % 10;
-        std::cout << temp << std::endl;
-        std::cout << config_number << std::endl;
         config_number += (double) temp;
-
-
         w+=1;
         //file_ref->Close();
     } //finished reading all of the test maps
     //Here the fitting begins
-
-    std::cout << "Config number = " << config_number << std::endl;
+    std::cout << "Final config number = " << config_number << std::endl;
     const int nPars = 1; //the only parameter we fit is scattering length
     Chisq *chi = new Chisq(nPars);
     //In this case list_i is a index storing, later we will have as many entries as our number of bins
@@ -159,7 +152,7 @@ int main(int argc, char **argv){
     min->SetStrategy(3);
     min->SetFunction(functor);
     min->SetMaxFunctionCalls(10000);
-    min->SetVariable(0, "scattering_length", 1500, 0.01);
+    min->SetVariable(0, "scattering_length", initGuessScat, 0.01);
 
     min->Minimize();
     min->PrintResults();
@@ -167,10 +160,19 @@ int main(int argc, char **argv){
     const double * err_scat = min->Errors();
 
 
-    	//Here output some numbers for easier analysis
+    //Here output some numbers for easier analysis
     std::ofstream outfile;
-    outfile.open("Bin24_ScatteringLengthEstimation_SimpleSpline_testRuns_2Dbin83.txt", std::ofstream::app);
-    outfile << true_attLen << " " << config_number << " " << res_scat[0] << " " << err_scat[0] << std::endl;
+    outfile.open("ScatteringLengthEstimation_2Dinterpolation_withText.txt", std::ofstream::app);
+    outfile << "True: " << trueScat << " config: " << config_number << " reco: " << res_scat[0] << " +/- " << err_scat[0];
+    outfile << " Q_thresh " << Q_thresh << " initGuessScat " << initGuessScat << " spline_min " << spline_min << " spline_max " << spline_max;
+    outfile << " spline_increment " << spline_increment << std::endl;
+   
+    //and without text for analysis
+    std::ofstream outfile;
+    outfile.open("ScatteringLengthEstimation_2Dinterpolation_withoutText.txt", std::ofstream::app);
+    outfile << " " << trueScat << " " << config_number << " " << res_scat[0] << " " << err_scat[0];
+    outfile << " " << Q_thresh << " " << initGuessScat << " " << spline_min << " " << spline_max;
+    outfile << " " << spline_increment << std::endl;
 
 }
 
