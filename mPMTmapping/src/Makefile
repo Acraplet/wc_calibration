@@ -2,8 +2,7 @@ CXXFLAGS=`root-config --cflags --libs` -std=c++11
 LIBS := -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 
-all: ScatteringFitter2DBinned BinnedFitter Fitter make_mPMTmap AttenuationFitter make_oneBin_reference make_oneBin_test Fitter makeRef_maxNbHitAtPos ScatteringFitter make_onePositionMap
-#ScatteringFitter2DBinned
+all: ScatteringFitter2DBinned BinnedFitter Fitter make_mPMTmap AttenuationFitter make_oneBin_reference make_oneBin_test Fitter makeRef_maxNbHitAtPos ScatteringFitter make_onePositionMap ScatteringFitterBinned
 
 plot_Scattering_Absorption_ExtrapolateR: plot_Scattering_Absorption_ExtrapolateR.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
@@ -25,7 +24,7 @@ AttenuationFitter: AttenuationFitter.cc
 	g++ -Wall -Wextra $(CXXFLAGS) AttenuationFitter.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 ScatteringFitter: ScatteringFitter.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
-#ScatteringFitterBinned: ScatteringFitterBinned.cc
-#	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
+ScatteringFitterBinned: ScatteringFitterBinned.cc
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 ScatteringFitter2DBinned: ScatteringFitter2DBinned.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)

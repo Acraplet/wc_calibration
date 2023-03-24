@@ -166,13 +166,15 @@ int main(int argc, char **argv){
     outfile << "True: " << trueScat << " config: " << config_number << " reco: " << res_scat[0] << " +/- " << err_scat[0];
     outfile << " Q_thresh " << Q_thresh << " initGuessScat " << initGuessScat << " spline_min " << spline_min << " spline_max " << spline_max;
     outfile << " spline_increment " << spline_increment << std::endl;
+    outfile.close();
    
     //and without text for analysis
-    std::ofstream outfile;
+    //std::ofstream outfile;
     outfile.open("ScatteringLengthEstimation_2Dinterpolation_withoutText.txt", std::ofstream::app);
     outfile << " " << trueScat << " " << config_number << " " << res_scat[0] << " " << err_scat[0];
     outfile << " " << Q_thresh << " " << initGuessScat << " " << spline_min << " " << spline_max;
     outfile << " " << spline_increment << std::endl;
+    outfile.close();
 
 }
 

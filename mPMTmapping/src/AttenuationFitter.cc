@@ -33,7 +33,7 @@ int main(int argc, char **argv){
     for (int f=1; f<= argc-1; f++){
         std::fstream newfile;
         if(std::getenv("WCCALIB")) newfile.open(Form("%s/mPMTmapping/Maps/maps_txtFiles/mPMT_map_ID%s.txt",std::getenv("WCCALIB"),argv[f]),std::ios::in); //open a file to perform read operation using file object
-        else newfile.open(Form("%s/mPMTmapping/Maps/maps_txtFiles/mPMT_map_ID%s.txt",std::getenv("WCCALIB"),argv[f]),std::ios::in);
+        else newfile.open(Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]),std::ios::in);
         std::cout << argv[f] << std::endl;
         if (newfile.is_open()){   //checking whether the file is open
             std::string tp;
