@@ -59,7 +59,7 @@ int main(int argc, char **argv){
 	//This is reading in the test file 
         std::vector<Data> test_positions = readTxtFile(filename);
 	std::cout << test_positions.size() << std::endl;
-        for (int i = 0; i < test_positions.size(); i++){
+        for (long unsigned i = 0; i < test_positions.size(); i++){
             //read each source position in the file one by one
             Data pos =  test_positions[i];
             //Then we check which bin it belongs to
@@ -107,7 +107,7 @@ int main(int argc, char **argv){
 		        }
 
 			//Add points to the bin reference scattering histogram
-		        for (int N=0; N<x_vector.size(); N++) {
+		        for (long unsigned int N=0; N<x_vector.size(); N++) {
 		                f2->SetPoint(N, x_vector[N], y_vector[N], z_vector[N]);
 		        }
 			
@@ -116,7 +116,7 @@ int main(int argc, char **argv){
 				bufX.push_back(x_i);
 			}
 			//the y values of the spline are taken from the interpolation of the 2D surface	
-			for (int count=0; count < bufX.size(); count++){
+			for (long unsigned int count=0; count < bufX.size(); count++){
 		            bufY.push_back(f2->Interpolate(bufX[count],test_positions[0].R ));
 		        }
 			//Add the relevant spline coordinates to the vector of splines that we will fit together
