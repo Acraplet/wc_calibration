@@ -66,8 +66,10 @@ if outputfile_name == 'none':
 
 #When we have a single file
 df = pd.DataFrame()
+list_safe = []
 
 for f in filename:
+    df = pd.DataFrame()
     table = rd.read_data3(f)
     print(f)
     source_xyz = [table [0], table[1], table [2]]
@@ -81,30 +83,35 @@ for f in filename:
         c = [x[i], y[i],  z[i],  theta[i], phi[i],  R[i],  Q_tot[i],  nEvents[i]]
         row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events'], dtype=np.float64)
         df = df.append(row, ignore_index=True)
+    list_safe.append(df)
 
 #place each source position in a bin
-count_uniform_bins = np.zeros(len(bins_all[0]))
-count_uniform_bins_theta = np.zeros(len(bins_all[0]))
-charge_uniform_bins = np.zeros(len(bins_all[0]))
-charge_uniform_bins_theta = np.zeros(len(bins_all[0]))
-for source_position_ID in range(len(df['x'])):
-    source_position = np.array([df['x'][source_position_ID], df['y'][source_position_ID], df['z'][source_position_ID]])
-    #Calculate the distance xyz bwteen the source position and each bin centre
-    #distance = np.linalg.norm(bins - source_position, axis = 1)
-    #id_of_closest_bin = np.argmin(distance)
-    #now calculate the theta-phi distance 
-    source_theta_phi = np.array([df['theta'][source_position_ID], df['phi'][source_position_ID]])
-    distance_theta_phi = np.linalg.norm(np.array([bins_all[3], bins_all[4]]).T - source_theta_phi, axis = 1)
-    id_of_closest_bin_theta = np.argmin(distance_theta_phi)
-    #print(id_of_closest_bin_theta, id_of_closest_bin)
-    #print(id_of_closest_bin_theta, bins_all[3][id_of_closest_bin_theta], bins_all[4][id_of_closest_bin_theta], source_theta_phi)
 
-    #Store the data in the relevant bins
-    #count_uniform_bins[id_of_closest_bin] += 1
-    count_uniform_bins_theta[id_of_closest_bin_theta] += 1
-    #charge_uniform_bins[id_of_closest_bin] += df['Q'][source_position_ID]
-    charge_uniform_bins_theta[id_of_closest_bin_theta] += df['Q'][source_position_ID]
-#print(count_uniform_bins_theta, charge_uniform_bins_theta)
+def order_in_bins(df):
+    count_uniform_bins = np.zeros(len(bins_all[0]))
+    count_uniform_bins_theta = np.zeros(len(bins_all[0]))
+    charge_uniform_bins = np.zeros(len(bins_all[0]))
+    charge_uniform_bins_theta = np.zeros(len(bins_all[0]))
+    for source_position_ID in range(len(df['x'])):
+        source_position = np.array([df['x'][source_position_ID], df['y'][source_position_ID], df['z'][source_position_ID]])
+        #Calculate the distance xyz bwteen the source position and each bin centre
+        #distance = np.linalg.norm(bins - source_position, axis = 1)
+        #id_of_closest_bin = np.argmin(distance)
+        #now calculate the theta-phi distance
+        source_theta_phi = np.array([df['theta'][source_position_ID], df['phi'][source_position_ID]])
+        distance_theta_phi = np.linalg.norm(np.array([bins_all[3], bins_all[4]]).T - source_theta_phi, axis = 1)
+        id_of_closest_bin_theta = np.argmin(distance_theta_phi)
+        #print(id_of_closest_bin_theta, id_of_closest_bin)
+        #print(id_of_closest_bin_theta, bins_all[3][id_of_closest_bin_theta], bins_all[4][id_of_closest_bin_theta], source_theta_phi)
+        #Store the data in the relevant bins
+        #count_uniform_bins[id_of_closest_bin] += 1
+        count_uniform_bins_theta[id_of_closest_bin_theta] += 1
+        #charge_uniform_bins[id_of_closest_bin] += df['Q'][source_position_ID]
+        charge_uniform_bins_theta[id_of_closest_bin_theta] += df['Q'][source_position_ID]
+    #print(count_uniform_bins_theta, charge_uniform_bins_theta)
+    return charge_uniform_bins_theta, count_uniform_bins_theta
+
+charge_uniform_bins_theta, count_uniform_bins_theta = order_in_bins(df)
 
 ax = plt.axes(projection = 'polar')
 ax.set_thetamin(0)
@@ -152,6 +159,32 @@ for b in range(len(bins_all[0])):
 plt.colorbar(sc)
 ax.set_title('Charge collected per photon in this bin')
 plt.show()
+
+if len(list_safe) == 2:
+    #plottong a binned comparision
+    print('Now the comparision')
+    charge_uniform_bins_theta1, count_uniform_bins_theta1 = order_in_bins(list_safe[0])
+    charge_uniform_bins_theta2, count_uniform_bins_theta2 = order_in_bins(list_safe[1])
+    charge_uniform_bins_theta_diff_tot = charge_uniform_bins_theta1/count_uniform_bins_theta1 - charge_uniform_bins_theta2/count_uniform_bins_theta2
+
+    ax2 = plt.axes(projection = 'polar')
+    ax2.set_thetamin(0)
+    ax2.set_ylabel("Difference \n %s "%(filename))
+    ax2.set_thetamax(phi_max)
+    print(filename[0], filename[1], "difference")
+    for b in range(len(bins_all[0])):
+        if count_uniform_bins_theta1[b] * count_uniform_bins_theta2[b]!=0: #npt empty bins
+        #/( count_uniform_bins_theta[b]* nEvents[0]
+            charge_uniform_bins_theta_diff = charge_uniform_bins_theta1[b]/(count_uniform_bins_theta1[b]*1000)-charge_uniform_bins_theta2[b]/(count_uniform_bins_theta2[b]*1000)
+            print(" File 800: ", charge_uniform_bins_theta1[b]/(count_uniform_bins_theta1[b]*1000), " file 805: ", charge_uniform_bins_theta2[b]/(count_uniform_bins_theta2[b]*1000), " difference : ", charge_uniform_bins_theta_diff)
+
+
+            sc2 = ax2.scatter(bins_all[4][b], bins_all[3][b], c = charge_uniform_bins_theta_diff, cmap = "Blues",vmin = -0.1, vmax = 0.1, s = 120)
+    plt.colorbar(sc2)
+    ax2.set_title('Difference in number of pe per photon')
+    #plt.savefig('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_pictures/Binned_visualisation/Non-interpolated/%s.png'%outputfile_name)
+    plt.show()
+
 
 
 

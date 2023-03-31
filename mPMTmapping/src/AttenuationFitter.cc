@@ -31,7 +31,7 @@ int main(int argc, char **argv){
     std::cout << "Thew total number of files to read together is: " << argc << std::endl;
     for (int f=1; f<= argc-1; f++){
         std::fstream newfile;
-        newfile.open(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]),std::ios::in); //open a file to perform read operation using file object
+        newfile.open(Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]),std::ios::in); //open a file to perform read operation using file object
         std::cout << argv[f] << std::endl;
         if (newfile.is_open()){   //checking whether the file is open
             std::string tp;
@@ -75,7 +75,8 @@ int main(int argc, char **argv){
 		//extract the fitting information we are looking for that is the maximum signal amplitude 
 		//which corresponds to there being no scattering and no attenuation
                 std::fstream position;
-                position.open(Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_Reference/OnePosition_theta%s_phi%s_R20.00.txt", theta_test, phi_test),std::ios::in);
+                //std::cout << "R: " << R_test << std::endl;
+                position.open(Form("./Maps/maps_Reference/OnePosition_theta%s_phi%s_R%s.txt", theta_test, phi_test, R_test),std::ios::in);
                 if (position.is_open()){   //checking whether the file is open
                     std::string tp2;
                     while(getline(position, tp2)){  //read data from file object and put it into string.
@@ -92,7 +93,7 @@ int main(int argc, char **argv){
                             if (i2==0){
                                 std::string fs(ptr2);
                                 list_A.push_back(std::stof(fs));
-                                std::cout << "A: "<< std::stof(fs) << std::endl;
+//std::cout << "A: "<< std::stof(fs) << std::endl;
                             }
                             ptr2 = std::strtok (NULL, " ");
                             i2 +=1;
@@ -101,8 +102,8 @@ int main(int argc, char **argv){
                 }
                 list_i.push_back(w);
                 list_Q.push_back(Q_test_num);
-                std::cout << "Q: " << Q_test_num * 1/TMath::Exp(-R_test_num/60) << std::endl;
-                std::cout << std::endl;
+  //              std::cout << "Q: " << Q_test_num * 1/TMath::Exp(-R_test_num/60) << std::endl;
+    //            std::cout << std::endl;
                 w+=1;
             }
         } //finished reading all of the positions, now need to fit_output_xA_y

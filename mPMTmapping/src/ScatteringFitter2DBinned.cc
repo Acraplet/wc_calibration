@@ -17,7 +17,18 @@
 #include "TGraph2D.h"
 #include "TH1.h"
 #include "TGraphErrors.h"
+//#include "../include/toml/toml_helper.h"
 
+void HelpMessage()
+{
+    std::cout   << "USAGE: "
+                << "optical_fit" << "\nOPTIONS:\n"
+                << "-o : Output file\n"
+                << "-c : Config file\n"
+                << "-s : RNG seed \n"
+                << "-n : Number of threads\n"
+                << "-t : Number of toy fits \n";
+}
 
 int main(int argc, char **argv){
 
@@ -32,21 +43,105 @@ int main(int argc, char **argv){
     //useful for run comparisions
     long int config_number = 0.0;
     double w = 0.0;
+    
+
     //TODO: change for a config file where the max number of bins is an entry
     int nBins = 800;  //total max number of possible bins
-    int Q_thresh = 10; //minimum number of photons in a given test bin to be included in the fit
+    int Q_thresh = 100; //minimum number of photons in a given test bin to be included in the fit
     double spline_min = 925.;  //the precision and range of the 
     double spline_max = 6000.; //spline we are drawing from the reference 2D distribution
-    double spline_increment = 100.;
+    int spline_increment = 100;
     int bin_min = 10; //for now the first bins have been messed up so we ignore them but 
-		      //eventually will change that
+   //     	      //eventually will change that
+    int base = 740; //this is the base of the file we have
+    std::string configuration = "0123"; //these are the R configurations we are looking at 
+    
     double initGuessScat = 1500.;
     double trueScat;
 
-    std::cout << "The total number of files to read together is: " << argc << std::endl;
-    for (int f=1; f<= argc-1; f++){
+    std::string output_file = "out";
+    std::string config_file;
+    
+    char option;
+    while((option = getopt(argc, argv, "x:m:c:b:Q:i:h:n:g:o:")) != -1)
+    {
+	switch(option)
+        {
+		case 'c':
+                configuration = optarg;
+                break;
+
+		case 'n':
+                nBins = std::stoi(optarg);
+                break;
+		
+		case 'b':
+                base = std::stoi(optarg);
+                break;
+
+		case 'x':
+                spline_max = std::stof(optarg);
+                break;
+
+		case 'm':
+                spline_min = std::stof(optarg);
+                break;
+
+		case 'Q':
+                Q_thresh = std::stoi(optarg);
+                break;
+
+		case 'i':
+                spline_increment = std::stoi(optarg);
+                break;
+		
+		case 'g':
+                initGuessScat = std::stof(optarg);
+                break;
+
+		case 'o':
+		output_file = optarg;
+		break;
+
+		case 'h':
+                HelpMessage();
+
+
+		default:
+                return 0;
+
+	}
+    }
+
+
+    //std::cout << "C'est ok " << std::endl;
+    //Getting ready for the config file
+    //if (config_file.size()==0)
+    //{
+    //    std::cout<< ERR << "No config file!" << std::endl;
+    //    HelpMessage();
+    //    return -1;
+    //}
+
+   // auto const &card_toml = toml_h::parse_card(config_file);
+   // int const &nBins = toml_h::find(card_toml, "nBins");
+   // int const &bin_min = toml_h::find(card_toml, "min_bin");
+   // int const &Q_thresh = toml_h::find(card_toml, "Q_tresh");
+   // double const &spline_min = toml_h::find(card_toml, "spline_min");
+   // double const &spline_max = toml_h::find(card_toml, "spline_max");
+   // double const &spline_increment = toml_h::find(card_toml, "spline_increment");
+   // double const &initGuessScat = toml_h::find(card_toml, "initGuessScat");
+
+    std::vector<int> list_files;
+    for (int c=0; c<=configuration.size()-1; c++){
+	    list_files.push_back(base + int(configuration[c]) - 48); //char to int conversion needs -48
+    }
+
+    std::cout << "The total number of files to read together is: " << configuration.size() << std::endl;
+    for (int f=0; f<= list_files.size()-1; f++){ //argc-1
+	std::cout <<list_files[f] << " " << nBins << std::endl;
 	//This is the test file we are going to extract the scattering length out of
-        char * filename = Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]);
+        char * filename = Form("./Maps/maps_txtFiles/mPMT_map_ID%d.txt",list_files[f]);
         //in these double we are storing the total charge, one entry per bin
 	double total_bin_charge[nBins];
         double total_bin_photons[nBins];
@@ -74,7 +169,7 @@ int main(int argc, char **argv){
 
 	for (int binTarget=bin_min; binTarget <= nBins; binTarget++){
         	total_bin_charge[binTarget] = total_bin_charge[binTarget] / total_bin_photons[binTarget] * 1000;
-		if (total_bin_charge[binTarget]>= Q_thresh){
+		if (total_bin_charge[binTarget]>= Q_thresh and total_bin_photons[binTarget]!=0 ){
 			std::cout << "Fitting bin " << binTarget << std::endl;
 		        int n = 0;
 		        double x, y;
@@ -126,17 +221,15 @@ int main(int argc, char **argv){
 		        list_i.push_back(w);
 		        list_Q.push_back(total_bin_charge[binTarget]);
 
-        		std::cout << "File " << argv[f] << " bin " << binTarget << " excat scattering length =" << truth_alpha(401.9, 10e10,test_positions[0].rayff);
+        		std::cout << "File " << list_files[f] << " bin " << binTarget << " excat scattering length =" << truth_alpha(401.9, 10e10,test_positions[0].rayff);
 		        std::cout << " " << test_positions[0].rayff  << " R = " <<   test_positions[0].R << " charge for 1000 photons: " ;
-			std::cout << total_bin_charge[binTarget]  << " config " << pow(10., w) << std::endl;
+			std::cout << total_bin_charge[binTarget]  << " config " << configuration << std::endl;
 		}//if we have more than Q_thresh hits in a given bin
 	}//run through all the bins
 	//The true scattering length that we know from the file
         trueScat = truth_alpha(401.9, 10e10,test_positions[0].rayff);
 	//Keeping track of the files we fitted together
-        double temp = pow(10., w);
-        temp *= std::stoi(argv[f]) % 10;
-        config_number += (double) temp;
+        config_number = std::stoi(configuration);
         w+=1;
         //file_ref->Close();
     } //finished reading all of the test maps
@@ -158,21 +251,23 @@ int main(int argc, char **argv){
     min->PrintResults();
     const double * res_scat = min->X();
     const double * err_scat = min->Errors();
+    //to evaluate accuracy of the minimizer
+    double pres_scat = min->MinValue();
 
 
     //Here output some numbers for easier analysis
     std::ofstream outfile;
-    outfile.open("ScatteringLengthEstimation_2Dinterpolation_withText.txt", std::ofstream::app);
+    outfile.open(Form("%s_withText.txt", output_file.c_str()), std::ofstream::app);
     outfile << "True: " << trueScat << " config: " << config_number << " reco: " << res_scat[0] << " +/- " << err_scat[0];
     outfile << " Q_thresh " << Q_thresh << " initGuessScat " << initGuessScat << " spline_min " << spline_min << " spline_max " << spline_max;
-    outfile << " spline_increment " << spline_increment << std::endl;
+    outfile << " spline_increment " << spline_increment << " FVAL " << pres_scat<< std::endl;
    
     //and without text for analysis
-    std::ofstream outfile;
-    outfile.open("ScatteringLengthEstimation_2Dinterpolation_withoutText.txt", std::ofstream::app);
-    outfile << " " << trueScat << " " << config_number << " " << res_scat[0] << " " << err_scat[0];
-    outfile << " " << Q_thresh << " " << initGuessScat << " " << spline_min << " " << spline_max;
-    outfile << " " << spline_increment << std::endl;
+    std::ofstream outfile_noText;
+    outfile_noText.open(Form("%s_withoutText.txt", output_file.c_str()), std::ofstream::app);
+    outfile_noText << " " << trueScat << " " << config_number << " " << res_scat[0] << " " << err_scat[0];
+    outfile_noText << " " << Q_thresh << " " << initGuessScat << " " << spline_min << " " << spline_max;
+    outfile_noText << " " << spline_increment  << " " << pres_scat << std::endl;
 
 }
 
