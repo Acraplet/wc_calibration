@@ -1,4 +1,12 @@
-CXXFLAGS=`root-config --cflags --libs` -std=c++11
+CXXFLAGS=$(shell $(ROOTSYS)/bin/root-config --cflags --libs)
+ifneq (,$(findstring -std=c,$(CXXFLAGS)))
+$(info Using ROOT C++ standard)
+$(info $(CXXFLAGS))
+else
+$(info ROOT C++ standard not found. Default to c++11)
+CXXFLAGS := $(CXXFLAGS) -std=c++11
+$(info $(CXXFLAGS))
+endif
 LIBS := -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 
