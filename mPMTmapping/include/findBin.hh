@@ -36,8 +36,9 @@ Bin findBin(double theta_pos, double phi_pos)
     //Read the file holding the bin information so we can then measure the distance to the given source pos
     std::fstream bins_file;
     bins_file.open("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_withBinNumber.txt");
-    double x_bin, y_bin, z_bin, theta_bin, phi_bin, dist;
+    double x_bin, y_bin, z_bin, theta_bin, phi_bin;//, dist;
     int minID = -1; //id of the closest bin
+    Bin bin; //this is the struct where we store the bin information
     if (bins_file.is_open()){   //checking whether the file is open
         std::string tp_ref;
         //the variable you're fitting in
@@ -82,7 +83,7 @@ Bin findBin(double theta_pos, double phi_pos)
         //Now we need to calculate the distance - run through the vector to find the minimum
         double minBinDist = 1e10;
         double Dx, Dy, dist;
-        for(int i=0; i<=xbins.size(); i++) {
+        for(long unsigned int i=0; i<=xbins.size(); i++) {
             Dx = thetabins[i] - theta_pos;
             Dy = phibins[i] - phi_pos;
             //limit computing time: look at the square of the angular distance as our reference measure
@@ -93,13 +94,12 @@ Bin findBin(double theta_pos, double phi_pos)
             }
         }
         bins_file.close();
-        Bin bin; //this is the struct where we store the bin information
         bin.ID = minID;
         bin.theta = thetabins[minID];
         bin.phi = phibins[minID];
         bin.x = xbins[minID];
         bin.y = ybins[minID];
         bin.z = zbins[minID];
-        return bin;
-        }
+    }
+    return bin;
 }

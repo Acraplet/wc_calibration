@@ -14,7 +14,7 @@
 #the total number of points is therefore nTheta*nPhi
 #Note that the source positions are defined with respect to the centre of mPMT 58 (in WCTE) the dimensions of the origin of the light is hard coded in Module_writeFiles.py 
 
-import uproot
+#import uproot
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,7 +25,7 @@ import random
 import Module_writeFiles as md
 #Here are the default values for R, nTheta, nPhi
 nTheta = 10
-nPhi = 0
+nPhi = 10
 R = 10
 nEvent = 1000 #default number of events: 1000
 
@@ -52,6 +52,10 @@ phi_max = np.pi + offset #2*np.pi  #up to 90 degrees for now -  second ring of b
 #phi_min = 0.94205
 #phi_max = 1.0899
 
+#Set some default values
+absff = 1.30
+rayff = 0.75
+FileID = 0
 
 #Read the user inputs
 argv = sys.argv[1:]
@@ -97,6 +101,7 @@ print("\n%.3f < theta < %.3f and %.3f < phi < %.3f"%(theta_min, theta_max, phi_m
 print("---------------------------------------------------------------------------------------------------------\n")
 
 #get the correct name for the file
+alpha_mode = "Absff%.3e_Rayff%.3e"%(absff, rayff)
 if absff>=10 and rayff <=10:
     alpha_mode = "Absff%.1e_Rayff%.3e"%(absff, rayff)
 if rayff>=10 and absff <=10:

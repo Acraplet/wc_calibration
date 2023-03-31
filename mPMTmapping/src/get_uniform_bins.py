@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import os
 '''
 This code is splitting a sphere into a lot of small triangles covering the surface to 
 make uniform bins. It is lifted and adapted from the internet.
@@ -9,6 +10,8 @@ It stores the 3D coordinate of each bin in mPMTmapping/uniform_304_bins.txt
 total_data = []
 total_points = []
 
+# Get environment variables
+WORKDIR = os.getenv('WCCALIB')
 
 def get_triangles():
     m = ((50-10*(5**(1/2)))**(1/2))/10
@@ -128,7 +131,7 @@ plt.show()
 bin_number = np.arange(0, len(phi), 1)
 
 table = [np.pi/2 - theta, phi, bin_number]
-np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_theta_phi.txt', table, fmt = "%.2e")
+np.savetxt(WORKDIR+'/mPMTmapping/uniform_top_bins_theta_phi.txt', table, fmt = "%.2e")
 
 #this is the origin of the mPMT dome
 #need to switch back from z in the heigh to y is the hieght
@@ -148,7 +151,7 @@ z = z + origin [2]
 #Saving the uniform bins - be careful these are for the 58th mPMT
 print(phi)
 table = np.array([x, y, z, np.pi/2 - theta, phi, bin_number]).T
-np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_withBinNumber.txt', table)
+np.savetxt(WORKDIR+'/mPMTmapping/uniform_top_bins_withBinNumber.txt', table)
 
 #here convert back the positions so we can plot them nicely 
 x = x - origin[0]

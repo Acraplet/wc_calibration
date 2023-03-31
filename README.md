@@ -3,6 +3,12 @@ _"Les mPMTs sont des fleurs dont les PMTs seraient les pétales"_
 
 WCTE calibration code - PMT timing response, angular response, water attenuation length etc... 
 
+Some setup before starting
+```
+export WCCALIB=$PWD # the wc_calibration directory
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCCALIB/mPMTmapping/lib
+```
+
 ## Make config files
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
 
@@ -10,9 +16,9 @@ The config files for WCSim are stored using a FileID which indicates which group
 In the file name is stored the absoption (abwff) and Rayleigh scattering coefficients that are input into WCSim.
 Then the file name saves the source position x, y, z coordinates in space as well as its relative angles theta and phi with respect to the mPMT centre and distance R to the mPMT surface
 
-The config files are produced in wc_calibration/WCSim_configFiles/ and the corresponding tuning files produced in wc_calibration/WCSim_tuningFiles/ by calling 
+The config files are produced in `WCSim_configFiles/` and the corresponding tuning files produced in `WCSim_tuningFiles/` by calling 
 ```
-python /config_files_prod/writeMacFile.py
+python config_files_prod/writeMacFile.py
 ```
 with the options :
 
@@ -35,7 +41,7 @@ Alternatively, if you want to make many similar config files, use
 ```
 bash make_all_config.sh abwff rayff ID0
 ```
-which will make 7 config files with the input absorption and scattering params and IDs going from ID0 to ID0 + 7 with 20 points in theta, and phi and with R = 5, 10, 20, 40, 80, 160, 250 (used to be 320)cm. 
+which will make 7 sets of config files with the input absorption and scattering params and IDs going from ID0 to ID0 + 7 with 20 points in theta, and phi and with R = 5, 10, 20, 40, 80, 160, 250 (used to be 320)cm. 
 
 ## Run WCSim on the batch system (efficiently) 
 
@@ -46,11 +52,16 @@ The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapp
 ## Extract and look at the maps as .txt file from WCSim 
 
 *C++ (recommended)*
-After the WCSim files have been produced, copy the \_flat files in your home /wc\_calibration/mPMTmapping/data folder. In the /wc_calibration/mPMTmapping folder you can then call 
+After the WCSim files have been produced, copy the `_flat.root` files to `mPMTmapping/data` folder. In the `mPMTmapping/` folder first do a make
+```
+cd mPMTmapping
+make
+```
+Then you can then call 
 ```
 bash make_mPMTmap.sh ID
 ```
-replacing ID with the run ID you want. This saved a .txt file named /wc_calibration/mPMTmapping/Maps/maps\_txtFiles/map\_FileIDxx.txt with the following entries:
+replacing ID with the run ID you want. This saved a .txt file named `mPMTmapping/Maps/maps_txtFiles/mPMT_map_IDxx.txt` with the following entries:
 
 1. Source x position
 2. Source y position
@@ -66,40 +77,41 @@ replacing ID with the run ID you want. This saved a .txt file named /wc_calibrat
 ## Plot and compare the maps
 
 
-Once these maps have been made, they can be plotted individually from the mPMTmapping folder with 
+Once these maps have been made, they can be plotted individually from the `mPMTmapping/` folder with 
 ```
-bash plotting_mPMTmap.sh ID
+bash plot_mPMTmap.sh ID
 ```
 Or compared with
 ```
-bash plotting_mPMTmap.sh ID1 ID2
+bash plot_mPMTmap.sh ID1 ID2
 ```
+The plots are saved in `mPMTmapping/Maps/maps_pictures/`.
 Note: the source coordinates need to be identical for the comparision to be made.
 
 In later version of the code we will be looking at binned response to get away from edge effects. To have a look at the binned charge distribution for a given configuration do
 ```
 bash plot_binned.sh ID
 ``` 
-where the bins are stored in uniform_304_bins.txt and made via 
+where the bins are stored in `uniform_304_bins.txt` and made via 
 ```
 python src/get_uniform_bins.py
 ```
-So far we are only looking at a quarter of the sphere but is is easy to modify this code to extrand the range of uniform bins.
-Some examples of maps are already present in the maps_txtFiles folder for testing/understanding purposes.
+So far we are only looking at a quarter of the sphere but is is easy to modify this code to extend the range of uniform bins.
+Some examples of maps are already present in the `mPMTmapping/Maps/maps_txtFiles/` folder for testing/understanding purposes. **Remember to implement those files**
 
 Some left-over python codes are available but not maintained to do similar things as the c++ code. 
 
 ## Extract the absorption length
 
 ### Get the reference max amplitude
-For absorption, the max charge that gets collected at a given position when there is no scattering and no absorption is saved in Maps/maps_Reference by the code
+For absorption, the max charge that gets collected at a given position when there is no scattering and no absorption is saved in `mPMTmapping/Maps/maps_Reference` by the code
 ```
-bash make_reference ID_ref
+bash make_reference.sh ID_ref
 ```
 ### Fit the response
 The typical response function for absorption is an exponential function Q_pred = A_max * exp(-R/abs_length). A_max is the reference value that we have saved just before and the R value (dome-source distance) is known and lifted from the dataset. abs_length is obtained from minimising the chi2 between Q_true and Q_pred. The code that does this is
 ```
-./bin/AbsorptionFitter ID1 ID2 ... IDn
+./bin/AttenuationFitter ID1 ID2 ... IDn
 ```
 The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be resolved by using a binned approach but until then we need to have a reference max charge for each source position at each R that we want to use. 
 
