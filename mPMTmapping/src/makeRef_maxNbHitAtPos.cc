@@ -151,7 +151,9 @@ int main(int argc, char **argv){
     const char* dist = R.c_str();
 
     //This is the file onto which we output
-    std::string onePosition_outfile = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/Maps/maps_Reference/OnePosition_theta%s_phi%s_R%s.txt", theta, phi, dist);
+    std::string onePosition_outfile;
+    if(std::getenv("WCCALIB")) onePosition_outfile = Form("%s/mPMTmapping/Maps/maps_Reference/OnePosition_theta%s_phi%s_R%s.txt", std::getenv("WCCALIB"), theta, phi, dist);
+    else onePosition_outfile = Form("./Maps/maps_Reference/OnePosition_theta%s_phi%s_R%s.txt", theta, phi, dist);
     std::cout << onePosition_outfile << std::endl;
     std::ofstream onePosition;
     onePosition.open(onePosition_outfile, std::ofstream::app);

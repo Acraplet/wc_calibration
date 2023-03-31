@@ -4,5 +4,5 @@ all:
 	make -C chisq
 	make -C src
 clean:
-	rm ./bin/*
+	rm -f ./bin/*
 	make clean -C chisq

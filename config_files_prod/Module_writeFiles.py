@@ -1,6 +1,6 @@
 #This is a python file with the function to write the config and tuning WCSim file and other useful functions 
 
-import uproot
+#import uproot
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,10 +17,12 @@ source_ypos = 0
 source_zpos = 0
 mPMT_radius = 34.2 #need to put the source away from the centre of the mPMT sphere
 
+# Get environment variables
+WORKDIR = os.getenv('WCCALIB')
 
 def makeTuningConfigFile(FileID, abwff=10e10, rayff = 10e10):
-    template_txtFile = open("WCSim_tuning_template.txt","r")
-    config_saving_path = "/home/ac4317/Laptops/Year1/WCTE/wc_calibration/WCSim_tuningFiles"
+    template_txtFile = open(WORKDIR+"/config_files_prod/WCSim_tuning_template.txt","r")
+    config_saving_path = WORKDIR+"/WCSim_tuningFiles"
 
     config_file_name = "%s/tuning_parameters_FileID%i.mac"%(config_saving_path, FileID)
     with open("%s"%config_file_name, "w") as file:
@@ -47,9 +49,9 @@ def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode, theta, phi
     Craefull - now we have a 3 s.f. precision on the source position -> this will have to be updated everywhere
     '''
     run_beam_on = nEvent
-    template_txtFile = open("WCSim_template.txt","r")
-    data_saving_path = "/vols/t2k/users/ac4317/WCTE/WCSim/mPMTmapping/data"
-    config_saving_path = "/home/ac4317/Laptops/Year1/WCTE/wc_calibration/WCSim_configFiles"
+    template_txtFile = open(WORKDIR+"/config_files_prod/WCSim_template.txt","r")
+    data_saving_path = WORKDIR+"/mPMTmapping/data"
+    config_saving_path = WORKDIR+"/WCSim_configFiles"
     config_file_name = "%s/WCSim_config_mPMTmapping_401nm_FileID%i_%s_x%.3f_y%.3f_z%.3f_t%.3f_p%.3f_R%.2f.mac"%(config_saving_path, FileID,alpha_mode,source_xpos,source_ypos,source_zpos, theta, phi, R)
     data_file_name = "wcsim_mPMTmapping_401nm_FileID%i_%s_x%.3f_y%.3f_z%.3f_t%.3f_p%.3f_R%.2f.root"%(FileID, alpha_mode,source_xpos,source_ypos,source_zpos, theta, phi, R)
     #making sure the value we write down is the correct value we implement in the config file

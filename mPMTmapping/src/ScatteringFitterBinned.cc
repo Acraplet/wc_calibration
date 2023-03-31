@@ -43,7 +43,7 @@ int main(int argc, char **argv){
         double total_bin_charge = 0;
         double total_bin_photons = 0;
         std::vector<Data> test_positions = readTxtFile(filename);
-        for (int i = 0; i < test_positions.size(); i++){
+        for (long unsigned int i = 0; i < test_positions.size(); i++){
             //read each position in the file one by one
             Data pos =  test_positions[i];
             //Then we check which bin it belongs to

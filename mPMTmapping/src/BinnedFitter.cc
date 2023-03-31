@@ -86,12 +86,12 @@ int main(int argc, char **argv){
                 //We need to sum up the positions of the given bin at the given theta, phi combo for the final ref file
            std::vector<float> data_Q, data_nEvents, data_rayff, data_abwff;
 
-           for (int pos = 0; pos<= referenceData.size();  pos++){ // referenceData.size();
+           for (long unsigned int pos = 0; pos<= referenceData.size();  pos++){ // referenceData.size();
     //                 std::cout << "Pos " << pos << std::endl;
 
                Data line = referenceData[pos];
 //need to circle over the reference that we already have to merge the positions instead of making new data points
-               int check = 0;
+               long unsigned int check = 0;
                bool added = false;
                while (check < data_rayff.size() and added == false){
                    if (data_rayff[check] == line.rayff and data_abwff[check] == line.abwff){
@@ -116,7 +116,7 @@ int main(int argc, char **argv){
            float  nEvents_test = 1000.0;
 
                 //And now that the dataset is merged we can use it as a reference
-           for (int i=0; i<=data_abwff.size(); i++){
+           for (long unsigned int i=0; i<=data_abwff.size(); i++){
                float abwff = data_abwff[i];
                float rayff = data_rayff[i];
                float Q = data_Q[i];
@@ -183,7 +183,7 @@ int main(int argc, char **argv){
 //           {40, 100, 200, 400, 700, 1000, 2000, 3000, 5000, 6000}; //simpleSpline
 //           {50, 200, 400, 850, 4000}; 5nodesRef//
             std::vector<double> nodes_err;
-            for (int n=0; n<nodes.size(); n++) nodes_err.push_back(0.);
+            for (long unsigned int n=0; n<nodes.size(); n++) nodes_err.push_back(0.);
             nPars = nodes.size(); // the fitted parameters are the y values of the nodes for the fake-data spline
             Chisq *chi_scat = new Chisq(nPars);
             chi_scat->setData(data_scat_xval, data_scat_yval);
@@ -195,9 +195,9 @@ int main(int argc, char **argv){
             min_scat->SetMaxFunctionCalls(10000);
             //At the moment we are working with 5 nodes the y of these 5 nodes is what we fit for the scattering
             //add each of our node
-            std::vector<char *> letters = {"a", "b", "c", "d", "e", "f", "g", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u"};
+            std::vector<std::string> letters = {"a", "b", "c", "d", "e", "f", "g", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u"};
             for (int u=0; u < nPars; u++){
-                min_scat->SetVariable(u, Form("%s", letters[u]), 300.0, 0.01);
+                min_scat->SetVariable(u, Form("%s", letters[u].c_str()), 300.0, 0.01);
             }
 
             std::cout << "Results scat: " << std::endl;

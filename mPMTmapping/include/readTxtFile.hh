@@ -101,7 +101,6 @@ std::vector<Data> readTxtFile(char* filename){
             list_all.push_back(pos);
         }//now have read all the lines
         position_file.close();
-        return list_all;
     }//now we finished reading the file
-
+    return list_all;
 }//now we finished the function

@@ -1,7 +1,18 @@
-abs= 100000000000
-w=$1
+#!/bin/sh
 
-python writeMacFile.py -R 40 -a 100000000000 -r 100000000000 -e 1000 -f 881 -t 20 -p 20 
+abwff=$1
+rayff=$2
+fileID=$3
+
+R=(5 10 20 40 80 160 250)
+
+for i in ${R[@]}
+do 
+    python config_files_prod/writeMacFile.py -R $i -a $abwff -r $rayff -e 1000 -f $fileID -t 20 -p 20 
+    fileID=$((fileID+1))
+done
+
+#python writeMacFile.py -R 40 -a $abwff -r $rayff -e 1000 -f $fileID -t 20 -p 20 
 
 
 
