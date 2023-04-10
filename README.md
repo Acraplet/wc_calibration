@@ -9,6 +9,12 @@ export WCCALIB=$PWD # the wc_calibration directory
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCCALIB/mPMTmapping/lib
 ```
 
+To build with WCSIM library,
+```
+export WCSIMDIR=your_WCSIM_directory_with_include_folder_and_libWCSimRoot.so
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCSIMDIR
+```
+
 ## Make config files
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
 
