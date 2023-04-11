@@ -22,12 +22,16 @@
 void HelpMessage()
 {
     std::cout   << "USAGE: "
-                << "optical_fit" << "\nOPTIONS:\n"
-                << "-o : Output file\n"
-                << "-c : Config file\n"
-                << "-s : RNG seed \n"
-                << "-n : Number of threads\n"
-                << "-t : Number of toy fits \n";
+                << "ScatteringFitter2DBinned" << "\nOPTIONS:\n"
+                << "-b : base of the set of files you want to use \n"
+                << "-c : specific files in that set that you want to read together (added to the base)\n"
+                << "-m : smallest x (in cm) of the reference spline the fitter will extract from the reference 2D surface \n"
+                << "-x : largest x (in cm) of the reference spline the fitter will extract from the reference 2D surface \n"
+                << "-i : increment (in cm) between two points of the reference spline (one point every i in scattering length)\n"
+                << "-n : Number of bins max \n"
+                << "-o : output file (one _withText and one _withoutText) to which we will append the information and outcome of this specific fit - useful for scanning \n"
+                << "-g : initial guess for the scattering length \n"
+                << "-Q : charge threshold for a bin to be included in the fit \n";
 }
 
 int main(int argc, char **argv){
@@ -105,6 +109,7 @@ int main(int argc, char **argv){
 
 		case 'h':
                 HelpMessage();
+		break;
 
 
 		default:

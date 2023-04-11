@@ -32,12 +32,8 @@ int main(int argc, char **argv){
     std::cout << "Thew total number of files to read together is: " << argc << std::endl;
     for (int f=1; f<= argc-1; f++){
         std::fstream newfile;
-<<<<<<< HEAD
-        newfile.open(Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]),std::ios::in); //open a file to perform read operation using file object
-=======
         if(std::getenv("WCCALIB")) newfile.open(Form("%s/mPMTmapping/Maps/maps_txtFiles/mPMT_map_ID%s.txt",std::getenv("WCCALIB"),argv[f]),std::ios::in); //open a file to perform read operation using file object
         else newfile.open(Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[f]),std::ios::in);
->>>>>>> c6a3847d401876fc06ed0b4ddf2a85aaaced92b0
         std::cout << argv[f] << std::endl;
         if (newfile.is_open()){   //checking whether the file is open
             std::string tp;
@@ -86,10 +82,6 @@ int main(int argc, char **argv){
                 TList *files = dir.GetListOfFiles();
                 std::string fname;
                 std::fstream position;
-<<<<<<< HEAD
-                //std::cout << "R: " << R_test << std::endl;
-                position.open(Form("./Maps/maps_Reference/OnePosition_theta%s_phi%s_R%s.txt", theta_test, phi_test, R_test),std::ios::in);
-=======
                 for (int j=0;j<files->GetSize();j++)
                 {
                     fname = (std::string)files->At(j)->GetName();
@@ -99,7 +91,6 @@ int main(int argc, char **argv){
                         break;
                     }
                 }
->>>>>>> c6a3847d401876fc06ed0b4ddf2a85aaaced92b0
                 if (position.is_open()){   //checking whether the file is open
                     std::string tp2;
                     while(getline(position, tp2)){  //read data from file object and put it into string.
