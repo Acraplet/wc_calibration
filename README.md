@@ -101,21 +101,41 @@ Some examples of maps are already present in the `mPMTmapping/Maps/maps_txtFiles
 
 Some left-over python codes are available but not maintained to do similar things as the c++ code. 
 
-## Extract the absorption length
+## Extract the absorption length - binned
 
 ### Get the reference max amplitude
-For absorption, the max charge that gets collected at a given position when there is no scattering and no absorption is saved in `mPMTmapping/Maps/maps_Reference` by the code
+For absorption, the max charge that gets collected at a given position when there is no scattering and no absorption is saved in `mPMTmapping/Maps/2D_ref_maps` under the name `absorption_ref_file_RXX.txt` by the code
 ```
-bash make_reference.sh ID_ref
+bash make_oneBin_noAttenuation_reference.sh ID_ref
 ```
+
+A bunch of reference R-distances are already mapped and can be used for testing. When using more continuous R distances I recommend using `absorption_ref_file.txt` which corresponds to R = 120cm, a typical distance. 
+
+
 ### Fit the response
+
 The typical response function for absorption is an exponential function Q_pred = A_max * exp(-R/abs_length). A_max is the reference value that we have saved just before and the R value (dome-source distance) is known and lifted from the dataset. abs_length is obtained from minimising the chi2 between Q_true and Q_pred. The code that does this is
 ```
-./bin/AttenuationFitter ID1 ID2 ... IDn
+./bin/AttenuationFitterBinned 
 ```
-The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be resolved by using a binned approach but until then we need to have a reference max charge for each source position at each R that we want to use. 
 
-## Extract the scattering length - in 2D
+and comes with the following options (similar to the scattering case):
+
+USAGE: AttenuationFitterBinned
+OPTIONS:
+-b : base of the set of files you want to use 
+-c : specific files in that set that you want to read together (added to the base)
+-n : Number of bins max 
+-o : output file (one _withText and one _withoutText) to which we will append the information and outcome of this specific fit - useful for scanning 
+-g : initial guess for the scattering length 
+-Q : charge threshold for a bin to be included in the fit 
+
+
+The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be minimised by using a binned approach but still exists. 
+
+
+
+## Extract the scattering length - in 2D and binned
 
 ### Obtain the data of the reference scattering behaviour
 
@@ -126,7 +146,34 @@ To understand how the charge collected by the mPMT is dependant on the scatterin
 ``` 
 bash combine_ref_files.sh
 ```
-which has to be modified to have the ID of the reference simulated runs you have. This code calls ``` src/SumUpBins_testFiles.py``` and stores the reference files in ```/Maps/2D_ref_maps```. A sample of R distances and scattering length combo is already provided as an example. 
+which has to be modified to have the ID of the reference simulated runs you have. This code calls ``` src/SumUpBins_testFiles.py``` and stores the reference files in ```/Maps/2D_ref_maps``` as `all_ref_files_binXX.txt`. A sample of R distances and scattering length combo is already provided as an example, it cover source-mpMT distances between 10cm and 250cm and scattering lengths between 1m and 60m. 
+
+### Extract the scattering length
+
+The scattering fit is based on the 2D reference map (in R and scattering length) and called with 
+```
+./bin/ScatteringFitter2DBinned
+```
+The fitter takes a few inputs as follows (can call -h 0 to have the helper function, need an argument to call h)
+
+```
+USAGE: ScatteringFitter2DBinned
+OPTIONS:
+-b : base of the set of files you want to use 
+-c : specific files in that set that you want to read together (added to the base)
+-m : smallest x (in cm) of the reference spline the fitter will extract from the reference 2D surface 
+-x : largest x (in cm) of the reference spline the fitter will extract from the reference 2D surface 
+-i : increment (in cm) between two points of the reference spline (one point every i in scattering length)
+-n : Number of bins max 
+-o : output file (one _withText and one _withoutText) to which we will append the information and outcome of this specific fit - useful for scanning 
+-g : initial guess for the scattering length 
+-Q : charge threshold for a bin to be included in the fit 
+```
+
+
+The code generates a spline for each bin by sampling points uniformly along the surface along the line of correct R as per the image below. Then the fitter minimises the overall difference to the spline by varrying the  scattering length. This method is somewhat dependant on the initial guess chosen so far (need to be within ~10m of the correct scattering length) but the position of the absolute minimum is correct, the code can be easily changed to try a couple of guess scattering lengths and choose the deepest minima out of the different guesses. 
+
+NOTE: so far files with the same scattering lengths but different R distances (somehwat corresponding to a single run with the calibration source) are stored together as ID (xx + yy) where xx is the 'base' of the run e.g. xx = 910 - showing all files with ID 91yy have the same scattering and attenaution paramaters and then 0 < yy < 9, we can have up to ten different R distances. This is only for testing purposes and will be changed when we move to realistic source simulations. 
 
 
 ## Extract the scattering length - in 1D (very convoluted - not to be used for the analysis, just for checking things)
@@ -158,6 +205,21 @@ After the source position-dependant mPMT response to scattering has been fitted,
 ```
 
 just like with absorption we try to minimise the difference between Q_pred and Q_true as a function of the scattering length but this time Q_pred = TSpline3_fakedata(*y_of_nodes_from above) at scattering_length_pred. Again we can use multiple files to refine the approach. unlike for absorption the results are not very convincing so far...
+
+## Extract the absorption length - not binned: obsolete
+
+### Get the reference max amplitude
+For absorption, the max charge that gets collected at a given position when there is no scattering and no absorption is saved in `mPMTmapping/Maps/maps_Reference` by the code
+```
+bash make_reference.sh ID_ref
+```
+### Fit the response
+The typical response function for absorption is an exponential function Q_pred = A_max * exp(-R/abs_length). A_max is the reference value that we have saved just before and the R value (dome-source distance) is known and lifted from the dataset. abs_length is obtained from minimising the chi2 between Q_true and Q_pred. The code that does this is
+```
+./bin/AttenuationFitter ID1 ID2 ... IDn
+```
+The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be resolved by using a binned approach but until then we need to have a reference max charge for each source position at each R that we want to use. 
+
 
 
 
