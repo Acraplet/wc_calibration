@@ -173,7 +173,19 @@ OPTIONS:
 
 The code generates a spline for each bin by sampling points uniformly along the surface along the line of correct R as per the image below. Then the fitter minimises the overall difference to the spline by varrying the  scattering length. This method is somewhat dependant on the initial guess chosen so far (need to be within ~10m of the correct scattering length) but the position of the absolute minimum is correct, the code can be easily changed to try a couple of guess scattering lengths and choose the deepest minima out of the different guesses. 
 
+<img src="https://github.com/Acraplet/wc_calibration/blob/main/personnal-notes/reference_scattering.png" width="600" />
+
 NOTE: so far files with the same scattering lengths but different R distances (somehwat corresponding to a single run with the calibration source) are stored together as ID (xx + yy) where xx is the 'base' of the run e.g. xx = 910 - showing all files with ID 91yy have the same scattering and attenaution paramaters and then 0 < yy < 9, we can have up to ten different R distances. This is only for testing purposes and will be changed when we move to realistic source simulations. 
+
+
+
+
+## Notes about install
+The \_flat root  files should be put in a new empty folder within wc_calibration/mPMTmapping called data and accessed from there. The code relies quite a lot on filename format consistency so we should either keep that as is or improve this method. 
+
+
+The code is running with Root 6.26/10 (need to have that in the wc_calibration/mPMTmapping/
+/source_me.sh code and to run this code before starting the analysis). 
 
 
 ## Extract the scattering length - in 1D (very convoluted - not to be used for the analysis, just for checking things)
@@ -223,12 +235,6 @@ The accuracy and precision of the fit is greatly improved if we use multiple map
 
 
 
-### Notes about install
-The \_flat root  files should be put in a new empty folder within wc_calibration/mPMTmapping called data and accessed from there. The code relies quite a lot on filename format consistency so we should either keep that as is or improve this method. 
-
-
-The code is running with Root 6.26/10 (need to have that in the wc_calibration/mPMTmapping/
-/source_me.sh code and to run this code before starting the analysis). 
 
 
 
