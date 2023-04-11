@@ -4,6 +4,7 @@
 
 Chisq::Chisq(int npars){
     pars.resize(npars);
+    ParameterList.clear();
 }
 
 Chisq::~Chisq(){
@@ -235,3 +236,53 @@ TF1 Chisq::getFunction_rayff(double xlow, double xhigh, const char* title = "bes
     return func;
 }
 
+void Chisq::AddParameters(ParameterType kType)
+{
+    ParameterList.push_back(kType);
+}
+
+double Chisq::CalcChiSq(const double *pars)
+{
+    // Reset prediction
+    for(int i=0; i<x.size(); i++){
+        y_pred[i] = A[i];
+    }
+
+    int p = 0;
+    // Make prediction
+    for (auto& k : ParameterList)
+    {
+        switch (k)
+        {
+            case kNorm: 
+                for(int i=0; i<x.size(); i++){
+                    y_pred[i] *= pars[p];
+                }
+                p++;
+                break;
+            case kAttenuation:
+                for(int i=0; i<x.size(); i++){
+                    y_pred[i] *= TMath::Exp(- 1/pars[p] * R[i]); 
+                }
+                p++;
+                break;
+            default:
+                // do nothing
+                p++;
+        }
+    }
+
+    // Calculate chi2
+    double ret_val = 0;
+    for(int i=0; i<y.size(); i++){
+        double chi2 = 0;
+        if (y_pred[i]>0)
+        {
+            chi2 = 2*(y_pred[i]-y[i]);
+            if (y[i]>0)
+                chi2 += 2*y[i]*std::log(y[i]/y_pred[i]);
+        }
+        if (chi2>0) ret_val += chi2;
+    }
+    return ret_val; //-2Ln(L)
+}

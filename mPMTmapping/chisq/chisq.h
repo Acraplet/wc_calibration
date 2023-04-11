@@ -3,6 +3,14 @@
 #include "TMath.h"
 #include "TF1.h"
 
+enum ParameterType
+{
+    kNorm = 0,
+    kAttenuation = 1,
+    kRayleigh = 2,
+    kCathode = 3,
+};
+
 class Chisq{
     public:
     Chisq(int npars);
@@ -30,6 +38,8 @@ class Chisq{
     void print();
     TF1 getFunction(double xlow, double xhigh, const char* title);
     TF1 getFunction_rayff(double xlow, double xhigh, const char* title);
+    void AddParameters(ParameterType kType);
+    double CalcChiSq(const double *pars);
 
     private:
     std::vector<double> x;
@@ -43,5 +53,6 @@ class Chisq{
     std::vector<double> pars;
     int nNodes;
     std::vector<double> XNodes;
+    std::vector<ParameterType> ParameterList;
 };
 
