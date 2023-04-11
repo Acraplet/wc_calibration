@@ -173,6 +173,8 @@ OPTIONS:
 
 The code generates a spline for each bin by sampling points uniformly along the surface along the line of correct R as per the image below. Then the fitter minimises the overall difference to the spline by varrying the  scattering length. This method is somewhat dependant on the initial guess chosen so far (need to be within ~10m of the correct scattering length) but the position of the absolute minimum is correct, the code can be easily changed to try a couple of guess scattering lengths and choose the deepest minima out of the different guesses. 
 
+<img src="https://github.com/Acraplet/wc_calibration/blob/main/personnal-notes/reference_scattering.png" width="400" />
+
 NOTE: so far files with the same scattering lengths but different R distances (somehwat corresponding to a single run with the calibration source) are stored together as ID (xx + yy) where xx is the 'base' of the run e.g. xx = 910 - showing all files with ID 91yy have the same scattering and attenaution paramaters and then 0 < yy < 9, we can have up to ten different R distances. This is only for testing purposes and will be changed when we move to realistic source simulations. 
 
 
