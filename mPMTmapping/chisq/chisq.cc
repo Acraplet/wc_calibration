@@ -5,6 +5,7 @@
 Chisq::Chisq(int npars){
     pars.resize(npars);
     ParameterList.clear();
+    withCathodeSpline = false;
 }
 
 Chisq::~Chisq(){
@@ -241,6 +242,30 @@ void Chisq::AddParameters(ParameterType kType)
     ParameterList.push_back(kType);
 }
 
+void Chisq::LoadCathodeSpline(std::string fname)
+{
+    cathodeSpline.clear();
+    withCathodeSpline = false;
+
+    TFile f(fname.c_str());
+    if (!f.IsOpen()){
+        std::cout << "Error, could not open cathode spline file: " << fname << std::endl;
+        return;
+    }
+
+    for (int i=0;i<x.size(); i++)
+    {
+        TH3* h = (TH3*)f.Get(Form("CathodeSpline_PMT%i",i));
+        if (h)
+        {
+            h->SetDirectory(nullptr);
+            cathodeSpline[i] = std::unique_ptr<TH3>(h);
+        }
+    }
+
+    f.Close();
+}
+
 double Chisq::CalcChiSq(const double *pars)
 {
     // Reset prediction
@@ -265,6 +290,13 @@ double Chisq::CalcChiSq(const double *pars)
                     y_pred[i] *= TMath::Exp(- 1/pars[p] * R[i]); 
                 }
                 p++;
+                break;
+            case kCathode:
+                for(int i=0; i<x.size(); i++){
+                    if (cathodeSpline[i])
+                        y_pred[i] *= cathodeSpline[i]->Interpolate(pars[p],pars[p+1],pars[p+2]); 
+                }
+                p+=3;
                 break;
             default:
                 // do nothing

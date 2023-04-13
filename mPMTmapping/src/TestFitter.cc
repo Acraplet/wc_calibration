@@ -39,15 +39,19 @@ int main(int argc, char **argv){
 
     char * filename=NULL;
     char * reffilename=NULL;
+    char * splinefilename=NULL;
 
     char c;
-    while( (c = getopt(argc,argv,"f:r:h")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
+    while( (c = getopt(argc,argv,"f:r:s:h")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
         switch(c){
         case 'f':
             filename = optarg;
             break;
         case 'r':
             reffilename = optarg;
+            break;
+        case 's':
+            splinefilename = optarg;
             break;
         case 'h':
             std::cout << TAG << "Print help message"<<std::endl;
@@ -74,7 +78,7 @@ int main(int argc, char **argv){
     double R;
     pmt_type0->SetBranchAddress("R",&R);
     int nPMTs = pmt_type0->GetEntries();
-    hitRate_pmtType0->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs));
+    hitRate_pmtType0->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs),"nPE");
     TH1D* hData = (TH1D*)hitRate_pmtType0->GetHistogram();
     for (int i = 0 ; i<nPMTs; i++)
     {
@@ -96,7 +100,7 @@ int main(int argc, char **argv){
         return -1;
     }
     TTree* hitRate_pmtType0r = (TTree*)fr->Get("hitRate_pmtType0");
-    hitRate_pmtType0r->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs));
+    hitRate_pmtType0r->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs),"nPE");
     TH1D* hRef = (TH1D*)hitRate_pmtType0r->GetHistogram();
     for (int i = 0 ; i<nPMTs; i++)
     {
@@ -109,17 +113,31 @@ int main(int argc, char **argv){
     }
 
     //Here the fitting begins
-    const int nPars = 1; //the only parameter we fit is absorption length
+    const int nPars = 4; //the only parameter we fit is absorption length
     Chisq *chi = new Chisq(nPars);
     chi->setData(list_i, list_Q);
     chi->setRef(list_A, list_R);
-    chi->AddParameters(kAttenuation);
+    //chi->AddParameters(kAttenuation);
+    chi->AddParameters(kCathode);
+    chi->AddParameters(kNorm);
+    chi->LoadCathodeSpline(splinefilename);
     ROOT::Math::Functor functor(chi, &Chisq::CalcChiSq, nPars);
     ROOT::Math::Minimizer *min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
     min->SetStrategy(3);
     min->SetFunction(functor);
     min->SetMaxFunctionCalls(10000);
-    min->SetVariable(0, "attenuation_length", 5.0, 0.01);
+    //min->SetVariable(0, "attenuation_length", 5.0, 0.01);
+    min->SetVariable(0, "nRe", 3.1, 0.01);
+    min->SetVariableLimits(0, 3.0, 3.4);
+    min->SetVariable(1, "nIm", 1.3, 0.01);
+    min->SetVariableLimits(1, 1.1, 1.7);
+    min->SetVariable(2, "d", 20, 0.01);
+    min->SetVariableLimits(2, 11.5, 23.4);
+    // min->FixVariable(0);
+    // min->FixVariable(1);
+    // min->FixVariable(2);
+
+    min->SetVariable(3, "Norm", 1.0, 0.01);
 
     std::cout << TAG << "Number of defined parameters: " << min->NDim() << std::endl
               << TAG << "Number of free parameters   : " << min->NFree() << std::endl
