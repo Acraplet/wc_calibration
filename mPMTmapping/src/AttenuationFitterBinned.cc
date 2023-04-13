@@ -38,11 +38,11 @@ int main(int argc, char **argv){
 
     std::vector<double> list_Q, list_i,list_A, list_R;
     //std::vector<std::vector<double>> list_ynodes, list_xnodes;
-    char* R_test;
-    char* Q_test;
-    char* theta_test;
-    double  theta_test_num, Q_test_num;
-    char* phi_test;
+    //char* R_test;
+    //char* Q_test;
+    //char* theta_test;
+    //double  theta_test_num, Q_test_num;
+    //char* phi_test;
     double noAttenuation_pred; //not actually useful - just ot keep track and compare the
     //pred vs truth for absorption
     //The config number is a rough way to output the distances that we have looked out 
@@ -148,8 +148,8 @@ int main(int argc, char **argv){
 	 	total_bin_charge[binTarget] = total_bin_charge[binTarget] / total_bin_photons[binTarget] * 1000;
 		if (total_bin_charge[binTarget]>= Q_thresh and total_bin_photons[binTarget]!=0 ){
 			std::cout << std::endl;
-			int n = 0;
-			double x, y;
+//			int n = 0;
+//			double x, y;
 			double ref_info; //empty variable to read the file with
 			int count = 0;
 			//Now fitting multiple bins together
