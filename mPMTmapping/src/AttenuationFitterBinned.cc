@@ -181,7 +181,7 @@ int main(int argc, char **argv){
 		}//if we have more than Q_thresh hits in a given bin
 	}//run through all the bins
 	//The true scattering length that we know from the file
-	trueScat = truth_alpha(401.9, 10e10,test_positions[0].rayff);
+	trueScat = truth_alpha(401.9, test_positions[0].abwff,test_positions[0].rayff);
 	//Keeping track of the files we fitted together
 	config_number = std::stoi(configuration);
 	w+=1;
