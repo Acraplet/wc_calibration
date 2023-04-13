@@ -23,13 +23,16 @@
 void HelpMessage()
 {
     std::cout   << "USAGE: "
-                << "optical_fit" << "\nOPTIONS:\n"
-                << "-o : Output file\n"
-                << "-c : Config file\n"
-                << "-s : RNG seed \n"
-                << "-n : Number of threads\n"
-                << "-t : Number of toy fits \n";
+                << "AttenuationFitterBinned" << "\nOPTIONS:\n"
+                << "-b : base of the set of files you want to use \n"
+                << "-c : specific files in that set that you want to read together (added to the base)\n"
+                << "-n : Number of bins max \n"
+                << "-o : output file (one _withText and one _withoutText) to which we will append the information and outcome of this specific fit - useful for scanning \n"
+                << "-g : initial guess for the scattering length \n"
+                << "-Q : charge threshold for a bin to be included in the fit \n";
 }
+
+
 
 int main(int argc, char **argv){
 

@@ -11,9 +11,9 @@ LIBS := -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 
 ifdef WCSIMDIR
-all: ScatteringFitter2DBinned BinnedFitter Fitter make_mPMTmap AttenuationFitter make_oneBin_reference make_oneBin_test Fitter makeRef_maxNbHitAtPos ScatteringFitter make_onePositionMap ScatteringFitterBinned TestFitter WCSIM_TreeConvert
+all: ScatteringFitter2DBinned AttenuationFitterBinned BinnedFitter Fitter make_mPMTmap AttenuationFitter make_oneBin_reference make_oneBin_test Fitter makeRef_maxNbHitAtPos ScatteringFitter make_onePositionMap ScatteringFitterBinned TestFitter WCSIM_TreeConvert
 else
-all: ScatteringFitter2DBinned BinnedFitter Fitter make_mPMTmap AttenuationFitter make_oneBin_reference make_oneBin_test Fitter makeRef_maxNbHitAtPos ScatteringFitter make_onePositionMap ScatteringFitterBinned TestFitter
+all: ScatteringFitter2DBinned AttenuationFitterBinned BinnedFitter Fitter make_mPMTmap AttenuationFitter make_oneBin_reference make_oneBin_test Fitter makeRef_maxNbHitAtPos ScatteringFitter make_onePositionMap ScatteringFitterBinned TestFitter
 endif
 
 plot_Scattering_Absorption_ExtrapolateR: plot_Scattering_Absorption_ExtrapolateR.cc
@@ -34,6 +34,8 @@ BinnedFitter: BinnedFitter.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o ../bin/$@ -ggdb3 $(LIBS) -I$(INCLUDES)
 AttenuationFitter: AttenuationFitter.cc
 	g++ -Wall -Wextra $(CXXFLAGS) AttenuationFitter.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
+AttenuationFitterBinned: AttenuationFitterBinned.cc
+	g++ -Wall -Wextra $(CXXFLAGS) AttenuationFitterBinned.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 ScatteringFitter: ScatteringFitter.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 ScatteringFitterBinned: ScatteringFitterBinned.cc

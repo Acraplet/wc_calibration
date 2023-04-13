@@ -1,15 +1,20 @@
 #!/bin/sh
 
-abwff=$1
-rayff=$2
-fileID=$3
+abwff=1e11 #$1
+#rayff=$2
+fileID=$1
 
-R=(5 10 20 40 80 160 250)
+R=(10 20 40 80 120 140 160 180 210 250)
+rayff_list=(0.00243 0.00486 0.00729 0.00805 0.00972 0.010935 0.01215 0.013365 0.01458 0.010270547)
 
-for i in ${R[@]}
+for r in ${rayff_list[@]}
 do 
-    python config_files_prod/writeMacFile.py -R $i -a $abwff -r $rayff -e 1000 -f $fileID -t 20 -p 20 
-    fileID=$((fileID+1))
+	for i in ${R[@]}
+	do
+	echo $fileID
+    	python config_files_prod/writeMacFile.py -R $i -a $abwff -r $r -e 1000 -f $fileID -u 4000
+    	fileID=$((fileID+1))
+	done
 done
 
 #python writeMacFile.py -R 40 -a $abwff -r $rayff -e 1000 -f $fileID -t 20 -p 20 
