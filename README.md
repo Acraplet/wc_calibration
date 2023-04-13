@@ -178,6 +178,8 @@ The code generates a spline for each bin by sampling points uniformly along the 
 NOTE: so far files with the same scattering lengths but different R distances (somehwat corresponding to a single run with the calibration source) are stored together as ID (xx + yy) where xx is the 'base' of the run e.g. xx = 910 - showing all files with ID 91yy have the same scattering and attenaution paramaters and then 0 < yy < 9, we can have up to ten different R distances. This is only for testing purposes and will be changed when we move to realistic source simulations. 
 
 
+NOTE: Most of the reference bin behaviour that were added are empty - because no photons were detected in this bin or it is in a quarter of the mPMT that we are not looking at. this could be improved.  
+
 
 
 ## Notes about install
