@@ -14,6 +14,7 @@
 #include "TSystemDirectory.h"
 #include <cstring>
 
+#include "toml/toml_helper.h"
 #include "ColorOutput.hh"
 
 const std::string TAG = color::GREEN_STR + "[TestFitter]: " + color::RESET_STR;
@@ -33,30 +34,44 @@ int main(int argc, char **argv){
     char * reffilename=NULL;
     char * splinefilename=NULL;
 
+    std::string config_file;
+
     char c;
-    while( (c = getopt(argc,argv,"f:r:s:h")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
+    while( (c = getopt(argc,argv,"f:r:s:c:h")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
         switch(c){
-        case 'f': // data
-            filename = optarg;
-            break;
-        case 'r': // reference map
-            reffilename = optarg;
-            break;
-        case 's': // spline file for cathode parameters
-            splinefilename = optarg;
-            break;
-        case 'h':
-            std::cout << TAG    << "USAGE: "
-                                << "TestFitter" << "\nOPTIONS:\n"
-                                << "-f : Data file\n"
-                                << "-r : Reference map file\n"
-                                << "-s : Spline file for cathode parameters\n"
-                                ;
-            return 0;
-        default:
-            return 0;
+            case 'c':
+                config_file = optarg;
+                break;
+            case 'f': // data
+                filename = optarg;
+                break;
+            case 'r': // reference map
+                reffilename = optarg;
+                break;
+            case 's': // spline file for cathode parameters
+                splinefilename = optarg;
+                break;
+            case 'h':
+                std::cout << TAG    << "USAGE: "
+                                    << "TestFitter" << "\nOPTIONS:\n"
+                                    << "-c : config file\n"
+                                    << "-f : Data file\n"
+                                    << "-r : Reference map file\n"
+                                    << "-s : Spline file for cathode parameters\n"
+                                    ;
+                return 0;
+            default:
+                return 0;
         }
     }
+
+    if (config_file.size()==0)
+    {
+        std::cout<< ERR << "No config file!" << std::endl;
+        return -1;
+    }
+    auto const &card_toml = toml_h::parse_card(config_file);
+    auto const &fitparameters_config = toml_h::find(card_toml, "fitparameters");
 
     // Open the data file
     if (filename==NULL){
@@ -114,31 +129,64 @@ int main(int argc, char **argv){
     // }
 
     //Here the fitting begins
-    const int nPars = 4; // number of fit parameters 
-    Chisq *chi = new Chisq(nPars);
+    Chisq *chi = new Chisq();
     chi->setData(list_i, list_Q);
     chi->setRef(list_A, list_R);
+    int nPars = 0; // number of fit parameters 
     // Add fit parameters
-    chi->AddParameters(kCathode);
-    chi->AddParameters(kNorm);
-    chi->LoadCathodeSpline(splinefilename);
+    std::vector<std::string> paramNames;
+    std::vector<double> paramPriors;
+    std::vector<double> paramSteps;
+    std::vector<double> paramLows;
+    std::vector<double> paramHighs;
+    std::vector<bool> paramFixeds;
+    for (auto const &name : toml_h::find<std::vector<std::string>>(fitparameters_config, "names"))
+    {
+        std::cout << TAG << "Parameter name: " << name << std::endl;
+        auto const &ele = toml_h::find<toml::array>(fitparameters_config, name);
+        auto paramtype = chi->GetParameterType(toml_h::find<std::string>(ele,0));
+        //std::cout<<"paramtype = "<<paramtype<<std::endl;
+        if (paramtype==kCathode)
+        {
+            std::cout << TAG << "Load spline file " << splinefilename << std::endl;
+            chi->LoadCathodeSpline(splinefilename);
+        }
+        else if (paramtype==kInValid)
+        {
+            std::cout << WAR << "Invalid parameter type, skipping this" << std::endl;
+            continue;
+        }
+        chi->AddParameters(paramtype);
+        auto npar = toml_h::find<int>(ele,1);
+        nPars += npar;
+
+        auto par_setup = toml_h::find<toml::array>(ele,2);
+        for (auto const &par : par_setup)
+        {
+            paramNames.push_back(toml_h::find<std::string>(par,0));
+            paramPriors.push_back(toml_h::find<double>(par,1));
+            paramSteps.push_back(toml_h::find<double>(par,2));
+            paramLows.push_back(toml_h::find<double>(par,3));
+            paramHighs.push_back(toml_h::find<double>(par,4));
+            paramFixeds.push_back(toml_h::find<bool>(par,5));
+
+            //std::cout<<paramNames.back()<<" "<<paramPriors.back()<<" "<<paramSteps.back()<<" "<<paramLows.back()<<" "<<paramHighs.back()<<" "<<paramFixeds.back()<<"\n";
+        }
+    }
+    chi->SetNPars(nPars);
+
     ROOT::Math::Functor functor(chi, &Chisq::CalcChiSq, nPars);
     ROOT::Math::Minimizer *min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
     min->SetStrategy(3);
     min->SetFunction(functor);
-    min->SetMaxFunctionCalls(10000);
+    min->SetMaxFunctionCalls(1000000);
     // Set parameter priors
-    min->SetVariable(0, "nRe", 3.1, 0.01);
-    min->SetVariableLimits(0, 3.0, 3.4);
-    min->SetVariable(1, "nIm", 1.3, 0.01);
-    min->SetVariableLimits(1, 1.1, 1.7);
-    min->SetVariable(2, "d", 20, 0.01);
-    min->SetVariableLimits(2, 11.5, 23.4);
-    // min->FixVariable(0);
-    // min->FixVariable(1);
-    // min->FixVariable(2);
-    min->SetVariable(3, "Norm", 1.0, 0.01);
-    min->SetVariableLimits(3, 0, 1000);
+    for (int i=0;i<nPars;i++)
+    {
+        min->SetVariable(i, paramNames[i].c_str(), paramPriors[i], paramSteps[i]);
+        min->SetVariableLimits(i, paramLows[i], paramHighs[i]);
+        if (paramFixeds[i]) min->FixVariable(i);
+    }
 
     std::cout << TAG << "Number of defined parameters: " << min->NDim() << std::endl
               << TAG << "Number of free parameters   : " << min->NFree() << std::endl
@@ -147,11 +195,11 @@ int main(int argc, char **argv){
 
     min->Minimize();
     min->PrintResults();
-    const double* par_val = min->X();
-    const double* par_err = min->Errors();
-    for (int i=0;i<nPars;i++)
-    {
-        std::cout<<"Variable "<<i<<" : "<<par_val[i]<<" +/- "<<par_err[i]<<"\n";
-    }
+    // const double* par_val = min->X();
+    // const double* par_err = min->Errors();
+    // for (int i=0;i<nPars;i++)
+    // {
+    //     std::cout<<"Variable "<<i<<" : "<<par_val[i]<<" +/- "<<par_err[i]<<"\n";
+    // }
 }
 

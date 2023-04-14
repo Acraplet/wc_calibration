@@ -11,11 +11,13 @@ enum ParameterType
     kAttenuation = 1,
     kRayleigh = 2,
     kCathode = 3,
+
+    kInValid = 999,
 };
 
 class Chisq{
     public:
-    Chisq(int npars);
+    Chisq(int npars=0);
     ~Chisq();
     void setData(std::vector<double> xin, std::vector<double> yin);
     void setRef(std::vector<double> Ain, std::vector<double> Rin);
@@ -41,8 +43,10 @@ class Chisq{
     TF1 getFunction(double xlow, double xhigh, const char* title);
     TF1 getFunction_rayff(double xlow, double xhigh, const char* title);
     void AddParameters(ParameterType kType);
+    ParameterType GetParameterType(std::string pname);
     double CalcChiSq(const double *pars);
     void LoadCathodeSpline(std::string fname);
+    void SetNPars(int val) {pars.resize(val);}
 
     private:
     std::vector<double> x;

@@ -242,6 +242,17 @@ void Chisq::AddParameters(ParameterType kType)
     ParameterList.push_back(kType);
 }
 
+ParameterType Chisq::GetParameterType(std::string pname)
+{
+    if (pname=="Norm")
+        return kNorm;
+    else if (pname=="Attenuation")
+        return kAttenuation;
+    else if (pname=="Cathode")
+        return kCathode;
+    else return kInValid;
+}
+
 void Chisq::LoadCathodeSpline(std::string fname)
 {
     cathodeSpline.clear();
