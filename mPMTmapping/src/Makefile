@@ -16,6 +16,11 @@ else
 all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter
 endif
 
+#these are the old codes that aren't used in the binned approach, they are now in the mPMTmapping/Archive/OldCodes folder if one is interested
+#BinnedFitter Fitter 
+#AttenuationFitter make_oneBin_reference make_oneBin_test Fitter 
+#ScatteringFitter make_onePositionMap ScatteringFitterBinned
+
 plot_Scattering_Absorption_ExtrapolateR: plot_Scattering_Absorption_ExtrapolateR.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 make_mPMTmap: make_mPMTmap.cc
