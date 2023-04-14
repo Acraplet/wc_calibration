@@ -12,7 +12,7 @@ do
 	for i in ${R[@]}
 	do
 	echo $fileID
-    	python config_files_prod/writeMacFile.py -R $i -a $abwff -r $r -e 1000 -f $fileID -u 4000
+    	python config_files_prod/writeMacFile.py -R $i -a $r -r $abwff -e 1000 -f $fileID -u 4000
     	fileID=$((fileID+1))
 	done
 done

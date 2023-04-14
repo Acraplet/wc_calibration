@@ -65,8 +65,11 @@ for name in sys.argv[1:]:
     #df_source = tree_source.arrays(library="pd")
     tree_geometry = uproot.open("%s"%name)["Geometry"]
     df_geometry = tree_geometry.arrays(library="pd")
-    table = [df_geometry["mPMT"],df_geometry["mPMT_pmt"], df_geometry["x"],df_geometry["y"],df_geometry["z"]]
-    np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/PMT_positions.txt',table, fmt = '%.2f')
+
+    table = [np.array(df_geometry["mPMT"][0]),np.array(df_geometry["mPMT_pmt"][0]), np.array(df_geometry["x"][0]),np.array(df_geometry["y"][0]),np.array(df_geometry["z"][0]), np.array(df_geometry["direction_x"][0]),np.array(df_geometry["direction_y"][0]),np.array(df_geometry["direction_z"][0])]
+    print(table)
+
+    np.savetxt('/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/PMT_positions_with_direction.txt',table, fmt = '%.2f')
     #now make a new dataset with only the information of the 58mPMT - the one of interest here
     #We have an issue that the 19th PMT is matched with the wrong mPMT - need to correct for that
     #pretty slow process -  could optimise with a separate function

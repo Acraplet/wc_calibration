@@ -31,10 +31,14 @@ PMT_mPMT_pmt = PMT[1]
 PMT_x = PMT[2]
 PMT_y = PMT[3]
 PMT_z = PMT[4]
+#test
+PMT_dirx = PMT[5]
+PMT_diry = PMT[6]
+PMT_dirz = PMT[7]
 df_geom = pd.DataFrame()
 for i in range(len(PMT[0])):
-        c = [PMT[0][i],PMT[1][i],PMT[2][i],PMT[3][i],PMT[4][i]]
-        row =  pd.Series(data=c, index=['mPMT', 'mPMT_pmt', 'x', 'y', 'z'], dtype=np.float64)
+        c = [PMT[0][i],PMT[1][i],PMT[2][i],PMT[3][i],PMT[4][i], PMT[5][i], PMT[6][i], PMT[7][i]]
+        row =  pd.Series(data=c, index=['mPMT', 'mPMT_pmt', 'x', 'y', 'z', 'dirx', 'diry', 'dirz'], dtype=np.float64)
         df_geom = df_geom.append(row, ignore_index=True)
 
 bins_position = WORKDIR+'/mPMTmapping/uniform_304_bins.txt'
@@ -262,7 +266,9 @@ ax.plot_surface(xs, ys, zs, alpha = 0.1)
 ax.scatter3D(0, 0, - 128.05 - 27.4, marker = 'x', color = 'k')
 ax.scatter3D(x, z, y, marker = 'x', color ='r')
 #these are the other PMTs - can be helpful for visualisation (uncomment)
-#ax.scatter3D(PMT_x,PMT_z,PMT_y, marker = 'o')
+ax.scatter3D(PMT_x,PMT_z,PMT_y, marker = 'o')
+for PMT in range(int(len(PMT_x)/3)):
+    ax.plot([PMT_x[PMT], PMT_dirx[PMT]+PMT_x[PMT]],[PMT_z[PMT], PMT_dirz[PMT]+PMT_z[PMT]],[PMT_y[PMT], PMT_diry[PMT]+PMT_y[PMT]], marker = '--', color = 'k')
 
 #This is the position of the centre of the uniform bins
 for b in range(len(bins_all)):
