@@ -261,6 +261,8 @@ void Chisq::LoadCathodeSpline(std::string fname)
             h->SetDirectory(nullptr);
             cathodeSpline[i] = std::unique_ptr<TH3>(h);
         }
+        else
+            std::cout << "Warning, could not find CathodeSpline_PMT" << i << std::endl;
     }
 
     f.Close();

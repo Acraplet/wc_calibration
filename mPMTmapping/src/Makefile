@@ -23,7 +23,7 @@ make_mPMTmap: make_mPMTmap.cc
 makeRef_maxNbHitAtPos: makeRef_maxNbHitAtPos.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o ../bin/$@ $(LIBS) -I$(INCLUDES)
 AttenuationFitterBinned: AttenuationFitterBinned.cc
-	g++ -Wall -Wextra $(CXXFLAGS) AttenuationFitterBinned.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 ScatteringFitter2DBinned: ScatteringFitter2DBinned.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 TestFitter: TestFitter.cc

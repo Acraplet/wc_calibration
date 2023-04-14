@@ -39,10 +39,11 @@ TRandom3* rng;
 WCSimRootGeom *geo = 0; 
 
 // Simple example of reading a generated Root file
+// Used to analyze hybrid configuration, now only mPMTs
 const int nPMTtypes = 2;
 double PMTradius[nPMTtypes];
 
-double CalcSolidAngle(double r, double R, double costh)
+double CalcSolidAngle(double r, double R)
 {
   double weight = 2*TMath::Pi()*(1-R/sqrt(R*R+r*r));
   //weight *= 1.-0.5*sqrt(1-costh*costh);
@@ -58,19 +59,19 @@ void HelpMessage()
             << "-f : Input file\n"
             << "-o : Output file\n"
             << "-l : Laser wavelength\n"
-            << "-b : Use only B&L PMTs\n"
-            << "-d : Run with raw Cherenkov hits and perform ad-hoc digitization\n"
+            << "-b : Use hybrid configuration\n"
+            << "-d : Run with raw Cherenkov hits\n"
             << "-t : Use separated triggers\n"
-            << "-c : Produce photon hit histogram with specified binning\n"
+            // << "-c : Produce photon hit histogram with specified binning\n"
             << "-v : Verbose\n"
             << "-s : Start event\n"
             << "-e : End event\n"
             << "-r : RNG seed\n"
-            << "-w : Reweight options (multiple can be applied)\n"
-            << "     led : diffuser profile\n"
-            << "     attenz,slope : linear z-dependence of attenuation length with input slope\n"
-            << "     linz,slope : linear z-dependence of PMT efficiency with input slope\n"
-            << "-p : Set water parameters for attenuation factor reweight (ABWFF,RAYFF)\n"
+            // << "-w : Reweight options (multiple can be applied)\n"
+            // << "     led : diffuser profile\n"
+            // << "     attenz,slope : linear z-dependence of attenuation length with input slope\n"
+            // << "     linz,slope : linear z-dependence of PMT efficiency with input slope\n"
+            // << "-p : Set water parameters for attenuation factor reweight (ABWFF,RAYFF)\n"
             ;
 }
 
@@ -81,17 +82,17 @@ int main(int argc, char **argv){
   bool verbose=false;
   bool hybrid = false;
   double cvacuum = 3e8 ;//speed of light, in m/s.
-  double nindex = 1.373;//refraction index of water
+  //double nindex = 1.373;//refraction index of water
   bool plotDigitized = true; //using digitized hits
   bool separatedTriggers=false; //Assume two independent triggers, one for mPMT, one for B&L
-  bool diffuserProfile = false; //Reweigh PMT hits by source angle
-  bool zreweight = false; //Reweigh PMT hits by a z-dependence in attenuation length
-  bool lzreweight = false; // Reweigh PMT hits by a linear function in z
-  double slopeA = 0;
-  double abwff = 1.3;
-  double rayff = 0.75;
-  double lzslope = 0;
-  bool hitHisto = false;
+  // bool diffuserProfile = false; //Reweigh PMT hits by source angle
+  // bool zreweight = false; //Reweigh PMT hits by a z-dependence in attenuation length
+  // bool lzreweight = false; // Reweigh PMT hits by a linear function in z
+  // double slopeA = 0;
+  // double abwff = 1.3;
+  // double rayff = 0.75;
+  // double lzslope = 0;
+  // bool hitHisto = false;
   //BinManager bm;
 
   double wavelength = 400; //wavelength in nm
@@ -102,7 +103,7 @@ int main(int argc, char **argv){
   long int endEvent=0;
   int seed = 0;
   char c;
-  while( (c = getopt(argc,argv,"f:o:s:e:l:r:p:c:w:bhdtv")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
+  while( (c = getopt(argc,argv,"f:o:s:e:l:r:bhdtv")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
     switch(c){
       case 'f':
         filename = optarg;
@@ -141,68 +142,69 @@ int main(int argc, char **argv){
           wavelength = 400;
         }
 	      break;
-      case 'w':
-        {
-          std::string wp = optarg;
-          std::stringstream ss(wp);
-          for(std::string s; std::getline(ss, s, ',');)
-          {
-            if (s=="led")
-            {
-              diffuserProfile = true;
-              std::cout<<TAG<<"Reweigh PMT hits by diffuser profile"<<std::endl;
-            }
-            else if (s=="attenz")
-            {
-              std::getline(ss, s, ',');
-              slopeA = std::stod(s);
-              if (fabs(slopeA)>1.e-9)
-              {
-                zreweight = true;
-                std::cout<<TAG<<"Reweigh attenuation factor with linear z-dependence, slope = "<<slopeA<<std::endl;
-              }
-            }
-            else if (s=="linz")
-            {
-              std::getline(ss, s, ',');
-              lzslope = std::stod(s);
-              if (fabs(lzslope)>1.e-9)
-              {
-                lzreweight = true;
-                std::cout<<TAG<<"Reweigh PMT efficiency with linear z-dependence, slope = "<<lzslope<<std::endl;
-              }
-            }
-          }
-          break;
-        }
-      case 'p':
-        {
-          std::string wp = optarg;
-          std::stringstream ss(wp);
-          int count = 0;
-          for(std::string s; std::getline(ss, s, ',');)
-          {
-            double val = std::stod(s);
-            if (val>0)
-            {
-              if (count==0) abwff = val;
-              else if (count==1) rayff = val;
-            }
-            count++;
-          }
-          std::cout<<TAG<<"Setting new water paramters, ABWFF = "<<abwff<<", RAYFF = "<<rayff<<std::endl;
-          break;
-        }
-      case 'c':
-        {
-          hitHisto = true;
-          std::string binning = optarg;
-          std::cout<<TAG<<"Produce PMT hit histogram with timetof binning from "<<binning<<std::endl;
-          //bm = BinManager(binning);
-          break;
-        }
+      // case 'w':
+      //   {
+      //     std::string wp = optarg;
+      //     std::stringstream ss(wp);
+      //     for(std::string s; std::getline(ss, s, ',');)
+      //     {
+      //       if (s=="led")
+      //       {
+      //         diffuserProfile = true;
+      //         std::cout<<TAG<<"Reweigh PMT hits by diffuser profile"<<std::endl;
+      //       }
+      //       else if (s=="attenz")
+      //       {
+      //         std::getline(ss, s, ',');
+      //         slopeA = std::stod(s);
+      //         if (fabs(slopeA)>1.e-9)
+      //         {
+      //           zreweight = true;
+      //           std::cout<<TAG<<"Reweigh attenuation factor with linear z-dependence, slope = "<<slopeA<<std::endl;
+      //         }
+      //       }
+      //       else if (s=="linz")
+      //       {
+      //         std::getline(ss, s, ',');
+      //         lzslope = std::stod(s);
+      //         if (fabs(lzslope)>1.e-9)
+      //         {
+      //           lzreweight = true;
+      //           std::cout<<TAG<<"Reweigh PMT efficiency with linear z-dependence, slope = "<<lzslope<<std::endl;
+      //         }
+      //       }
+      //     }
+      //     break;
+      //   }
+      // case 'p':
+      //   {
+      //     std::string wp = optarg;
+      //     std::stringstream ss(wp);
+      //     int count = 0;
+      //     for(std::string s; std::getline(ss, s, ',');)
+      //     {
+      //       double val = std::stod(s);
+      //       if (val>0)
+      //       {
+      //         if (count==0) abwff = val;
+      //         else if (count==1) rayff = val;
+      //       }
+      //       count++;
+      //     }
+      //     std::cout<<TAG<<"Setting new water paramters, ABWFF = "<<abwff<<", RAYFF = "<<rayff<<std::endl;
+      //     break;
+      //   }
+      // case 'c':
+      //   {
+      //     hitHisto = true;
+      //     std::string binning = optarg;
+      //     std::cout<<TAG<<"Produce PMT hit histogram with timetof binning from "<<binning<<std::endl;
+      //     //bm = BinManager(binning);
+      //     break;
+      //   }
       case 'h':
         HelpMessage();
+        return 0;
       default:
         return 0;
     }
@@ -250,7 +252,7 @@ int main(int argc, char **argv){
   // Force deletion to prevent memory leak 
   //tree->GetBranch("wcsimrootevent")->SetAutoDelete(kTRUE);
 
-  TBranch *branch2;
+  //TBranch *branch2;
   if(hybrid){
     //branch2 = tree->GetBranch("wcsimrootevent2");
     //branch2->SetAddress(&wcsimrootsuperevent2);
@@ -354,12 +356,15 @@ int main(int argc, char **argv){
   pmt_type0->Branch("costh",&costh);     // photon incident angle relative to PMT
   pmt_type0->Branch("cosths",&cosths);   // PMT costheta angle relative to source
   pmt_type0->Branch("phis",&phis);       // PMT phi angle relative to source
-  pmt_type0->Branch("costhm",&costhm);   // costhm = costh
-  pmt_type0->Branch("phim",&phim);       // dummy
+  pmt_type0->Branch("costhm",&costhm);   // photon incident theta angle relative to central PMT 
+  pmt_type0->Branch("phim",&phim);       // photon incident phi angle relative to central PMT 
   pmt_type0->Branch("omega",&omega);     // solid angle subtended by PMT
   pmt_type0->Branch("dz",&dz);           // z-pos relative to source
   pmt_type0->Branch("PMT_id",&PMT_id);   // unique PMT id
-  pmt_type0->Branch("mPMT_id",&mPMT_id); // dummy 
+  pmt_type0->Branch("mPMT_id",&mPMT_id); //sub-ID of PMT inside a mPMT module
+                                         // 0 -11 : outermost ring
+                                         // 12 - 17: middle ring
+                                         // 18: central PMT
   pmt_type0->Branch("xpos",&xpos);       // PMT position in the detector
   pmt_type0->Branch("ypos",&ypos);
   pmt_type0->Branch("zpos",&zpos);
@@ -369,18 +374,15 @@ int main(int argc, char **argv){
   pmt_type1->Branch("costh",&costh);
   pmt_type1->Branch("cosths",&cosths);
   pmt_type1->Branch("phis",&phis);
-  pmt_type1->Branch("costhm",&costhm);   // photon incident theta angle relative to central PMT 
-  pmt_type1->Branch("phim",&phim);       // photon incident phi angle relative to central PMT 
+  pmt_type1->Branch("costhm",&costhm); 
+  pmt_type1->Branch("phim",&phim); 
   pmt_type1->Branch("omega",&omega);
   pmt_type1->Branch("dz",&dz);
   pmt_type1->Branch("PMT_id",&PMT_id);
   pmt_type1->Branch("xpos",&xpos);
   pmt_type1->Branch("ypos",&ypos);
   pmt_type1->Branch("zpos",&zpos);
-  pmt_type1->Branch("mPMT_id",&mPMT_id); //sub-ID of PMT inside a mPMT module
-                                         // 0 -11 : outermost ring
-                                         // 12 - 17: middle ring
-                                         // 18: central PMT
+  pmt_type1->Branch("mPMT_id",&mPMT_id); 
   pmt_type1->Branch("weight",&weight); 
 
   // Assume the "source" is pointing downwards
@@ -471,7 +473,7 @@ int main(int argc, char **argv){
     //     if (pmtType==1) reweight_type1[i] *= wgt;
     //   }
       double pmtradius = pmtType==0 ? PMTradius[0] : PMTradius[1]; 
-      omega = CalcSolidAngle(pmtradius,dist,costh);
+      omega = CalcSolidAngle(pmtradius,dist);
       costhm = costh;
       phim = 0;
       // mPMT specific
@@ -521,8 +523,8 @@ int main(int argc, char **argv){
 
   // int nBins_timetof = 255;
   // double timetof_min = -955, timetof_max = -750;
-  TH2F* hitRateHist_pmtType0;
-  TH2F* hitRateHist_pmtType1;
+  // TH2F* hitRateHist_pmtType0;
+  // TH2F* hitRateHist_pmtType1;
 //   if (hitHisto)
 //   {
 //     //const double* bin_edges = bm.GetBinVector(0).data();
@@ -718,15 +720,15 @@ int main(int argc, char **argv){
         nReflec = 0;
         nRaySct = 0;
         nMieSct = 0;
-        for (int idx = timeArrayIndex; idx<timeArrayIndex+peForTube; idx++) {
-          WCSimRootCherenkovHitTime * cht = (WCSimRootCherenkovHitTime*) timeArray->At(idx);
+        // for (int idx = timeArrayIndex; idx<timeArrayIndex+peForTube; idx++) {
+        //   WCSimRootCherenkovHitTime * cht = (WCSimRootCherenkovHitTime*) timeArray->At(idx);
 
-          // only works well for peForTube = 1
-          // if peForTube > 1, you don't know whether reflection and scattering happens at the same time for a single photon
+        //   // only works well for peForTube = 1
+        //   // if peForTube > 1, you don't know whether reflection and scattering happens at the same time for a single photon
         //   if (cht->GetReflection()>0) nReflec++;
         //   if (cht->GetRayScattering()>0) nRaySct++;
         //   if (cht->GetMieScattering()>0) nMieSct++;
-        }
+        // }
         ////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////
@@ -850,12 +852,12 @@ int main(int argc, char **argv){
         if (pmtType==0) 
         {
           hitRate_pmtType0->Fill();
-          if (hitHisto) hitRateHist_pmtType0->Fill(PMT_id+0.5,timetof,nPE);
+          // if (hitHisto) hitRateHist_pmtType0->Fill(PMT_id+0.5,timetof,nPE);
         }
         if (pmtType==1) 
         {
           hitRate_pmtType1->Fill();
-          if (hitHisto) hitRateHist_pmtType1->Fill(PMT_id+0.5,timetof,nPE);
+          // if (hitHisto) hitRateHist_pmtType1->Fill(PMT_id+0.5,timetof,nPE);
         }
 
 
@@ -872,11 +874,11 @@ int main(int argc, char **argv){
   outfile->cd();
   hitRate_pmtType0->Write();
   if (hybrid) hitRate_pmtType1->Write();
-  if (hitHisto) 
-  {
-    hitRateHist_pmtType0->Write();
-    if (hybrid) hitRateHist_pmtType1->Write();
-  }
+  // if (hitHisto) 
+  // {
+  //   hitRateHist_pmtType0->Write();
+  //   if (hybrid) hitRateHist_pmtType1->Write();
+  // }
 
   // Save injector position
   TVector3 source_position(vtxpos[0],vtxpos[1],vtxpos[2]);
