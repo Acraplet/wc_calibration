@@ -4,6 +4,8 @@
 
 Chisq::Chisq(int npars){
     pars.resize(npars);
+    ParameterList.clear();
+    withCathodeSpline = false;
 }
 
 Chisq::~Chisq(){
@@ -235,3 +237,97 @@ TF1 Chisq::getFunction_rayff(double xlow, double xhigh, const char* title = "bes
     return func;
 }
 
+void Chisq::AddParameters(ParameterType kType)
+{
+    ParameterList.push_back(kType);
+}
+
+ParameterType Chisq::GetParameterType(std::string pname)
+{
+    if (pname=="Norm")
+        return kNorm;
+    else if (pname=="Attenuation")
+        return kAttenuation;
+    else if (pname=="Cathode")
+        return kCathode;
+    else return kInValid;
+}
+
+void Chisq::LoadCathodeSpline(std::string fname)
+{
+    cathodeSpline.clear();
+    withCathodeSpline = false;
+
+    TFile f(fname.c_str());
+    if (!f.IsOpen()){
+        std::cout << "Error, could not open cathode spline file: " << fname << std::endl;
+        return;
+    }
+
+    for (int i=0;i<x.size(); i++)
+    {
+        TH3* h = (TH3*)f.Get(Form("CathodeSpline_PMT%i",i));
+        if (h)
+        {
+            h->SetDirectory(nullptr);
+            cathodeSpline[i] = std::unique_ptr<TH3>(h);
+        }
+        else
+            std::cout << "Warning, could not find CathodeSpline_PMT" << i << std::endl;
+    }
+
+    f.Close();
+}
+
+double Chisq::CalcChiSq(const double *pars)
+{
+    // Reset prediction
+    for(int i=0; i<x.size(); i++){
+        y_pred[i] = A[i];
+    }
+
+    int p = 0;
+    // Make prediction
+    for (auto& k : ParameterList)
+    {
+        switch (k)
+        {
+            case kNorm: 
+                for(int i=0; i<x.size(); i++){
+                    y_pred[i] *= pars[p];
+                }
+                p++;
+                break;
+            case kAttenuation:
+                for(int i=0; i<x.size(); i++){
+                    y_pred[i] *= TMath::Exp(- 1/pars[p] * R[i]); 
+                }
+                p++;
+                break;
+            case kCathode:
+                for(int i=0; i<x.size(); i++){
+                    if (cathodeSpline[i])
+                        y_pred[i] *= cathodeSpline[i]->Interpolate(pars[p],pars[p+1],pars[p+2]); 
+                }
+                p+=3;
+                break;
+            default:
+                // do nothing
+                p++;
+        }
+    }
+
+    // Calculate chi2
+    double ret_val = 0;
+    for(int i=0; i<y.size(); i++){
+        double chi2 = 0;
+        if (y_pred[i]>0)
+        {
+            chi2 = 2*(y_pred[i]-y[i]);
+            if (y[i]>0)
+                chi2 += 2*y[i]*std::log(y[i]/y_pred[i]);
+        }
+        if (chi2>0) ret_val += chi2;
+    }
+    return ret_val; //-2Ln(L)
+}

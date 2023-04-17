@@ -1,0 +1,35 @@
+# List of fit parameters input to fitter
+[fitparameters]
+
+# Names of the class of fit parameters
+names = [
+    "norm",
+    "alpha",
+    "cathode",
+]
+
+norm = [
+    "Norm", # Type of parameters
+    1, # Number of parameters
+    [
+        ["Norm", 1.0, 0.01, 0, 100, false], # name, prefit, stepsize, min, max, fix
+    ], # Vector of parameters
+]
+
+alpha = [
+    "Attenuation", 
+    1, 
+    [
+        ["alpha", 1E5, 1, 0, 1E10, false], 
+    ], 
+]
+
+cathode = [
+    "Cathode", 
+    3, 
+    [
+        ["nRe", 3.2, 0.01, 3.0, 3.4, false], 
+        ["nIm", 1.4, 0.01, 1.1, 1.7, false], 
+        ["d",  15.0, 0.01, 11.5, 23.4, false], 
+    ], 
+]

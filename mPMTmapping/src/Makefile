@@ -10,7 +10,11 @@ endif
 LIBS := -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 
-all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos 
+ifdef WCSIMDIR
+all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter WCSIM_TreeConvert
+else
+all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter
+endif
 
 #these are the old codes that aren't used in the binned approach, they are now in the mPMTmapping/Archive/OldCodes folder if one is interested
 #BinnedFitter Fitter 
@@ -20,13 +24,19 @@ all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNb
 plot_Scattering_Absorption_ExtrapolateR: plot_Scattering_Absorption_ExtrapolateR.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 make_mPMTmap: make_mPMTmap.cc
-	g++ -Wall -Wextra $(CXXFLAGS) -o ../bin/make_mPMTmap make_mPMTmap.cc
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o ../bin/$@ $(LIBS) -I$(INCLUDES)
 makeRef_maxNbHitAtPos: makeRef_maxNbHitAtPos.cc
-	g++ -Wall -Wextra $(CXXFLAGS) -o ../bin/makeRef_maxNbHitAtPos makeRef_maxNbHitAtPos.cc
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o ../bin/$@ $(LIBS) -I$(INCLUDES)
 AttenuationFitterBinned: AttenuationFitterBinned.cc
-	g++ -Wall -Wextra $(CXXFLAGS) AttenuationFitterBinned.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 ScatteringFitter2DBinned: ScatteringFitter2DBinned.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
+TestFitter: TestFitter.cc
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
+WCSIM_TreeConvert: WCSIM_TreeConvert.cc
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES) -L$(WCSIMDIR) -lWCSimRoot -I$(WCSIMDIR)/include
+
+
 
 #And here the older codes for 1D and simplistic spline analaysis 
 #make_onePositionMap: make_onePositionMap.cc
