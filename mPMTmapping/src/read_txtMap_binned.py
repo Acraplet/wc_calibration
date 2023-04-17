@@ -24,7 +24,7 @@ interpolation_mode = 'linear' # linear interpolation of the data
 argv = sys.argv[1:]
 
 #set up the geometry of the tank i.e. read the PMT positions
-PMT_position_file = WORKDIR+'/mPMTmapping/PMT_positions.txt'
+PMT_position_file = WORKDIR+'/mPMTmapping/PMT_positions_with_direction.txt'
 PMT = np.array(rd.read_data3(PMT_position_file)).T
 PMT_mPMT = PMT[0]
 PMT_mPMT_pmt = PMT[1]
@@ -35,11 +35,114 @@ PMT_z = PMT[4]
 PMT_dirx = PMT[5]
 PMT_diry = PMT[6]
 PMT_dirz = PMT[7]
+
+print(PMT_diry)
 df_geom = pd.DataFrame()
 for i in range(len(PMT[0])):
         c = [PMT[0][i],PMT[1][i],PMT[2][i],PMT[3][i],PMT[4][i], PMT[5][i], PMT[6][i], PMT[7][i]]
         row =  pd.Series(data=c, index=['mPMT', 'mPMT_pmt', 'x', 'y', 'z', 'dirx', 'diry', 'dirz'], dtype=np.float64)
         df_geom = df_geom.append(row, ignore_index=True)
+
+#Here check the cone of sight of the PMT
+df_58 = df_geom[df_geom['mPMT']==58]
+df_58 = df_58[df_58['mPMT_pmt']!=19]
+df_59_0 = df_geom[df_geom['mPMT']==59]
+df_59_0 = df_59_0[df_59_0['mPMT_pmt']==19]
+df_58 = df_58.append(df_59_0, ignore_index = True)
+
+print(df_58)
+
+x_centre = 0
+z_centre = 0
+y_centre = -128.05-27.4
+R_mPMT = - y_centre
+
+df_58['OP_x'] = df_58['x'] - x_centre #teh centre of the bottom mPMT
+df_58['OP_y'] = df_58['y'] - y_centre
+df_58['OP_z'] = df_58['z'] - z_centre
+
+norm = np.sqrt(df_58['OP_x']**2 + df_58['OP_y'] ** 2 + df_58['OP_z'] ** 2)
+df_58['OP_x'] = df_58['OP_x']#/norm
+df_58['OP_y'] = df_58['OP_y']#/norm
+df_58['OP_z'] = df_58['OP_z']#/norm
+
+norm_dirPMT = np.sqrt(df_58['x']**2 + df_58['y']**2 + df_58['z']**2)
+df_58['x'] = df_58['x'] #/norm_dirPMT
+df_58['y'] = df_58['y'] #/norm_dirPMT
+df_58['z'] = df_58['z'] # /norm_dirPMT
+
+
+#norm_dirPMT = np.sqrt(df_58['dirx']**2 + df_58['diry']**2 + df_58['dirz']**2)
+df_58['dirx'] = df_58['dirx']
+df_58['diry'] = df_58['diry']
+df_58['dirz'] = df_58['dirz']
+
+r = 34.2
+u, v = np.mgrid[0: 2 * np.pi:30j, 0: 0.04 * np.pi:20j]
+
+
+ax = plt.axes(projection = '3d')
+for i in range(len(df_58)):
+    # ax.plot([df_58['x'].iloc[i], df_58['x'].iloc[i]+df_58['dirx'].iloc[i]], [df_58['z'].iloc[i], df_58['z'].iloc[i]+df_58['dirz'].iloc[i]], [df_58['y'].iloc[i], df_58['y'].iloc[i]+df_58['diry'].iloc[i]], 'k-')
+
+    # ax.plot([x_centre, x_centre+df_58['OP_x'].iloc[i] * R_mPMT], [z_centre, z_centre+df_58['OP_z'].iloc[i] * R_mPMT], [y_centre, y_centre+df_58['OP_y'].iloc[i] * R_mPMT], 'b--')
+
+    theta_centre = np.arccos(-np.dot([df_58['OP_x'].iloc[i]/norm.iloc[i], df_58['OP_z'].iloc[i]/norm.iloc[i], df_58['OP_y'].iloc[i]/norm.iloc[i]], [df_58['x'].iloc[i]/norm_dirPMT.iloc[i], df_58['z'].iloc[i]/norm_dirPMT.iloc[i], df_58['y'].iloc[i]/norm_dirPMT.iloc[i]]))
+
+
+    phi_centre = np.arccos(df_58['OP_x'].iloc[i]/(norm.iloc[i] * np.sin(theta_centre)) ) * np.sign(df_58['OP_z'].iloc[i])
+
+    print(theta_centre, phi_centre)
+
+    if np.sin(theta_centre) == 0:
+        phi_centre = 0
+    half_angle = 0.003
+
+    # theta = np.linspace(0, , 100)
+    # phi = np.linspace(phi_centre-half_angle, phi_centre+half_angle, 100)
+
+    # y_shade = np.sqrt(half_angle**2 - (x_shade)**2) * np.sign(x_shade-theta_centre)
+    #
+    # theta = np.linspace(0, 2* np.pi, 100)
+    # y = np.cos(theta) #* np.sign(x)
+    # x = np.sin(theta)
+    if np.sign(df_58['x'].iloc[i]) == 0:
+        signx = 1
+    else:
+        signx = np.sign(df_58['x'].iloc[i])
+
+    if np.sign(df_58['z'].iloc[i]) == 0:
+        signz = 1
+    else:
+        signx = np.sign(df_58['z'].iloc[i])
+
+
+    ax.scatter(np.cos(phi_centre) * np.sin(theta_centre) * 10 * signx, np.sin(phi_centre)*np.sin(theta_centre)* signz, np.cos(theta_centre))
+
+    # ax.plot(x_shade, y_shade)
+    # ax.plot(x, y)
+    # ax.plot(np.cos(x_shade)*np.sin(y_shade), np.sin(x_shade)*np.sin(y_shade))
+
+    # u, v = np.mgrid[phi_centre - half_angle: phi_centre + half_angle:30j, theta_centre - half_angle: theta_centre + half_angle:20j]
+    # xs = r * np.cos(y) * np.sin(x)
+    # ys = r * np.sin(y) * np.sin(x)
+    # zs = r * np.cos(x) - 155.45
+    # ax.scatter(xs, ys, zs, cmap=plt.cm.YlGnBu, alpha = 0.1)
+
+
+    # u, v = np.mgrid[0: 2 * np.pi:30j, theta_centre - half_angle: theta_centre + half_angle:20j]
+    # xs = r * np.cos(u) * np.sin(v)
+    # ys = r * np.sin(u) * np.sin(v)
+    # zs = r * np.cos(v) - 128.05 - 27.4
+    # ax.plot_surface(xs, ys, zs, cmap=plt.cm.YlGnBu, alpha = 0.1)
+
+
+
+plt.show()
+
+#end for now
+sys.exit()
+
 
 bins_position = WORKDIR+'/mPMTmapping/uniform_304_bins.txt'
 bins = np.array(rd.read_data3(bins_position))
@@ -237,6 +340,7 @@ plt.show()
 #raise end
 sys.exit()
 
+
 #Now plot the source positions overlayed with the position of the maps
 source_Rtp = np.array(source_Rtp)
 source_xyz = np.array(source_xyz)
@@ -267,8 +371,8 @@ ax.scatter3D(0, 0, - 128.05 - 27.4, marker = 'x', color = 'k')
 ax.scatter3D(x, z, y, marker = 'x', color ='r')
 #these are the other PMTs - can be helpful for visualisation (uncomment)
 ax.scatter3D(PMT_x,PMT_z,PMT_y, marker = 'o')
-for PMT in range(int(len(PMT_x)/3)):
-    ax.plot([PMT_x[PMT], PMT_dirx[PMT]+PMT_x[PMT]],[PMT_z[PMT], PMT_dirz[PMT]+PMT_z[PMT]],[PMT_y[PMT], PMT_diry[PMT]+PMT_y[PMT]], marker = '--', color = 'k')
+for s in range(int(len(PMT_x))):
+    ax.plot([PMT_x[s], PMT_dirx[s]+PMT_x[s]],[PMT_z[s], PMT_dirz[s]+PMT_z[s]],[PMT_y[s], PMT_diry[s]+PMT_y[s]], 'k-')
 
 #This is the position of the centre of the uniform bins
 for b in range(len(bins_all)):
@@ -277,6 +381,7 @@ for b in range(len(bins_all)):
 for i in range(len(x)):
     ax.plot([x[i], x[i] - R[i] *  np.sin(theta[i]) * np.cos(phi[i])], [z[i], z[i] - R[i] * np.sin(theta[i]) * np.sin(phi[i])], [y[i], y[i] - R[i] * np.cos(theta[i])], 'r-')
 plt.show()
+
 
 
 
