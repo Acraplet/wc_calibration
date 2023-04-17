@@ -2,10 +2,22 @@
 #include <vector>
 #include "TMath.h"
 #include "TF1.h"
+#include "TFile.h"
+#include "TH3.h"
+
+enum ParameterType
+{
+    kNorm = 0,
+    kAttenuation = 1,
+    kRayleigh = 2,
+    kCathode = 3,
+
+    kInValid = 999,
+};
 
 class Chisq{
     public:
-    Chisq(int npars);
+    Chisq(int npars=0);
     ~Chisq();
     void setData(std::vector<double> xin, std::vector<double> yin);
     void setRef(std::vector<double> Ain, std::vector<double> Rin);
@@ -30,6 +42,11 @@ class Chisq{
     void print();
     TF1 getFunction(double xlow, double xhigh, const char* title);
     TF1 getFunction_rayff(double xlow, double xhigh, const char* title);
+    void AddParameters(ParameterType kType);
+    ParameterType GetParameterType(std::string pname);
+    double CalcChiSq(const double *pars);
+    void LoadCathodeSpline(std::string fname);
+    void SetNPars(int val) {pars.resize(val);}
 
     private:
     std::vector<double> x;
@@ -43,5 +60,9 @@ class Chisq{
     std::vector<double> pars;
     int nNodes;
     std::vector<double> XNodes;
+    std::vector<ParameterType> ParameterList;
+    std::map<int, std::unique_ptr<TH3>> cathodeSpline;
+    bool withCathodeSpline;
+
 };
 
