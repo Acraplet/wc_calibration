@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <map>
+#include <memory>
 #include "TMath.h"
 #include "TF1.h"
 #include "TFile.h"
