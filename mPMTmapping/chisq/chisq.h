@@ -1,4 +1,6 @@
 #include <iostream>
+#include <map>
+#include <memory>
 #include <vector>
 #include "TMath.h"
 #include "TF1.h"

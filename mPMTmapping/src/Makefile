@@ -1,4 +1,4 @@
-CXXFLAGS=$(shell $(ROOTSYS)/bin/root-config --cflags --libs)
+CXXFLAGS=$(shell $(ROOTSYS)/bin/root-config --cflags)
 ifneq (,$(findstring -std=c,$(CXXFLAGS)))
 $(info Using ROOT C++ standard)
 $(info $(CXXFLAGS))
@@ -7,11 +7,11 @@ $(info ROOT C++ standard not found. Default to c++11)
 CXXFLAGS := $(CXXFLAGS) -std=c++11
 $(info $(CXXFLAGS))
 endif
-LIBS := -L ../lib -lChisq
+LIBS := $(shell $(ROOTSYS)/bin/root-config --libs) -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 
 ifdef WCSIMDIR
-all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter WCSIM_TreeConvert
+all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos WCSIM_TreeConvert TestFitter 
 else
 all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter
 endif
