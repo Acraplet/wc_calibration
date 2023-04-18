@@ -11,9 +11,11 @@ LIBS := -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 
 ifdef WCSIMDIR
-all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter WCSIM_TreeConvert
+all: TestFitter
+#ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter WCSIM_TreeConvert
 else
-all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter
+all: TestFitter 
+#ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter
 endif
 
 #these are the old codes that aren't used in the binned approach, they are now in the mPMTmapping/Archive/OldCodes folder if one is interested
