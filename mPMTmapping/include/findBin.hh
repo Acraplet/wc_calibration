@@ -35,7 +35,7 @@ Bin findBin(double theta_pos, double phi_pos)
     std::vector<double> xbins, ybins, zbins, thetabins, phibins;
     //Read the file holding the bin information so we can then measure the distance to the given source pos
     std::fstream bins_file;
-    bins_file.open("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/uniform_top_bins_withBinNumber.txt");
+    bins_file.open("./uniform_top_bins_withBinNumber.txt");
     double x_bin, y_bin, z_bin, theta_bin, phi_bin;//, dist;
     int minID = -1; //id of the closest bin
     Bin bin; //this is the struct where we store the bin information

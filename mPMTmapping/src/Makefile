@@ -11,10 +11,10 @@ LIBS := $(shell $(ROOTSYS)/bin/root-config --libs) -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 
 ifdef WCSIMDIR
+#INCLUDES := $(INCLUDES) -I $(WCSIMDIR)/include
 all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos WCSIM_TreeConvert TestFitter 
 else
-all: TestFitter 
-#ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter
+all: TestFitter ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter
 endif
 
 #these are the old codes that aren't used in the binned approach, they are now in the mPMTmapping/Archive/OldCodes folder if one is interested

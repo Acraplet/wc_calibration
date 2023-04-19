@@ -51,7 +51,7 @@ int main(int argc, char **argv){
 
     //TODO: change for a config file where the max number of bins is an entry
     int nBins = 800;  //total max number of possible bins
-    int Q_thresh = 100; //minimum number of photons in a given test bin to be included in the fit
+    int Q_thresh = 10; //minimum number of photons in a given test bin to be included in the fit
     double spline_min = 925.;  //the precision and range of the 
     double spline_max = 6000.; //spline we are drawing from the reference 2D distribution
     int spline_increment = 100;
@@ -164,7 +164,7 @@ int main(int argc, char **argv){
             Data pos =  test_positions[i];
             //Then we check which bin it belongs to
             Bin closestBin = findBin(pos.theta, pos.phi);
-	    //std::cout << "The closest bin is " << closestBin.ID<< std::endl;
+	    std::cout << "The closest bin is " << closestBin.ID<< std::endl;
 	    //add to the charge the fractionnal charge collected at this position
             //we do not use direct charge because the comparision has to be made
             //with respect to 1000 photons for now
