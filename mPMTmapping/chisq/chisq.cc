@@ -264,17 +264,26 @@ void Chisq::LoadCathodeSpline(std::string fname)
         return;
     }
 
-    for (int i=0;i<x.size(); i++)
+    // for (int i=0;i<x.size(); i++)
+    // {
+    //     TH3* h = (TH3*)f.Get(Form("CathodeSpline_PMT%i",i));
+    //     if (h)
+    //     {
+    //         h->SetDirectory(nullptr);
+    //         cathodeSpline[i] = std::unique_ptr<TH3>(h);
+    //     }
+    //     else
+    //         std::cout << "Warning, could not find CathodeSpline_PMT" << i << std::endl;
+    // }
+
+    TH1* h = (TH1*)f.Get("testSpline");
+    if (h)
     {
-        TH3* h = (TH3*)f.Get(Form("CathodeSpline_PMT%i",i));
-        if (h)
-        {
-            h->SetDirectory(nullptr);
-            cathodeSpline[i] = std::unique_ptr<TH3>(h);
-        }
-        else
-            std::cout << "Warning, could not find CathodeSpline_PMT" << i << std::endl;
+        h->SetDirectory(nullptr);
+        testSpline = std::unique_ptr<TH1>(h);
     }
+    else
+        std::cout << "Warning, could not find testSpline" << std::endl;
 
     f.Close();
 }
@@ -306,8 +315,10 @@ double Chisq::CalcChiSq(const double *pars)
                 break;
             case kCathode:
                 for(int i=0; i<x.size(); i++){
-                    if (cathodeSpline[i])
-                        y_pred[i] *= cathodeSpline[i]->Interpolate(pars[p],pars[p+1],pars[p+2]); 
+                    // if (cathodeSpline[i])
+                    //     y_pred[i] *= cathodeSpline[i]->Interpolate(pars[p],pars[p+1],pars[p+2]); 
+                    if (testSpline)
+                        y_pred[i] *= (1.-testSpline->GetBinContent(i+1))*pars[p] + testSpline->GetBinContent(i+1)*pars[p+1] ;
                 }
                 p+=3;
                 break;

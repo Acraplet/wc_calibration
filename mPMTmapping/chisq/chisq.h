@@ -64,6 +64,7 @@ class Chisq{
     std::vector<double> XNodes;
     std::vector<ParameterType> ParameterList;
     std::map<int, std::unique_ptr<TH3>> cathodeSpline;
+    std::unique_ptr<TH1> testSpline;
     bool withCathodeSpline;
 
 };
