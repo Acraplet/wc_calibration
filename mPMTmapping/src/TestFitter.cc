@@ -11,6 +11,8 @@
 #include "TGraph.h"
 #include "TH1.h"
 #include "TGraphErrors.h"
+#include "TH1.h"
+#include <TMatrixDSym.h>
 #include "TSystemDirectory.h"
 #include <cstring>
 
@@ -35,15 +37,19 @@ int main(int argc, char **argv){
     char * splinefilename=NULL;
 
     std::string config_file;
+    std::string outfilename;
 
     char c;
-    while( (c = getopt(argc,argv,"f:r:s:c:h")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
+    while( (c = getopt(argc,argv,"f:r:s:c:o:h")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
         switch(c){
             case 'c':
                 config_file = optarg;
                 break;
             case 'f': // data
                 filename = optarg;
+                break;
+            case 'o': // output file
+                outfilename = optarg;
                 break;
             case 'r': // reference map
                 reffilename = optarg;
@@ -58,6 +64,7 @@ int main(int argc, char **argv){
                                     << "-f : Data file\n"
                                     << "-r : Reference map file\n"
                                     << "-s : Spline file for cathode parameters\n"
+                                    << "-o : Output file\n"
                                     ;
                 return 0;
             default:
@@ -69,6 +76,11 @@ int main(int argc, char **argv){
     {
         std::cout<< ERR << "No config file!" << std::endl;
         return -1;
+    }
+        if (outfilename.size()==0)
+    {
+        std::cout<< TAG << "Output file name default to: fitoutput.root" << std::endl;
+        outfilename = "fitoutput.root";
     }
     auto const &card_toml = toml_h::parse_card(config_file);
     auto const &fitparameters_config = toml_h::find(card_toml, "fitparameters");
@@ -102,6 +114,7 @@ int main(int argc, char **argv){
         list_R.push_back(R);
         list_Q.push_back(hData->GetBinContent(i+1));
     }
+    f->Close();
 
     // Open the ref file
     if (reffilename==NULL){
@@ -122,6 +135,7 @@ int main(int argc, char **argv){
     {
         list_A.push_back(hRef->GetBinContent(i+1));
     }
+    fr->Close();
 
     // for (int i = 0 ; i<nPMTs; i++)
     // {
@@ -195,11 +209,40 @@ int main(int argc, char **argv){
 
     min->Minimize();
     min->PrintResults();
-    // const double* par_val = min->X();
-    // const double* par_err = min->Errors();
+    const double* par_val = min->X();
+    const double* par_err = min->Errors();
+    const int ndim = nPars;
+    double cov_array[ndim * ndim];
+    min->GetCovMatrix(cov_array);
+    TMatrixDSym cov_matrix;
+    TMatrixDSym cor_matrix;
+    cov_matrix.ResizeTo(ndim,ndim);
+    cov_matrix = TMatrixDSym(ndim, cov_array);
+    cor_matrix.ResizeTo(ndim,ndim);
+    for(int r = 0; r < ndim; ++r)
+    {
+        for(int c = 0; c < ndim; ++c)
+        {
+            cor_matrix[r][c] = cov_matrix[r][c] / std::sqrt(cov_matrix[r][r] * cov_matrix[c][c]);
+            if(std::isnan(cor_matrix[r][c]))
+                cor_matrix[r][c] = 0;
+        }
+    }
     // for (int i=0;i<nPars;i++)
     // {
     //     std::cout<<"Variable "<<i<<" : "<<par_val[i]<<" +/- "<<par_err[i]<<"\n";
     // }
+
+    TFile* fo = TFile::Open(outfilename.c_str(),"RECREATE");
+    TH1D* hist_fit = new TH1D("fit_result","fit_result",nPars,0,nPars);
+    for (int i=0;i<nPars;i++)
+    {
+        hist_fit->SetBinContent(i+1,par_val[i]);
+        hist_fit->SetBinError(i+1,par_err[i]);
+    }
+    hist_fit->Write();
+    cov_matrix.Write("res_cov_matrix");
+    cor_matrix.Write("res_cor_matrix");
+    fo->Close();
 }
 
