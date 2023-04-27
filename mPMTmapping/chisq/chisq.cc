@@ -5,7 +5,9 @@
 Chisq::Chisq(int npars){
     pars.resize(npars);
     ParameterList.clear();
-    withCathodeSpline = false;
+    cathodeSpline.clear();
+    cathodeAngleSpline.clear();
+    cathodeVSpline.clear();
 }
 
 Chisq::~Chisq(){
@@ -237,9 +239,9 @@ TF1 Chisq::getFunction_rayff(double xlow, double xhigh, const char* title = "bes
     return func;
 }
 
-void Chisq::AddParameters(ParameterType kType)
+void Chisq::AddParameters(ParameterType kType, int nPars)
 {
-    ParameterList.push_back(kType);
+    ParameterList.emplace_back(std::make_pair(kType, nPars));
 }
 
 ParameterType Chisq::GetParameterType(std::string pname)
@@ -256,7 +258,8 @@ ParameterType Chisq::GetParameterType(std::string pname)
 void Chisq::LoadCathodeSpline(std::string fname)
 {
     cathodeSpline.clear();
-    withCathodeSpline = false;
+    cathodeAngleSpline.clear();
+    cathodeVSpline.clear();
 
     TFile f(fname.c_str());
     if (!f.IsOpen()){
@@ -276,14 +279,37 @@ void Chisq::LoadCathodeSpline(std::string fname)
     //         std::cout << "Warning, could not find CathodeSpline_PMT" << i << std::endl;
     // }
 
-    TH1* h = (TH1*)f.Get("testSpline");
-    if (h)
+    // for (int i=0;i<x.size(); i++)
+    // {
+    //     TH1* h = (TH1*)f.Get(Form("AngleSpline_PMT_%i",i));
+    //     if (h)
+    //     {
+    //         h->SetDirectory(nullptr);
+    //         cathodeAngleSpline[i] = std::unique_ptr<TH1>(h);
+    //     }
+    //     else
+    //         std::cout << "Warning, could not find AngleSpline_PMT_" << i << std::endl;
+    // }
+
+    // TH1* h = (TH1*)f.Get("testSpline");
+    // if (h)
+    // {
+    //     h->SetDirectory(nullptr);
+    //     testSpline = std::unique_ptr<TH1>(h);
+    // }
+    // else
+    //     std::cout << "Warning, could not find testSpline" << std::endl;
+
+    for (int i=0;i<x.size(); i++)
     {
-        h->SetDirectory(nullptr);
-        testSpline = std::unique_ptr<TH1>(h);
+        TVector3* v = (TVector3*)f.Get(Form("v_spline_PMT_%i",i));
+        if (v)
+        {
+            cathodeVSpline[i] = std::unique_ptr<TVector3>(v);
+        }
+        else
+            std::cout << "Warning, could not find v_spline_PMT_" << i << std::endl;
     }
-    else
-        std::cout << "Warning, could not find testSpline" << std::endl;
 
     f.Close();
 }
@@ -299,32 +325,45 @@ double Chisq::CalcChiSq(const double *pars)
     // Make prediction
     for (auto& k : ParameterList)
     {
-        switch (k)
+        switch (k.first)
         {
             case kNorm: 
                 for(int i=0; i<x.size(); i++){
                     y_pred[i] *= pars[p];
                 }
-                p++;
+                p+=k.second;
                 break;
             case kAttenuation:
                 for(int i=0; i<x.size(); i++){
                     y_pred[i] *= TMath::Exp(- 1/pars[p] * R[i]); 
                 }
-                p++;
+                p+=k.second;
                 break;
             case kCathode:
                 for(int i=0; i<x.size(); i++){
                     // if (cathodeSpline[i])
                     //     y_pred[i] *= cathodeSpline[i]->Interpolate(pars[p],pars[p+1],pars[p+2]); 
-                    if (testSpline)
-                        y_pred[i] *= (1.-testSpline->GetBinContent(i+1))*pars[p] + testSpline->GetBinContent(i+1)*pars[p+1] ;
+                    // if (cathodeAngleSpline[i])
+                    // {
+                    //     double wgt = 0;
+                    //     for (int j=0;j<k.second;j++)
+                    //     {
+                    //         wgt += cathodeAngleSpline[i]->GetBinContent(j+1)*pars[p+j];
+                    //     }
+                    //     y_pred[i] *= wgt;
+                    // }
+                    // if (testSpline)
+                    //     y_pred[i] *= (1.-testSpline->GetBinContent(i+1))*pars[p] + testSpline->GetBinContent(i+1)*pars[p+1] ;
+                    if (cathodeVSpline[i])
+                    {
+                        y_pred[i] *= (1-cathodeVSpline[i]->x())*pars[p] + cathodeVSpline[i]->x()*pars[p+1]*(cathodeVSpline[i]->y()+cathodeVSpline[i]->z()*pars[p+2]);
+                    }
                 }
-                p+=3;
+                p+=k.second;
                 break;
             default:
                 // do nothing
-                p++;
+                p+=k.second;
         }
     }
 

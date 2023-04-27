@@ -170,9 +170,11 @@ int main(int argc, char **argv){
             std::cout << WAR << "Invalid parameter type, skipping this" << std::endl;
             continue;
         }
-        chi->AddParameters(paramtype);
+        
         auto npar = toml_h::find<int>(ele,1);
         nPars += npar;
+
+        chi->AddParameters(paramtype, npar);
 
         auto par_setup = toml_h::find<toml::array>(ele,2);
         for (auto const &par : par_setup)
@@ -194,6 +196,7 @@ int main(int argc, char **argv){
     min->SetStrategy(3);
     min->SetFunction(functor);
     min->SetMaxFunctionCalls(1000000);
+    min->SetPrintLevel(2);
     // Set parameter priors
     for (int i=0;i<nPars;i++)
     {

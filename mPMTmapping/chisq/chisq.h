@@ -6,6 +6,7 @@
 #include "TF1.h"
 #include "TFile.h"
 #include "TH3.h"
+#include "TVector3.h"
 
 enum ParameterType
 {
@@ -44,7 +45,7 @@ class Chisq{
     void print();
     TF1 getFunction(double xlow, double xhigh, const char* title);
     TF1 getFunction_rayff(double xlow, double xhigh, const char* title);
-    void AddParameters(ParameterType kType);
+    void AddParameters(ParameterType kType, int nPars);
     ParameterType GetParameterType(std::string pname);
     double CalcChiSq(const double *pars);
     void LoadCathodeSpline(std::string fname);
@@ -62,10 +63,11 @@ class Chisq{
     std::vector<double> pars;
     int nNodes;
     std::vector<double> XNodes;
-    std::vector<ParameterType> ParameterList;
+    std::vector<std::pair<ParameterType,int>> ParameterList;
     std::map<int, std::unique_ptr<TH3>> cathodeSpline;
+    std::map<int, std::unique_ptr<TH1>> cathodeAngleSpline;
+    std::map<int, std::unique_ptr<TVector3>> cathodeVSpline;
     std::unique_ptr<TH1> testSpline;
-    bool withCathodeSpline;
 
 };
 
