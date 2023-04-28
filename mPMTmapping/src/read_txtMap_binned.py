@@ -50,12 +50,25 @@ df_59_0 = df_geom[df_geom['mPMT']==59]
 df_59_0 = df_59_0[df_59_0['mPMT_pmt']==19]
 df_58 = df_58.append(df_59_0, ignore_index = True)
 
+#upper part of the circle for PMT cone
+def upper_curve(r, x0, y0):
+    theta = np.linspace(0, np.pi, 100)
+    x = np.sin(theta) * r
+    y = np.cos(theta) * r
+    return x+x0, y+y0
+
+def lower_curve(r, x0, y0):
+    theta = np.linspace(np.pi, 2*np.pi, 100)
+    x = np.sin(theta) * r
+    y = np.cos(theta) * r
+    return x+x0, y+y0
+
 print(df_58)
 
 x_centre = 0
 z_centre = 0
 y_centre = -128.05-27.4
-R_mPMT = - y_centre
+R_mPMT = 1.3 #- y_centre
 
 df_58['OP_x'] = df_58['x'] - x_centre #teh centre of the bottom mPMT
 df_58['OP_y'] = df_58['y'] - y_centre
@@ -78,24 +91,54 @@ df_58['diry'] = df_58['diry']
 df_58['dirz'] = df_58['dirz']
 
 r = 34.2
-u, v = np.mgrid[0: 2 * np.pi:30j, 0: 0.04 * np.pi:20j]
-
+u, v = np.mgrid[0: 2 * np.pi:30j, 0: 1 * np.pi:20j]
+a = 0 #for alternating phi on each side of the dome
 
 ax = plt.axes(projection = '3d')
+PMTs_theta=[]
+PMTs_phi=[]
+list_theta=[] #the rings around the PMT centre on the sphere
+list_phi=[]
 for i in range(len(df_58)):
     # ax.plot([df_58['x'].iloc[i], df_58['x'].iloc[i]+df_58['dirx'].iloc[i]], [df_58['z'].iloc[i], df_58['z'].iloc[i]+df_58['dirz'].iloc[i]], [df_58['y'].iloc[i], df_58['y'].iloc[i]+df_58['diry'].iloc[i]], 'k-')
-
+    #
     # ax.plot([x_centre, x_centre+df_58['OP_x'].iloc[i] * R_mPMT], [z_centre, z_centre+df_58['OP_z'].iloc[i] * R_mPMT], [y_centre, y_centre+df_58['OP_y'].iloc[i] * R_mPMT], 'b--')
 
-    theta_centre = np.arccos(-np.dot([df_58['OP_x'].iloc[i]/norm.iloc[i], df_58['OP_z'].iloc[i]/norm.iloc[i], df_58['OP_y'].iloc[i]/norm.iloc[i]], [df_58['x'].iloc[i]/norm_dirPMT.iloc[i], df_58['z'].iloc[i]/norm_dirPMT.iloc[i], df_58['y'].iloc[i]/norm_dirPMT.iloc[i]]))
+    theta_centre = np.arccos(
 
+        -np.dot([df_58['OP_x'].iloc[i]/norm.iloc[i], df_58['OP_z'].iloc[i]/norm.iloc[i], df_58['OP_y'].iloc[i]/norm.iloc[i]],
+                [0,0,-1]
 
+        ))
+
+    #
+    # print([df_58['OP_x'].iloc[i]/norm.iloc[i], df_58['OP_z'].iloc[i]/norm.iloc[i], df_58['OP_y'].iloc[i]/norm.iloc[i]])
+    #[df_58['x'].iloc[i]/norm_dirPMT.iloc[i], df_58['z'].iloc[i]/norm_dirPMT.iloc[i], df_58['y'].iloc[i]/norm_dirPMT.iloc[i]]
     phi_centre = np.arccos(df_58['OP_x'].iloc[i]/(norm.iloc[i] * np.sin(theta_centre)) ) * np.sign(df_58['OP_z'].iloc[i])
 
-    print(theta_centre, phi_centre)
+
+
 
     if np.sin(theta_centre) == 0:
         phi_centre = 0
+
+    if np.isnan(phi_centre) or phi_centre == 0:
+        print(a)
+        # if a == 3:
+        #     phi_centre = 0
+        # if a == 2:
+        #     phi_centre = 0
+        # #     a = 3
+        if a == 1:
+            phi_centre = np.pi
+            a = 2
+        if a == 0:
+            phi_centre = np.pi
+            a = 1
+
+
+    print(theta_centre, phi_centre)
+
     half_angle = 0.003
 
     # theta = np.linspace(0, , 100)
@@ -106,6 +149,8 @@ for i in range(len(df_58)):
     # theta = np.linspace(0, 2* np.pi, 100)
     # y = np.cos(theta) #* np.sign(x)
     # x = np.sin(theta)
+
+    r = 1 #for finding the theta / phi: work with unit vectors
     if np.sign(df_58['x'].iloc[i]) == 0:
         signx = 1
     else:
@@ -116,8 +161,87 @@ for i in range(len(df_58)):
     else:
         signx = np.sign(df_58['z'].iloc[i])
 
+    # r = 1
+    point_x = np.cos(phi_centre) * np.sin(theta_centre) * signx * r
+    point_y = np.sin(phi_centre) * np.sin(theta_centre)* signz * r
+    point_z = np.cos(theta_centre) * r
 
-    ax.scatter(np.cos(phi_centre) * np.sin(theta_centre) * 10 * signx, np.sin(phi_centre)*np.sin(theta_centre)* signz, np.cos(theta_centre))
+    print("x, y, z ", point_x, point_y, point_z)
+
+    ax.scatter(point_x, point_y, point_z, color = 'g' )
+#
+#     if theta_centre >= 0.5:
+#         r_curve = 0.35/2
+#     else:
+#         r_curve = 0.35/1.5
+#
+
+    # define a circle of opening angle a around each point
+    t = np.linspace(0, 2 * np.pi, 10) #running variable
+    alpha = 0.35/2.3 #opening angle in radiant
+    g = phi_centre
+    b = theta_centre
+#
+    # # r = 1
+    x_circle = (np.sin(alpha) * np.cos(b) * np.cos(g) * np.cos(t)
+                + np.sin(alpha) * np.sin(g) * np.sin(t)
+                - np.cos(alpha) * np.sin(b) * np.cos(g) ) * r
+
+    if np.sign(x_circle[0]) != np.sign(point_x) and np.sign(point_x)!=0:
+        x_circle = - x_circle
+
+    y_circle = (- np.sin(alpha) * np.cos(b) * np.sin(g) * np.cos(t)
+                + np.sin(alpha) * np.cos(g) * np.sin(t)
+                + np.cos(alpha) * np.sin(b) * np.sin(g) ) * r
+
+    # x_circle = x_circle * (1-np.sign(x_circle))
+
+    z_circle = (np.sin(alpha) * np.sin(b) * np.cos(t)
+                + np.cos(alpha) * np.cos(b) ) * r
+
+    print('x_circle 0: ', x_circle[0], np.sign(z_circle[4]), z_circle[4])
+
+    #need to convert all of those back to angles
+
+    for p in range(len(x_circle)):
+
+        theta_ring = np.arccos(
+            -np.dot([x_circle[p], y_circle[p], z_circle[p]],
+                    [0,0,-1]
+            ))
+
+
+        phi_ring = np.arccos(x_circle[p]/np.sin(theta_ring) * np.sign(-y_circle[p]))
+
+        list_theta.append(theta_ring)
+        list_phi.append(phi_ring)
+
+
+
+
+
+
+
+    # x, y = upper_curve(r_curve, theta_centre, phi_centre)
+    # x2, y2 = lower_curve(r_curve,theta_centre, phi_centre)
+    #
+    # point_x = np.cos(y) * np.sin(x) * signx * 34.2
+    # point_y = np.sin(y)*np.sin(x)* signz * 34.2
+    # point_z = np.cos(x) * 34.2 - 155.45
+    #
+    ax.scatter(x_circle, y_circle, z_circle, color = 'black' )
+    #
+    #
+    # point_x = np.cos(y2) * np.sin(x2) * signx * 34.2
+    # point_y = np.sin(y2)*np.sin(x2)* signz * 34.2
+    # point_z = np.cos(x2) * 34.2 - 155.45
+    #
+    # ax.scatter(point_x, point_y, point_z, color = 'black' )
+
+
+    PMTs_theta.append(theta_centre)
+    PMTs_phi.append(phi_centre)
+
 
     # ax.plot(x_shade, y_shade)
     # ax.plot(x, y)
@@ -131,17 +255,17 @@ for i in range(len(df_58)):
 
 
     # u, v = np.mgrid[0: 2 * np.pi:30j, theta_centre - half_angle: theta_centre + half_angle:20j]
-    # xs = r * np.cos(u) * np.sin(v)
-    # ys = r * np.sin(u) * np.sin(v)
-    # zs = r * np.cos(v) - 128.05 - 27.4
-    # ax.plot_surface(xs, ys, zs, cmap=plt.cm.YlGnBu, alpha = 0.1)
+xs = r * np.cos(u) * np.sin(v)
+ys = r * np.sin(u) * np.sin(v)
+zs = r * np.cos(v) - 128.05 - 27.4
+# ax.plot_surface(xs, ys, zs, cmap=plt.cm.YlGnBu, alpha = 0.1)
 
 
 
 plt.show()
 
 #end for now
-sys.exit()
+# sys.exit()
 
 
 bins_position = WORKDIR+'/mPMTmapping/uniform_304_bins.txt'
@@ -151,6 +275,7 @@ bins = np.array(rd.read_data3(bins_position))
 bins_position = WORKDIR+'/mPMTmapping/uniform_top_bins_theta_phi.txt'
 bins_theta = np.array(rd.read_data3(bins_position)).T
 
+#crefull - can be some discrepancies/issues with definitions
 bins_position = WORKDIR+'/mPMTmapping/uniform_top_bins_withBinNumber.txt'
 bins_all = np.array(rd.read_data3(bins_position))
 #so this is a [[all x], [all y], [all z]] array with .T
@@ -231,6 +356,14 @@ for b in range(len(bins_all[0])):
     #if count_uniform_bins_theta[b]>0:
     #/( count_uniform_bins_theta[b]* nEvents[0]
     sc = ax.scatter(bins_all[4][b], bins_all[3][b], c = charge_uniform_bins_theta[b]/(count_uniform_bins_theta[b] * nEvents[0]), cmap = "Blues",vmin = 0, vmax = 0.33, s = 120)
+
+print(PMTs_theta, PMTs_phi)
+ax.scatter(np.array(PMTs_phi), np.array(PMTs_theta), color = 'black', marker = 'x')
+ax.scatter(np.array(list_phi), np.array(list_theta), color = 'black', marker = '.', s = 2)
+
+
+
+
 
 plt.colorbar(sc)
 ax.set_title('Charge collected per photon in this bin')
@@ -313,6 +446,8 @@ ax.set_xlabel(f'$\Theta$(rad)')
 ax.xaxis.labelpad = 10
 ax.yaxis.labelpad = 20
 plt.savefig(WORKDIR+'/mPMTmapping/Maps/maps_pictures/Maps/Non-interpolated/%s.png'%outputfile_name)
+#Here we'll get the shading of the PMT overlayed so we are sure we are doing well
+
 plt.show()
 
 #Now the interpolate
