@@ -196,6 +196,7 @@ int main(int argc, char **argv){
 		        while ((in >> ref_info)) {
 		                if (count %3 == 0) {
 		                        x_vector.push_back(truth_alpha(401.9,10e10,ref_info));
+					std::cout << truth_alpha(401.9,10e10,ref_info) << std::endl;
 		                }//scatering len
 		                if (count %3 == 1) {
 		                        y_vector.push_back(ref_info);
