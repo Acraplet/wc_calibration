@@ -153,7 +153,7 @@ int main(int argc, char **argv){
 			double ref_info; //empty variable to read the file with
 			int count = 0;
 			//Now fitting multiple bins together
-
+			std::cout << test_positions[0].R << std::endl;
 			//need to get the reference amplitude
 			const char* fimpName = Form("./Maps/2D_ref_maps/absorption_ref_file_R%.2f.txt", test_positions[0].R);
 			std::ifstream in(fimpName);
