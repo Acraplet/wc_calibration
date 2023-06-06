@@ -145,6 +145,7 @@ int main(int argc, char **argv){
 	}
 
 	for (int binTarget=0; binTarget <= nBins; binTarget++){
+		//need normalisation
 	 	total_bin_charge[binTarget] = total_bin_charge[binTarget] / total_bin_photons[binTarget] * 1000;
 		if (total_bin_charge[binTarget]>= Q_thresh and total_bin_photons[binTarget]!=0 ){
 			std::cout << std::endl;
@@ -161,23 +162,24 @@ int main(int argc, char **argv){
 			std::vector<double> x_vector, y_vector, z_vector;
 			while ((in >> ref_info)) {
 				if (count - binTarget == 0 and ref_info!=0) {
-					//std::cout << ref_info << " " << binTarget << " " << test_positions[0].R << std::endl;
+					std::cout << "ref_info " << ref_info << " Bin Trarget " << binTarget << " count  " << count << " R-distance " << test_positions[0].R << std::endl;
 					noAttenuation_pred = ref_info *  test_positions[0].nEvents;
 					list_A.push_back(noAttenuation_pred); //need to weight by the
 					//number of photons we have simulated in that given bin! - for now all the files have
 					//the same number of
                     // events and distance but eventually we'll have to chage that !!
 					list_R.push_back(test_positions[0].R);
+					list_i.push_back(w);
+					list_Q.push_back(total_bin_charge[binTarget]);
+					std::cout << "File " << list_files[f] << " bin " << binTarget << " excat attenuation length length =" << truth_alpha(401.9, test_positions[0].abwff,test_positions[0].rayff);
+					std::cout << " abwff " << test_positions[0].abwff << " rayff " << test_positions[0].rayff << " R = " <<   test_positions[0].R << " charge for 1000 photons: " ;
+					std::cout << total_bin_charge[binTarget]  << " prediction without attenuation " << noAttenuation_pred << " config " << configuration << std::endl;
 					break; //the max amplitude at the bin of interest
 				}
 				count += 1;
 			}
 			//w is just for bookkepping of the configuration (i.e. which files we fit together)
-			list_i.push_back(w);
-			list_Q.push_back(total_bin_charge[binTarget]);
- 			std::cout << "File " << list_files[f] << " bin " << binTarget << " excat attenuation length length =" << truth_alpha(401.9, test_positions[0].abwff,test_positions[0].rayff);
-			std::cout << " abwff " << test_positions[0].abwff << " rayff " << test_positions[0].rayff << " R = " <<   test_positions[0].R << " charge for 1000 photons: " ;
-			std::cout << total_bin_charge[binTarget]  << " prediction without attenuation " << noAttenuation_pred << " config " << configuration << std::endl;
+
 		}//if we have more than Q_thresh hits in a given bin
 	}//run through all the bins
 	//The true scattering length that we know from the file
