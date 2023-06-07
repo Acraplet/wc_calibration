@@ -64,7 +64,7 @@ int main(int argc, char **argv){
     std::string config_file;
     
     char option;
-    while((option = getopt(argc, argv, "x:m:c:b:Q:i:h:n:g:o:")) != -1)
+    while((option = getopt(argc, argv, "x:m:c:b:Q:i:hn:g:o:")) != -1)
     {
 	switch(option)
         {
@@ -72,7 +72,7 @@ int main(int argc, char **argv){
 			configuration = optarg;
 			break;
 
-        case 'n':
+     	        case 'n':
 			nBins = std::stoi(optarg);
 			break;
 
@@ -94,6 +94,8 @@ int main(int argc, char **argv){
 
 		case 'h':
 			HelpMessage();
+			return 0;
+			break;
 
 
 		default:

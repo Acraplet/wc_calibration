@@ -186,8 +186,6 @@ NOTE: so far files with the same scattering lengths but different R distances (s
 
 NOTE: Most of the reference bin behaviour that were added are empty - because no photons were detected in this bin or it is in a quarter of the mPMT that we are not looking at. this could be improved.  
 
-
-
 ## Notes about install
 The \_flat root  files should be put in a new empty folder within wc_calibration/mPMTmapping called data and accessed from there. The code relies quite a lot on filename format consistency so we should either keep that as is or improve this method. 
 
@@ -241,7 +239,30 @@ The typical response function for absorption is an exponential function Q_pred =
 The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be resolved by using a binned approach but until then we need to have a reference max charge for each source position at each R that we want to use. 
 
 
+## WCSIM_TreeConvert app
+c++ program to unwrap the WCSim output into flat tree. 
+```
+bin/WCSIM_TreeConvert -f wcsim_output.root 
+```
+Available arguments are
+- `-f` : input file name
+- `-o` : output file name
+- `-l` : laser wavelength to calculating speed of light (thus time of flight )in water
+- `-d` : read raw Cherenkov hit instead of digitized hit container
+- `-v` : turn on detailed verbose
+- `-s` : specify start event
+- `-e` : specify end event
 
+The program assumes a light source simulation with fixed source position and store the basic PMT hits and PMT geometry (relative to the source) information in `TTree` format. Modify the code if you want to store extra in
+
+In the output file, there are two types of trees: `pmt_type0` is the PMT geometry tree, `hitRate_pmtType0` is the PMT hit tree.
+
+## TestFitter app
+Test program to use `WCSIM_TreeConvert` output to fit on hits from all PMTs in the detector.
+```
+bin/TestFitter -c config.toml -f data_to_fit.root -r reference.root -o output.root
+```
+`config.toml` specifcies the parameters to fit, `data_to_fit.root` is the data to fit, and `reference.root` is the reference map data. Currently `reference.root` is just an output from `WCSIM_TreeConvert`. `output.root` stores the best fit parameters and errors.
 
 
 

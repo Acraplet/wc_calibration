@@ -67,7 +67,7 @@ int main(int argc, char **argv){
     std::string config_file;
     
     char option;
-    while((option = getopt(argc, argv, "x:m:c:b:Q:i:h:n:g:o:")) != -1)
+    while((option = getopt(argc, argv, "x:m:c:b:Q:i:hn:g:o:")) != -1)
     {
 	switch(option)
         {
@@ -109,6 +109,7 @@ int main(int argc, char **argv){
 
 		case 'h':
                 HelpMessage();
+		return 0;
 		break;
 
 
@@ -164,7 +165,7 @@ int main(int argc, char **argv){
             Data pos =  test_positions[i];
             //Then we check which bin it belongs to
             Bin closestBin = findBin(pos.theta, pos.phi);
-	    std::cout << "The closest bin is " << closestBin.ID<< std::endl;
+	    //std::cout << "The closest bin is " << closestBin.ID<< std::endl;
 	    //add to the charge the fractionnal charge collected at this position
             //we do not use direct charge because the comparision has to be made
             //with respect to 1000 photons for now
@@ -196,7 +197,7 @@ int main(int argc, char **argv){
 		        while ((in >> ref_info)) {
 		                if (count %3 == 0) {
 		                        x_vector.push_back(truth_alpha(401.9,10e10,ref_info));
-					std::cout << truth_alpha(401.9,10e10,ref_info) << std::endl;
+					//std::cout << truth_alpha(401.9,10e10,ref_info) << std::endl;
 		                }//scatering len
 		                if (count %3 == 1) {
 		                        y_vector.push_back(ref_info);
