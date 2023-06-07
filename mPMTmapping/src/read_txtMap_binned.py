@@ -125,12 +125,12 @@ for i in range(len(df_58)):
     if np.isnan(phi_centre) or phi_centre == 0:
         print(a)
         # if a == 3:
-        #     phi_centre = 0
-        # if a == 2:
-        #     phi_centre = 0
-        # #     a = 3
-        if a == 1:
+        # phi_centre = np.pi
+        if a == 2:
             phi_centre = np.pi
+            a = 3
+        if a == 1:
+            phi_centre = 0
             a = 2
         if a == 0:
             phi_centre = np.pi
@@ -177,7 +177,7 @@ for i in range(len(df_58)):
 #
 
     # define a circle of opening angle a around each point
-    t = np.linspace(0, 2 * np.pi, 10) #running variable
+    t = np.linspace(0, 2 * np.pi, 100) #running variable
     alpha = 0.35/2.3 #opening angle in radiant
     g = phi_centre
     b = theta_centre
@@ -212,59 +212,54 @@ for i in range(len(df_58)):
 
 
         phi_ring = np.arccos(x_circle[p]/np.sin(theta_ring) * np.sign(-y_circle[p]))
+        list_theta.append(theta_ring)
+        list_phi.append(phi_ring)
 
+        #taking the other half of the circle
+        phi_ring = np.arccos(x_circle[p]/np.sin(theta_ring) * np.sign(-y_circle[p])) + np.pi
         list_theta.append(theta_ring)
         list_phi.append(phi_ring)
 
 
-
-
-
-
-
-    # x, y = upper_curve(r_curve, theta_centre, phi_centre)
-    # x2, y2 = lower_curve(r_curve,theta_centre, phi_centre)
-    #
-    # point_x = np.cos(y) * np.sin(x) * signx * 34.2
-    # point_y = np.sin(y)*np.sin(x)* signz * 34.2
-    # point_z = np.cos(x) * 34.2 - 155.45
-    #
     ax.scatter(x_circle, y_circle, z_circle, color = 'black' )
-    #
-    #
-    # point_x = np.cos(y2) * np.sin(x2) * signx * 34.2
-    # point_y = np.sin(y2)*np.sin(x2)* signz * 34.2
-    # point_z = np.cos(x2) * 34.2 - 155.45
-    #
-    # ax.scatter(point_x, point_y, point_z, color = 'black' )
-
 
     PMTs_theta.append(theta_centre)
     PMTs_phi.append(phi_centre)
 
 
-    # ax.plot(x_shade, y_shade)
-    # ax.plot(x, y)
-    # ax.plot(np.cos(x_shade)*np.sin(y_shade), np.sin(x_shade)*np.sin(y_shade))
-
-    # u, v = np.mgrid[phi_centre - half_angle: phi_centre + half_angle:30j, theta_centre - half_angle: theta_centre + half_angle:20j]
-    # xs = r * np.cos(y) * np.sin(x)
-    # ys = r * np.sin(y) * np.sin(x)
-    # zs = r * np.cos(x) - 155.45
-    # ax.scatter(xs, ys, zs, cmap=plt.cm.YlGnBu, alpha = 0.1)
-
-
-    # u, v = np.mgrid[0: 2 * np.pi:30j, theta_centre - half_angle: theta_centre + half_angle:20j]
 xs = r * np.cos(u) * np.sin(v)
 ys = r * np.sin(u) * np.sin(v)
 zs = r * np.cos(v) - 128.05 - 27.4
-# ax.plot_surface(xs, ys, zs, cmap=plt.cm.YlGnBu, alpha = 0.1)
-
-
 
 plt.show()
 
-#end for now
+#Here calculate which points gets in which bin
+def distance_on_sphere(theta1, phi1, theta2, phi2, R = 34.2):
+    delta_phi = abs(phi1-phi2)
+    #the max distance that we can have in phi is 180 degrees,
+    #need to handle 360 - 10 = 10 not 350
+    delta_phi = np.where(delta_phi > np.pi, 2 * np.pi - delta_phi, delta_phi)
+    delta_theta = abs(theta1-theta2)
+    mean_theta = (theta1+theta2)/2
+
+    #theta = 0 is any theta
+    delta_phi = np.where(theta1 == 0, 0, delta_phi)
+    if theta2 == 0:
+         delta_phi = 0 * delta_phi
+
+    return np.where(delta_phi == 0, delta_theta * R, R * np.sqrt((delta_theta)**2 + (np.sin(mean_theta) * delta_phi)**2))
+
+
+print(" ")
+for PMT in range(len(PMTs_theta)):
+    print("Distance from PMT 1  to PMT " , PMT, " is %.2f" % distance_on_sphere(PMTs_theta[1], PMTs_phi[1], PMTs_theta[PMT], PMTs_phi[PMT]))
+#
+# print("Distance between (theta, phi) (0.1, 0.2) and (0.1, np.pi) is",distance_on_sphere(0.1, 0.2, 0.1, np.pi))
+# print("Distance between (theta, phi) (0.2, 0.2) and (0.1, np.pi) is",distance_on_sphere(0.2, 0.2, 0.1, np.pi))
+# print("Distance between (theta, phi) (0.1, 0.1) and (0.1, 0.2) is",distance_on_sphere(np.pi, 0.2, np.pi, 0.1))
+
+
+# #end for now
 # sys.exit()
 
 
@@ -320,6 +315,47 @@ for f in filename:
         df = df.append(row, ignore_index=True)
     list_safe.append(df)
 
+
+#now we calculate the disance to the PMT for the first of the file we want to plot
+df_test = list_safe[0]
+
+
+# print(distance_on_sphere(df_test['theta'], df_test['phi'],  PMTs_theta[PMT], PMTs_phi[PMT]))
+closest_PMT = np.zeros(len(df_test['theta'])) - 9999
+shortest_dist_to_PMT = np.zeros(len(df_test['theta'])) + 9999
+
+for PMT_ID in range(19):
+    PMT_dist = distance_on_sphere(df_test['theta'], df_test['phi'],  PMTs_theta[PMT_ID], PMTs_phi[PMT_ID])
+
+    closest_PMT = np.where(shortest_dist_to_PMT<PMT_dist, closest_PMT, PMT_ID)
+    shortest_dist_to_PMT = np.where(shortest_dist_to_PMT<PMT_dist, shortest_dist_to_PMT, PMT_dist)
+
+R_PMT = 5.30
+closest_PMT = np.where(shortest_dist_to_PMT<R_PMT, closest_PMT, 19)
+
+df_test['closest_PMT'] = closest_PMT
+
+ax = plt.axes(projection = 'polar')
+
+for PMT_bin in df_test['closest_PMT'].unique():
+    df_buf = df_test[df_test['closest_PMT'] == PMT_bin]
+    ax.scatter(df_buf['phi'], df_buf['theta'], marker = 'x')
+ax.scatter(np.array(PMTs_phi), np.array(PMTs_theta), color = 'black', marker = 'x')
+ax.scatter(np.array(list_phi), np.array(list_theta), color = 'black', marker = '.', s = 2)
+
+
+plt.show()
+
+print(closest_PMT)
+
+#this is saving the position of the PMTs which will act as bin centres
+# PMT_nb = np.arange(0, 19, 1)
+# table = np.array([PMT_nb,np.array(df_58['x']), np.array(df_58['y']), np.array(df_58['z']),np.array(PMTs_theta), np.array(PMTs_phi)])
+# print(table)
+# np.savetxt( 'PMT-basedBins.txt',list(table.T))
+
+sys.exit()
+
 #place each source position in a bin
 
 def order_in_bins(df):
@@ -327,6 +363,7 @@ def order_in_bins(df):
     count_uniform_bins_theta = np.zeros(len(bins_all[0]))
     charge_uniform_bins = np.zeros(len(bins_all[0]))
     charge_uniform_bins_theta = np.zeros(len(bins_all[0]))
+    print(df['x'])
     for source_position_ID in range(len(df['x'])):
         source_position = np.array([df['x'][source_position_ID], df['y'][source_position_ID], df['z'][source_position_ID]])
         #Calculate the distance xyz bwteen the source position and each bin centre
@@ -346,6 +383,7 @@ def order_in_bins(df):
     #print(count_uniform_bins_theta, charge_uniform_bins_theta)
     return charge_uniform_bins_theta, count_uniform_bins_theta
 
+print(df['x'])
 charge_uniform_bins_theta, count_uniform_bins_theta = order_in_bins(df)
 
 ax = plt.axes(projection = 'polar')
@@ -387,21 +425,21 @@ ax2.set_title('Number of source positions in this bin')
 plt.show()
 
 
-ax = plt.axes(projection = '3d')
-for b in range(len(bins_all[0])):
-    #if count_uniform_bins_theta[b]>0:
-        sc = ax.scatter(bins_all[0][b] ,  bins_all[2][b] ,bins_all[1][b], c = count_uniform_bins_theta[b], cmap = "Blues", vmin=0, vmax=count_uniform_bins_theta.max(), s = 120)
-plt.colorbar(sc)
-ax.set_title('Number of source positions in this bin')
-plt.show()
-
-ax = plt.axes(projection = '3d')
-for b in range(len(bins_all[0])):
-    #if count_uniform_bins_theta[b]>0:
-        sc = ax.scatter(bins_all[0][b] ,  bins_all[2][b], bins_all[1][b], c = charge_uniform_bins_theta[b]/( count_uniform_bins_theta[b]* nEvents[0]), cmap = "Blues", vmin=0, vmax=0.4, s = 60)
-plt.colorbar(sc)
-ax.set_title('Charge collected per photon in this bin')
-plt.show()
+# ax = plt.axes(projection = '3d')
+# for b in range(len(bins_all[0])):
+#     #if count_uniform_bins_theta[b]>0:
+#         sc = ax.scatter(bins_all[0][b] ,  bins_all[2][b] ,bins_all[1][b], c = count_uniform_bins_theta[b], cmap = "Blues", vmin=0, vmax=count_uniform_bins_theta.max(), s = 120)
+# plt.colorbar(sc)
+# ax.set_title('Number of source positions in this bin')
+# plt.show()
+#
+# ax = plt.axes(projection = '3d')
+# for b in range(len(bins_all[0])):
+#     #if count_uniform_bins_theta[b]>0:
+#         sc = ax.scatter(bins_all[0][b] ,  bins_all[2][b], bins_all[1][b], c = charge_uniform_bins_theta[b]/( count_uniform_bins_theta[b]* nEvents[0]), cmap = "Blues", vmin=0, vmax=0.4, s = 60)
+# plt.colorbar(sc)
+# ax.set_title('Charge collected per photon in this bin')
+# plt.show()
 
 if len(list_safe) == 2:
     #plottong a binned comparision
@@ -448,6 +486,8 @@ ax.yaxis.labelpad = 20
 plt.savefig(WORKDIR+'/mPMTmapping/Maps/maps_pictures/Maps/Non-interpolated/%s.png'%outputfile_name)
 #Here we'll get the shading of the PMT overlayed so we are sure we are doing well
 
+
+
 plt.show()
 
 #Now the interpolate
@@ -469,8 +509,10 @@ ax.set_thetamax(phi_max)
 ax.xaxis.labelpad = 10
 ax.yaxis.labelpad = 20
 ax.set_xlabel(f'$\Theta$(rad)')
+ax.scatter(np.array(list_phi), np.array(list_theta), color = 'black', marker = '.', s = 2)
 plt.savefig(WORKDIR+'/mPMTmapping/Maps/maps_pictures/Maps/Interpolated/%s.png'%outputfile_name)
 plt.show()
+
 
 #raise end
 sys.exit()
