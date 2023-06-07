@@ -137,7 +137,7 @@ int main(int argc, char **argv){
 		//read each source position in the file one by one
 		Data pos =  test_positions[i];
 		//Then we check which bin it belongs to
-		Bin closestBin = findBin(pos.theta, pos.phi);
+		Bin closestBin = findPMTBin(pos.theta, pos.phi);
 		//std::cout << "The closest bin is " << closestBin.ID<< std::endl;
 		//add to the charge the fractionnal charge collected at this position
 		//we do not use direct charge because the comparision has to be made
