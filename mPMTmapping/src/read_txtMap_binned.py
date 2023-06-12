@@ -232,6 +232,8 @@ ys = r * np.sin(u) * np.sin(v)
 zs = r * np.cos(v) - 128.05 - 27.4
 
 plt.show()
+# print("Distance between (theta, phi) (0.1, 0.1) and (0.1, 0.2) is",distance_on_sphere(np.pi, 0.2, np.pi, 0.1))
+
 
 #Here calculate which points gets in which bin
 def distance_on_sphere(theta1, phi1, theta2, phi2, R = 34.2):
@@ -250,14 +252,9 @@ def distance_on_sphere(theta1, phi1, theta2, phi2, R = 34.2):
     return np.where(delta_phi == 0, delta_theta * R, R * np.sqrt((delta_theta)**2 + (np.sin(mean_theta) * delta_phi)**2))
 
 
-print(" ")
-for PMT in range(len(PMTs_theta)):
-    print("Distance from PMT 1  to PMT " , PMT, " is %.2f" % distance_on_sphere(PMTs_theta[1], PMTs_phi[1], PMTs_theta[PMT], PMTs_phi[PMT]))
-#
+
 # print("Distance between (theta, phi) (0.1, 0.2) and (0.1, np.pi) is",distance_on_sphere(0.1, 0.2, 0.1, np.pi))
 # print("Distance between (theta, phi) (0.2, 0.2) and (0.1, np.pi) is",distance_on_sphere(0.2, 0.2, 0.1, np.pi))
-# print("Distance between (theta, phi) (0.1, 0.1) and (0.1, 0.2) is",distance_on_sphere(np.pi, 0.2, np.pi, 0.1))
-
 
 # #end for now
 # sys.exit()
@@ -336,23 +333,31 @@ closest_PMT = np.where(shortest_dist_to_PMT<R_PMT, closest_PMT, 19)
 df_test['closest_PMT'] = closest_PMT
 
 ax = plt.axes(projection = 'polar')
+PMT_conversion = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 16, 17, 15, 13, 14, 18, 19, 0]
+
+print(" ")
+for PMT in range(len(PMTs_theta)):
+    print("Distance from point of interest  to PMT " , PMT_conversion[PMT], " is %.2f" % distance_on_sphere( 0.260997, 1.049, PMTs_theta[PMT], PMTs_phi[PMT]))
+#
 
 for PMT_bin in df_test['closest_PMT'].unique():
     df_buf = df_test[df_test['closest_PMT'] == PMT_bin]
-    ax.scatter(df_buf['phi'], df_buf['theta'], marker = 'x')
+    #print(int(PMT_bin), df_test['closest_PMT'].unique())
+    ax.scatter(df_buf['phi'], df_buf['theta'], marker = 'x', label = 'Bin %i'%PMT_conversion[int(PMT_bin)])
 ax.scatter(np.array(PMTs_phi), np.array(PMTs_theta), color = 'black', marker = 'x')
 ax.scatter(np.array(list_phi), np.array(list_theta), color = 'black', marker = '.', s = 2)
-
+plt.legend()
 
 plt.show()
 
 print(closest_PMT)
 
 #this is saving the position of the PMTs which will act as bin centres
-# PMT_nb = np.arange(0, 19, 1)
-# table = np.array([PMT_nb,np.array(df_58['x']), np.array(df_58['y']), np.array(df_58['z']),np.array(PMTs_theta), np.array(PMTs_phi)])
-# print(table)
-# np.savetxt( 'PMT-basedBins.txt',list(table.T))
+PMT_nb = np.arange(0, 19, 1)
+#we need to have the same PMT labeling as WCSim
+table = np.array([np.array(PMT_conversion[:-1]),np.array(df_58['x']), np.array(df_58['y']), np.array(df_58['z']),np.array(PMTs_theta), np.array(PMTs_phi)])
+print(table)
+np.savetxt( 'PMT-basedBins.txt',list(table.T))
 
 sys.exit()
 
