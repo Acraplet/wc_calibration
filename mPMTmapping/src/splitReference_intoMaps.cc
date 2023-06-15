@@ -85,7 +85,7 @@ int main(int argc, char **argv){
 				float ratio = total_bin_charge[bin][pmt]/total_bin_photons[bin][pmt];
 				outfile << ratio << " ";
 			}
-			//std::cout << "bin " << bin << " pmt " << pmt << " ratio " << total_bin_charge[bin][pmt] << " " << total_bin_photons[bin][pmt] << std::endl;
+			std::cout << "bin " << bin << " pmt " << pmt << " ratio " << total_bin_charge[bin][pmt] << " " << total_bin_photons[bin][pmt] << std::endl;
             		//outfile << "PMT " << i << " recieved " <<  total_bin_charge[i] << " of the " << total_bin_photons << " photons that were sent to bin " << bin << std::endl;
 		}
 		outfile << std::endl;
