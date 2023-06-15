@@ -33,7 +33,7 @@ int main(int argc, char **argv){
 
 
 
-	char * filename = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/test_hadded/ReferenceAttenuation_ALLhitPMT_PMT-basedBin%i_R%.2f.txt", bin, R);
+	char * filename = Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/test_hadded/ReferenceAttenuation_ALLhitPMT_PMT-basedBin_R%.2f.txt", R);
 	std::vector<DataWithTime> test_positions = readTxtFileWithTime(filename);
 
 	int nBins = 19;
@@ -51,13 +51,15 @@ int main(int argc, char **argv){
         	total_bin_photons += 1;
 	}
 
-	char *name = Form("Absorption_PMT-basedBin%i_R%.2f.txt", bin, R);
+	char *name = Form("AbsorptionTable_PMT-basedBins.txt");
         std::ofstream outfile;
         outfile.open(name, std::ofstream::app);
+	outfile << R << " ";
 	for (int i=0; i<=nBins; i++){
             	//outfile << "PMT " << i << " recieved " <<  total_bin_charge[i] << " of the " << total_bin_photons << " photons that were sent to bin " << bin << std::endl;
-		outfile << total_bin_charge[i]/total_bin_photons << std::endl;
+		outfile << total_bin_charge[i]/total_bin_photons << " ";
 	}
+	outfile << std::endl;
         outfile.close();
 
 }

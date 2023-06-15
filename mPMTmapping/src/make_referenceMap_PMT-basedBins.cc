@@ -68,7 +68,8 @@ int main(int argc, char **argv){
     }
 
     if (outfilename==NULL){
-        std::cout << "Warning, no output file given, using test.txt " << std::endl;
+    	outfilename = Form("./Maps/AttenuationReference/ReferenceAttenuation_ALLhits_PMT-basedBin.txt");
+        std::cout << "Warning, no output file given, using " << outfilename << std::endl;
 //         HelpMessage();
     }
 
@@ -147,9 +148,8 @@ int main(int argc, char **argv){
 
     int n_entries = source_position->GetEntries();
 
-    char *name = Form("ReferenceAttenuation_ALLhits_PMT-basedBin_R%.2f.txt", R);
     std::ofstream outfile; 
-    outfile.open(name, std::ofstream::app);
+    outfile.open(outfilename, std::ofstream::app);
     for(int i=0; i<n_entries; i++){
         events->GetEntry(i);
 	source_position->GetEntry(i);
