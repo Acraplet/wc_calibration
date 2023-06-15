@@ -172,9 +172,9 @@ Bin findPMTBin(double theta_pos, double phi_pos, double R_dome=34.2, double l_PM
             double mean_theta = (thetabins[i] + theta_pos)/2;
 
             if (Dy>TMath::Pi()) Dy = 2 * TMath::Pi() - Dy;
-            if (thetabins[i]==0. or theta_pos==0 ) Dy = 0;
+            if (thetabins[i]==0. or theta_pos==0. ) Dy = 0;
 
-            if (Dy == 0 ) dist = Dx * R_dome;
+            if (Dy == 0. ) dist = Dx * R_dome;
             else dist = R_dome * TMath::Sqrt(Dx*Dx + (TMath::Sin(mean_theta) * Dy) * (TMath::Sin(mean_theta) * Dy));
 
             if (dist<minBinDist){

@@ -16,7 +16,7 @@
 
 
 int main(int argc, char **argv){
-    int nBins = 800;
+    int nBins = 19;
     char * filename = Form("./Maps/maps_txtFiles/mPMT_map_ID%s.txt",argv[1]);
     //in these double we are storing the total charge, one entry per bin
     double total_bin_charge[nBins];
@@ -32,29 +32,33 @@ int main(int argc, char **argv){
         //read each source position in the file one by one
         Data pos =  test_positions[i];
         //Then we check which bin it belongs to
-        Bin closestBin = findBin(pos.theta, pos.phi);
+        Bin closestBin = findPMTBin(pos.theta, pos.phi);
         //std::cout << "The closest bin is " << closestBin.ID<< std::endl;
         //add to the charge the fractionnal charge collected at this position
         //we do not use direct charge because the comparision has to be made
         //with respect to 1000 photons for now
         total_bin_charge[closestBin.ID] += float(pos.Q);
         total_bin_photons[closestBin.ID] += float(pos.nEvents);
-
+	std::cout << closestBin.ID << " phi "<< pos.phi << " theta " << pos.theta << std::endl; 
 
         //need to extrapolate the map to the other four quarters
         //note that if more than one exact quarter has been simulated we will have an average of the
         //different overlapping bins
-        closestBin = findBin(pos.theta, TMath::Pi() - pos.phi);
+        closestBin = findPMTBin(pos.theta, pos.phi-TMath::Pi()/2);
         total_bin_charge[closestBin.ID] += float(pos.Q);
         total_bin_photons[closestBin.ID] += float(pos.nEvents);
+	std::cout << closestBin.ID << " phi "<< pos.phi-TMath::Pi()/2 << " theta " << pos.theta << std::endl; 
 
-        closestBin = findBin(pos.theta, TMath::Pi() + pos.phi);
+        closestBin = findPMTBin(pos.theta, TMath::Pi()/2 + pos.phi);
         total_bin_charge[closestBin.ID] += float(pos.Q);
         total_bin_photons[closestBin.ID] += float(pos.nEvents);
+	std::cout << closestBin.ID << " phi "<< TMath::Pi() + pos.phi << " theta " << pos.theta << std::endl; 
 
-        closestBin = findBin(pos.theta, -pos.phi);
+        closestBin = findPMTBin(pos.theta, -pos.phi);
         total_bin_charge[closestBin.ID] += float(pos.Q);
         total_bin_photons[closestBin.ID] += float(pos.nEvents);
+	std::cout << closestBin.ID << " phi "<< - pos.phi << " theta " << pos.theta << std::endl; 
+	std::cout << std::endl; 
 
     }
 

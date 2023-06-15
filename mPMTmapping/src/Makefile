@@ -12,9 +12,9 @@ INCLUDES := ../chisq -I ../include
 
 ifdef WCSIMDIR
 #INCLUDES := $(INCLUDES) -I $(WCSIMDIR)/include
-all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos WCSIM_TreeConvert TestFitter 
+all: ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos WCSIM_TreeConvert TestFitter make_reference_abs
 else
-all: TestFitter ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter
+all: TestFitter ScatteringFitter2DBinned AttenuationFitterBinned make_mPMTmap makeRef_maxNbHitAtPos TestFitter make_reference_abs
 endif
 
 #these are the old codes that aren't used in the binned approach, they are now in the mPMTmapping/Archive/OldCodes folder if one is interested
@@ -37,9 +37,9 @@ TestFitter: TestFitter.cc
 WCSIM_TreeConvert: WCSIM_TreeConvert.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES) -L$(WCSIMDIR) -lWCSimRoot -I$(WCSIMDIR)/include
 
+make_reference_abs: make_reference_abs.cc
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o ../bin/$@ $(LIBS) -I$(INCLUDES)
 
-
-#And here the older codes for 1D and simplistic spline analaysis 
 #make_onePositionMap: make_onePositionMap.cc
 #	g++ -Wall -Wextra $(CXXFLAGS) -o ../bin/make_onePositionMap make_onePositionMap.cc
 #make_oneBin_reference: make_oneBin_reference.cc
