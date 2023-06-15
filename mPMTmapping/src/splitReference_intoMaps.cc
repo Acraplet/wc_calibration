@@ -46,7 +46,7 @@ int main(int argc, char **argv){
 	int nBins = 20;
 	int nPMTs = 19;
 	std::vector<std::vector<float>> total_bin_charge;
-	std::vector<std::vector<int>> total_bin_photons;
+	std::vector<int> total_bin_photons;
     	//double total_bin_photons[nBins];
     	//initialisation of the bin-dependant counters
 	for (int l =0; l<nBins; l++){
@@ -58,7 +58,7 @@ int main(int argc, char **argv){
 		       	bufDouble.push_back(0.);
 		}
 		total_bin_charge.push_back(bufDouble);
-		total_bin_photons.push_back(buf);
+		total_bin_photons = buf;
 	}
 	for (int i = 0; i < test_positions.size(); i++){
 		DataWithTime refPoint = test_positions[i];
@@ -66,8 +66,9 @@ int main(int argc, char **argv){
 		R = refPoint.R;
 		double mPMT_pmt = refPoint.mPMT_pmt;
 		//std::cout << "Bin " << refPoint.bin << " PMT " << refPoint.mPMT_pmt << total_bin_charge[int(refPoint.bin)][int(refPoint.mPMT_pmt)] << " " << total_bin_photons[int(refPoint.bin)][int(refPoint.mPMT_pmt)] << std::endl;
+		//I am looking at the number of photons that are falling inside a bin and how many of them are going in each PMT otherwise it makes no sense, we could have 1 photon that happens to fall in PMT i but is in bin j and that would be a 100% efficiency - non-sense.  
 		total_bin_charge[int(refPoint.bin)][int(refPoint.mPMT_pmt)] = total_bin_charge[int(refPoint.bin)][int(refPoint.mPMT_pmt)] + float(refPoint.Q);
-        	total_bin_photons[int(refPoint.bin)][int(refPoint.mPMT_pmt)] = total_bin_photons[int(refPoint.bin)][int(refPoint.mPMT_pmt)] + 1;
+        	total_bin_photons[int(refPoint.bin)] = total_bin_photons[int(refPoint.bin)] + 1;
 	}
 
 
@@ -80,12 +81,12 @@ int main(int argc, char **argv){
 	for (int bin=0; bin<nBins; bin++){
 		outfile << R << " " << bin << " ";
 		for (int pmt=0; pmt<=nPMTs; pmt++){
-			if (total_bin_photons[bin][pmt] == 0 or total_bin_charge[bin][pmt] == 0.) outfile << 0 << " ";
+			if (total_bin_photons[bin] == 0 or total_bin_charge[bin][pmt] == 0.) outfile << 0 << " ";
 			else {
-				float ratio = total_bin_charge[bin][pmt]/total_bin_photons[bin][pmt];
+				float ratio = total_bin_charge[bin][pmt]/total_bin_photons[bin];
 				outfile << ratio << " ";
 			}
-			std::cout << "bin " << bin << " pmt " << pmt << " ratio " << total_bin_charge[bin][pmt] << " " << total_bin_photons[bin][pmt] << std::endl;
+			std::cout << "bin " << bin << " pmt " << pmt << " ratio " << total_bin_charge[bin][pmt] << " " << total_bin_photons[bin] << std::endl;
             		//outfile << "PMT " << i << " recieved " <<  total_bin_charge[i] << " of the " << total_bin_photons << " photons that were sent to bin " << bin << std::endl;
 		}
 		outfile << std::endl;
