@@ -4,11 +4,12 @@
 //
 //Then the chi is minimised between the observed data and y_pred = Fake_Data_Spline(scattering length pred)
 //expected scattering length. So far this is position dependant but it will have to be upgraded to a binned approach
-#include "findBin.hh"
-#include "readTxtFileWithTime.hh"
+#include "../include/findBin.hh"
+#include "../include/readReferenceFiles.hh"
+#include "../include/readTxtFileWithTime.hh"
 #include "../include/truth_alpha.hh"
 #include <iostream>
-//#include "../chisq/chisq.h"
+#include "../chisq/chisq.h"
 #include "Math/Minimizer.h"
 #include "Math/Functor.h"
 #include "Math/Factory.h"
@@ -58,8 +59,10 @@ int main(int argc, char **argv){
     
     double initGuessAbs = 1500.;
     double trueScat;
+    double R;
 
     int nBins = 20; //in the new scheme we have 20 bins and for each bins we have 1 ref value per PMT
+    int nPMTs = 19; //in the new scheme we have 20 bins and for each bins we have 1 ref value per PMT
     std::string output_file = "out";
     std::string config_file;
     
@@ -121,7 +124,7 @@ int main(int argc, char **argv){
     std::cout << "The total number of files to read together is: " << configuration.size() << std::endl;
     //for (int f=0; f<= list_files.size()-1; f++){ //argc-1
 	//This is the test file we are going to extract the scattering length out of
-	char * filename = "ReferenceAttenuation_ALLhits_PMT-basedBin_R80.00.txt"; //Form("./Maps/maps_txtFiles/mPMT_map_ID%d.txt") //,list_files[f]);
+	char * filename = "test_hadded/ReferenceAttenuation_ALLhits_PMT-basedBin_R80.00.txt"; //Form("./Maps/maps_txtFiles/mPMT_map_ID%d.txt") //,list_files[f]);
 	//in these double we are storing the total charge, one entry per bin
 	std::vector<std::vector<double>> total_bin_charge;
 	
@@ -129,11 +132,11 @@ int main(int argc, char **argv){
 	double total_bin_photons[nBins];
 	//initialisation of the bin-dependant counters
 	for (int k=0; k<=nBins; k++){
-		std::cout << k << std::endl;
+		//std::cout << k << std::endl;
 		total_bin_photons[k] = 0.;
 		std::vector<double> a;
 		for (int p=0; p<=nBins-1; p++){
-			std::cout << p << std::endl;
+			//std::cout << p << std::endl;
 			a.push_back(0.);
 		        //total_bin_charge[k][p] = 0.;
 		}	
@@ -143,6 +146,7 @@ int main(int argc, char **argv){
 	//This is reading in the test file 
 	std::vector<DataWithTime> test_positions = readTxtFileWithTime(filename);
 	std::cout << test_positions.size() << std::endl;
+	
 	for (int i = 0; i < test_positions.size(); i++){
 		//read each source position in the file one by one
 		DataWithTime pos =  test_positions[i];
@@ -155,14 +159,16 @@ int main(int argc, char **argv){
 		//std::cout << "Q " << pos.Q << " existing " << total_bin_charge[int(pos.bin)][int(pos.mPMT_pmt)] << std::endl;
 		total_bin_charge[int(pos.bin)][int(pos.mPMT_pmt)] = total_bin_charge[int(pos.bin)][int(pos.mPMT_pmt)] + float(pos.Q);
 		total_bin_photons[int(pos.bin)] += 1;
+		R = pos.R;
+		std::cout << "Bin " << int(pos.bin) << " PMT " << int(pos.mPMT_pmt) << " charge " << pos.Q <<std::endl;
 	}
 
-	for (int binTarget=0; binTarget <= nBins; binTarget++){
-		for (int PMTTarget=0; PMTTarget < nBins - 1; PMTTarget++){
+	for (int binTarget=0; binTarget < nBins; binTarget++){
+		for (int PMTTarget=0; PMTTarget < nPMTs; PMTTarget++){
 		//I am not sure we need any of the default, just normalise properly 
 	 	//total_bin_charge[binTarget][PMTTarget] = total_bin_charge[binTarget][PMTTarget] / total_bin_photons[binTarget] * 1000;
 		if (total_bin_charge[binTarget][PMTTarget]>= Q_thresh and total_bin_photons[binTarget]!=0 ){
-			std::cout << std::endl;
+			std::cout << "Total charge " << total_bin_charge[binTarget][PMTTarget] <<  "Bin " << binTarget << " pmt " << PMTTarget << std::endl;
 //			int n = 0;
 //			double x, y;
 			double ref_info; //empty variable to read the file with
@@ -170,10 +176,18 @@ int main(int argc, char **argv){
 			//Now fitting multiple bins together
 
 			//need to get the reference amplitude
-			const char* fimpName = Form("Absorption_PMT-basedBin%i_R%.2f.txt", binTarget, test_positions[0].R);
-			std::ifstream in(fimpName);
+			//const char* fimpName = Form("Absorption_PMT-basedBin%i_R%.2f.txt", binTarget, test_positions[0].R);
+			//std::ifstream in(fimpName);
 			//The reference datasets to use for comparision
-			std::vector<double> x_vector, y_vector, z_vector;
+			//std::vector<double> x_vector, y_vector, z_vector;
+			
+			//readAbsorption returns the fractionnal number of photons in that PMT for the given bin
+			double ref = readAbsorptionRef(binTarget, PMTTarget, R);
+			list_A.push_back(ref * total_bin_photons[binTarget]);
+			list_R.push_back(R);
+
+//Old way of doing things			
+/*			
 			while ((in >> ref_info)) {
 				if (count - PMTTarget == 0) {
 					//std::cout << ref_info << " " << binTarget << " " << test_positions[0].R << std::endl;
@@ -187,6 +201,8 @@ int main(int argc, char **argv){
 				}
 				count += 1;
 			}
+*/
+
 			//w is just for bookkepping of the configuration (i.e. which files we fit together)
 			list_i.push_back(w);
 			double Q = total_bin_charge[binTarget][PMTTarget];
@@ -194,7 +210,7 @@ int main(int argc, char **argv){
  			
 			std::cout << " bin " << binTarget << " Hit PMT " << PMTTarget << " excat attenuation length length =" << truth_alpha(401.9, test_positions[0].abwff,test_positions[0].rayff);
 			std::cout << " abwff " << test_positions[0].abwff << " rayff " << test_positions[0].rayff << " R = " <<   test_positions[0].R << " charge collected: " ;
-			std::cout << total_bin_charge[binTarget][PMTTarget]  << " prediction without attenuation " << noAttenuation_pred << " total number of photons sent in this bin " << total_bin_photons[binTarget] << std::endl;
+			std::cout << total_bin_charge[binTarget][PMTTarget] << " total number of photons sent in this bin " << total_bin_photons[binTarget] << " prediction without attenuation " << ref << std::endl;
 		}//if we have more than Q_thresh hits in a given bin
 	     }//run through all the PMTs
 	}//run through all the bins
@@ -211,36 +227,36 @@ int main(int argc, char **argv){
     const int nPars = 1; //the only parameter we fit is scattering length
     
 // FOR NOW NOT FITTING BECAUSE CHISQ IS NOT YET WORKING    
-//    Chisq *chi = new Chisq(nPars);
-//    //In this case list_i is a index storing, later we will have as many entries as our number of bins
-//    chi->setData(list_i, list_Q);
-//    chi->setRef(list_A, list_R);
-//
-//    ROOT::Math::Functor functor(chi, &Chisq::fcn_abwff, nPars);
-//    ROOT::Math::Minimizer *min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-//    min->SetStrategy(3);
-//    min->SetFunction(functor);
-//    min->SetMaxFunctionCalls(10000);
-//    min->SetVariable(0, "attenuation_length", initGuessAbs, 0.01);
-//
-//    min->Minimize();
-//    min->PrintResults();
-//    const double * res_scat = min->X();
-//    const double * err_scat = min->Errors();
-//    //to evaluate accuracy of the minimizer
-//    double pres_scat = min->MinValue();
-//
-//    //Here output some numbers for easier analysis
-//    std::ofstream outfile;
-//    outfile.open(Form("%s_withText.txt", output_file.c_str()), std::ofstream::app);
-//    outfile << "True: " << trueScat << " config: " << config_number << " reco: " << res_scat[0] << " +/- " << err_scat[0];
-//    outfile << " Q_thresh " << Q_thresh << " initGuessAbs " << initGuessAbs << " FVAL " << pres_scat<< std::endl;
-//   
-//    //and without text for analysis and doing scans
-//    std::ofstream outfile_noText;
-//    outfile_noText.open(Form("%s_withoutText.txt", output_file.c_str()), std::ofstream::app);
-//    outfile_noText << " " << trueScat << " " << config_number << " " << res_scat[0] << " " << err_scat[0];
-//    outfile_noText << " " << Q_thresh << " " << initGuessAbs << " " << pres_scat << std::endl;
+    Chisq *chi = new Chisq(nPars);
+    //In this case list_i is a index storing, later we will have as many entries as our number of bins
+    chi->setData(list_i, list_Q);
+    chi->setRef(list_A, list_R);
+
+    ROOT::Math::Functor functor(chi, &Chisq::fcn_abwff, nPars);
+    ROOT::Math::Minimizer *min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
+    min->SetStrategy(3);
+    min->SetFunction(functor);
+    min->SetMaxFunctionCalls(10000);
+    min->SetVariable(0, "attenuation_length", initGuessAbs, 0.01);
+
+    min->Minimize();
+    min->PrintResults();
+    const double * res_scat = min->X();
+    const double * err_scat = min->Errors();
+    //to evaluate accuracy of the minimizer
+    double pres_scat = min->MinValue();
+
+    //Here output some numbers for easier analysis
+    std::ofstream outfile;
+    outfile.open(Form("%s_withText.txt", output_file.c_str()), std::ofstream::app);
+    outfile << "True: " << trueScat << " config: " << config_number << " reco: " << res_scat[0] << " +/- " << err_scat[0];
+    outfile << " Q_thresh " << Q_thresh << " initGuessAbs " << initGuessAbs << " FVAL " << pres_scat<< std::endl;
+   
+    //and without text for analysis and doing scans
+    std::ofstream outfile_noText;
+    outfile_noText.open(Form("%s_withoutText.txt", output_file.c_str()), std::ofstream::app);
+    outfile_noText << " " << trueScat << " " << config_number << " " << res_scat[0] << " " << err_scat[0];
+    outfile_noText << " " << Q_thresh << " " << initGuessAbs << " " << pres_scat << std::endl;
 
 }
 
