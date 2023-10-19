@@ -121,7 +121,6 @@ Bin findPMTBin(double theta_pos, double phi_pos, double hitTime=0., double R_dom
     Bin bin; //this is the struct where we store the bin information
     if (bins_file.is_open()){   //checking whether the file is open
         std::string tp_ref;
-        //the variable you're fitting in
         while(getline(bins_file, tp_ref)){ //each reference point
             char *ptr_ref;
             //convert to char the string of the line we are extracting
@@ -176,8 +175,8 @@ Bin findPMTBin(double theta_pos, double phi_pos, double hitTime=0., double R_dom
             Dy = TMath::Abs(phibins[i] - phi_pos);
 
             double mean_theta = (thetabins[i] + theta_pos)/2;
-	    //the max distance in phi is 180deg
-            
+	    
+	    //the max distance in phi is 180deg -> reverse the direction of rotation if we are larger
 	    if (Dy>TMath::Pi()) Dy = 2 * TMath::Pi() - Dy;
 	    
 	    //the theta=0 OR pi is apex and so is on the same line as all of the thetas
@@ -234,7 +233,8 @@ std::vector<double> findThetaPhi(double source_x, double source_y, double source
 		dotProd += mPMTDir[i] * sourcePos[i]/norm;
 	};
 	double theta_source = TMath::ACos(-dotProd);
-	double phi_source = TMath::ACos(sourcePos[0]/(norm * TMath::Sin(theta_source)) * sgn(sourcePos[2]));
+	double phi_source = TMath::ACos(sourcePos[0]/(norm * TMath::Sin(theta_source)));
+	if (sourcePos[2] <= 0) phi_source = 2 * TMath::Pi() - phi_source ; 
 
 	//std::cout << "theta " << theta_source << " phi " << phi_source << " (" << phi_source * 180/TMath::Pi() << " deg )" << std::endl;
 	//std::cout << std::endl;

@@ -38,12 +38,6 @@ void HelpMessage()
 int main(int argc, char **argv){
 
     std::vector<double> list_Q, list_i,list_A, list_R;
-    //std::vector<std::vector<double>> list_ynodes, list_xnodes;
-    //char* R_test;
-    //char* Q_test;
-    //char* theta_test;
-    //double  theta_test_num, Q_test_num;
-    //char* phi_test;
     double noAttenuation_pred; //not actually useful - just ot keep track and compare the
     //pred vs truth for absorption
     //The config number is a rough way to output the distances that we have looked out 
@@ -106,15 +100,6 @@ int main(int argc, char **argv){
 
 		}
     }
-    //Setup for a .toml config - not working yet
-   // auto const &card_toml = toml_h::parse_card(config_file);
-   // int const &nBins = toml_h::find(card_toml, "nBins");
-   // int const &bin_min = toml_h::find(card_toml, "min_bin");
-   // int const &Q_thresh = toml_h::find(card_toml, "Q_tresh");
-   // double const &spline_min = toml_h::find(card_toml, "spline_min");
-   // double const &spline_max = toml_h::find(card_toml, "spline_max");
-   // double const &spline_increment = toml_h::find(card_toml, "spline_increment");
-   // double const &initGuessAbs = toml_h::find(card_toml, "initGuessAbs");
 
     std::vector<int> list_files;
     for (int c=0; c<=configuration.size()-1; c++){
@@ -122,30 +107,27 @@ int main(int argc, char **argv){
     }
 
     std::cout << "The total number of files to read together is: " << configuration.size() << std::endl;
-    //for (int f=0; f<= list_files.size()-1; f++){ //argc-1
+    for (int f=0; f<= list_files.size()-1; f++){ //argc-1
 	//This is the test file we are going to extract the scattering length out of
-	char * filename = "test_hadded/ReferenceAttenuation_ALLhits_PMT-basedBin_R80.00.txt"; //Form("./Maps/maps_txtFiles/mPMT_map_ID%d.txt") //,list_files[f]);
+	char * filename = Form("/vols/t2k/users/ac4317/WCTE/wc_calibration/mPMTmapping/Maps/AttenuationTest_PMT-basedBins/AttenuationTest_hadded_wcsim_mPMTmapping_401nm_FileID%i_all.txt",list_files[f]); //Form("./Maps/maps_txtFiles/mPMT_map_ID%d.txt") //,list_files[f]);
+	
 	//in these double we are storing the total charge, one entry per bin
 	std::vector<std::vector<double>> total_bin_charge;
 	
-	std::cout << "Hello" << std::endl;
 	double total_bin_photons[nBins];
 	//initialisation of the bin-dependant counters
 	for (int k=0; k<=nBins; k++){
-		//std::cout << k << std::endl;
 		total_bin_photons[k] = 0.;
 		std::vector<double> a;
 		for (int p=0; p<=nBins-1; p++){
-			//std::cout << p << std::endl;
 			a.push_back(0.);
 		        //total_bin_charge[k][p] = 0.;
 		}	
 		total_bin_charge.push_back(a);
 	}
-	std::cout << "Hello" << std::endl;
 	//This is reading in the test file 
 	std::vector<DataWithTime> test_positions = readTxtFileWithTime(filename);
-	std::cout << test_positions.size() << std::endl;
+	//std::cout << test_positions.size() << std::endl;
 	
 	for (int i = 0; i < test_positions.size(); i++){
 		//read each source position in the file one by one
@@ -157,10 +139,13 @@ int main(int argc, char **argv){
 		//we do not use direct charge because the comparision has to be made
 		//with respect to 1000 photons for now
 		//std::cout << "Q " << pos.Q << " existing " << total_bin_charge[int(pos.bin)][int(pos.mPMT_pmt)] << std::endl;
-		total_bin_charge[int(pos.bin)][int(pos.mPMT_pmt)] = total_bin_charge[int(pos.bin)][int(pos.mPMT_pmt)] + float(pos.Q);
-		total_bin_photons[int(pos.bin)] += 1;
-		R = pos.R;
-		std::cout << "Bin " << int(pos.bin) << " PMT " << int(pos.mPMT_pmt) << " charge " << pos.Q <<std::endl;
+		//because of poor naming system sometimes we do not have anything
+		if (pos.R>=0.001){
+			total_bin_charge[int(pos.bin)][int(pos.mPMT_pmt)] = total_bin_charge[int(pos.bin)][int(pos.mPMT_pmt)] + float(pos.Q);
+			total_bin_photons[int(pos.bin)] += 1;
+			R = pos.R;
+		}
+		//std::cout << "Bin " << int(pos.bin) << " PMT " << int(pos.mPMT_pmt) << " charge " << pos.Q <<std::endl;
 	}
 
 	for (int binTarget=0; binTarget < nBins; binTarget++){
@@ -168,49 +153,33 @@ int main(int argc, char **argv){
 		//I am not sure we need any of the default, just normalise properly 
 	 	//total_bin_charge[binTarget][PMTTarget] = total_bin_charge[binTarget][PMTTarget] / total_bin_photons[binTarget] * 1000;
 		if (total_bin_charge[binTarget][PMTTarget]>= Q_thresh and total_bin_photons[binTarget]!=0 ){
-			std::cout << "Total charge " << total_bin_charge[binTarget][PMTTarget] <<  "Bin " << binTarget << " pmt " << PMTTarget << std::endl;
-//			int n = 0;
-//			double x, y;
 			double ref_info; //empty variable to read the file with
 			int count = 0;
 			//Now fitting multiple bins together
-
 			//need to get the reference amplitude
 			//const char* fimpName = Form("Absorption_PMT-basedBin%i_R%.2f.txt", binTarget, test_positions[0].R);
 			//std::ifstream in(fimpName);
 			//The reference datasets to use for comparision
 			//std::vector<double> x_vector, y_vector, z_vector;
 			
-			//readAbsorption returns the fractionnal number of photons in that PMT for the given bin
+			//readAbsorption returns the fractionnal number of 
+			//photons in that PMT for the given bin
 			double ref = readAbsorptionRef(binTarget, PMTTarget, R);
-			list_A.push_back(ref * total_bin_photons[binTarget]);
-			list_R.push_back(R);
+			if (ref>=1e-4) {
+				list_A.push_back(ref * total_bin_photons[binTarget]);
+				list_R.push_back(R);
 
-//Old way of doing things			
-/*			
-			while ((in >> ref_info)) {
-				if (count - PMTTarget == 0) {
-					//std::cout << ref_info << " " << binTarget << " " << test_positions[0].R << std::endl;
-					noAttenuation_pred = ref_info *  total_bin_photons[binTarget];
-					list_A.push_back(noAttenuation_pred); //need to weight by the
-					//number of photons we have simulated in that given bin! - for now all the files have
-					//the same number of
-                    // events and distance but eventually we'll have to chage that !!
-					list_R.push_back(test_positions[0].R);
-					break; //the max amplitude at the bin of interest
-				}
-				count += 1;
-			}
-*/
+				//w is just for bookkepping of the 
+				//configuration (i.e. which files we fit together)
+				list_i.push_back(w);
+				double Q = total_bin_charge[binTarget][PMTTarget];
+				list_Q.push_back(Q);
 
-			//w is just for bookkepping of the configuration (i.e. which files we fit together)
-			list_i.push_back(w);
-			double Q = total_bin_charge[binTarget][PMTTarget];
-			list_Q.push_back(Q);
  			
-			std::cout << " bin " << binTarget << " Hit PMT " << PMTTarget << " excat attenuation length length =" << truth_alpha(401.9, test_positions[0].abwff,test_positions[0].rayff);
-			std::cout << " abwff " << test_positions[0].abwff << " rayff " << test_positions[0].rayff << " R = " <<   test_positions[0].R << " charge collected: " ;
-			std::cout << total_bin_charge[binTarget][PMTTarget] << " total number of photons sent in this bin " << total_bin_photons[binTarget] << " prediction without attenuation " << ref << std::endl;
+				std::cout << " bin " << binTarget << " Hit PMT " << PMTTarget << " excat attenuation length length =" << truth_alpha(401.9, test_positions[0].abwff,test_positions[0].rayff);
+				std::cout << " abwff " << test_positions[0].abwff << " rayff " << test_positions[0].rayff << " R = " <<   test_positions[0].R << " charge collected: " ;
+				std::cout << total_bin_charge[binTarget][PMTTarget] << " total number of photons sent in this bin " << total_bin_photons[binTarget] << " prediction without attenuation " << ref << std::endl;
+		         }
 		}//if we have more than Q_thresh hits in a given bin
 	     }//run through all the PMTs
 	}//run through all the bins
@@ -220,15 +189,16 @@ int main(int argc, char **argv){
 	config_number = std::stoi(configuration);
 	w+=1;
         //file_ref->Close();
-    //} //finished reading all of the test maps
+    } //finished reading all of the test maps
     
     //Here the fitting begins
-    std::cout << "Final config number = " << config_number << std::endl;
+    //std::cout << "Final config number = " << config_number << std::endl;
     const int nPars = 1; //the only parameter we fit is scattering length
     
 // FOR NOW NOT FITTING BECAUSE CHISQ IS NOT YET WORKING    
     Chisq *chi = new Chisq(nPars);
-    //In this case list_i is a index storing, later we will have as many entries as our number of bins
+    //In this case list_i is a index storing, later we will have as
+    //many entries as our number of bins
     chi->setData(list_i, list_Q);
     chi->setRef(list_A, list_R);
 

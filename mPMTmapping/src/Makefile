@@ -11,10 +11,10 @@ LIBS := $(shell $(ROOTSYS)/bin/root-config --libs) -L ../lib -lChisq
 INCLUDES := -I ../chisq -I ../include
 
 
-all: make_referenceMap_PMT-basedBins splitReference_intoMaps AttenuationFitterPMT-basedBinned 
+all: make_mPMTmap_binned splitReference_intoMaps AttenuationFitterPMT-basedBinned 
 
 
-make_referenceMap_PMT-basedBins: make_referenceMap_PMT-basedBins.cc
+make_mPMTmap_binned: make_mPMTmap_binned.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -g -o ../bin/$@ $(LIBS) $(INCLUDES)
 splitReference_intoMaps: splitReference_intoMaps.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o ../bin/$@ $(LIBS) $(INCLUDES)

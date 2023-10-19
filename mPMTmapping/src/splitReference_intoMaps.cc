@@ -73,7 +73,7 @@ int main(int argc, char **argv){
 
 
 
-	char *name = Form("./Maps/AbsorptionTable_PMT-basedBins.txt");
+	char *name = Form("./Maps/AbsorptionTable_PMT-basedBins_test.txt");
         std::ofstream outfile;
         outfile.open(name, std::ofstream::app);
 

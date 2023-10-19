@@ -3,7 +3,7 @@
 #/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/data/ folder
 ID=$1
 #VAR="$(ls ./data/data/*FileID""$ID""_*_flat*)"
-VAR="$(ls /vols/t2k/users/ac4317/WCTE/WCSim/mPMTmapping/data/*FileID""$ID""_*_flat*)"
+VAR="$(ls /vols/t2k/users/ac4317/WCTE/wc_calibration/mPMTmapping/data/*FileID""$ID""_*_flat*)"
 #make
 
 rm Maps/maps_txtFiles/mPMT_map_ID"$ID".txt
@@ -11,6 +11,6 @@ rm Maps/maps_txtFiles/mPMT_map_ID"$ID".txt
 for name in $VAR
 do
     echo $name
-    ./bin/make_mPMTmap -f $name -o "Maps/maps_txtFiles/mPMT_map_ID"$ID".txt"
+    ./bin/make_mPMTmap_binned -f $name -o "Maps/maps_txtFiles/mPMT_map_ID"$ID".txt"
     echo
 done
