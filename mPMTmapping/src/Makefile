@@ -34,7 +34,7 @@ ScatteringFitter2DBinned: ScatteringFitter2DBinned.cc
 TestFitter: TestFitter.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES)
 WCSIM_TreeConvert: WCSIM_TreeConvert.cc
-	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES) -L$(WCSIMDIR) -lWCSimRoot -I$(WCSIMDIR)/include
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o../bin/$@ $(LIBS) -I$(INCLUDES) -L$(WCSIMROOTDIR) -lWCSimRoot -I$(WCSIMDIR)/include
 
 
 

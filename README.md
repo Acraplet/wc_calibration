@@ -11,8 +11,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCCALIB/mPMTmapping/lib
 
 To build with WCSIM library,
 ```
-export WCSIMDIR=your_WCSIM_directory_with_include_folder_and_libWCSimRoot.so
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCSIMDIR
+export WCSIMDIR=your_WCSIM_directory
+export WCSIMROOTDIR=your_libWCSimRoot.so_installation
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCSIMROOTDIR
 ```
 
 ## Make config files
