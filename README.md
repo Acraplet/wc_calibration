@@ -16,6 +16,11 @@ export WCSIMROOTDIR=your_libWCSimRoot.so_installation
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCSIMROOTDIR
 ```
 
+To use OpenMP for parallel computation in Fitter app,
+```
+export USE_OPEN_MP=1
+```
+
 ## Make config files
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
 

@@ -7,6 +7,12 @@ $(info ROOT C++ standard not found. Default to c++11)
 CXXFLAGS := $(CXXFLAGS) -std=c++11
 $(info $(CXXFLAGS))
 endif
+
+#--- Option to use OpenMP
+ifeq ($(USE_OPEN_MP),1)
+CXXFLAGS := $(CXXFLAGS) -fopenmp
+endif
+
 LIBS := $(shell $(ROOTSYS)/bin/root-config --libs) -L ../lib -lChisq
 INCLUDES := ../chisq -I ../include
 

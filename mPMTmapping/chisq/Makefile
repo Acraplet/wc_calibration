@@ -7,6 +7,10 @@ $(info ROOT C++ standard not found. Default to c++11)
 CXXFLAGS := $(CXXFLAGS) -std=c++11
 $(info $(CXXFLAGS))
 endif
+#--- Option to use OpenMP
+ifeq ($(USE_OPEN_MP),1)
+CXXFLAGS := $(CXXFLAGS) -fopenmp
+endif
 LIBDIR=../lib
 OBJECTS := chisq.o
 ROOTCFLAGS := $(shell root-config --cflags)
