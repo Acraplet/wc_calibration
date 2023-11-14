@@ -52,6 +52,72 @@ double CalcSolidAngle(double r, double R)
   return weight;
 }
 
+// Read LED profile input in WCSIM
+TGraph* ReadSourceProfile(std::string fname)
+{
+  std::ifstream Data(fname.c_str(),std::ios_base::in);
+  if (!Data)
+  {
+    std::cout << ERR << "Cannot load source profile file "<<fname<<"! --> Exit"<<std::endl;
+    exit(-1);
+  }
+  std::string s;
+  double theta, I;
+  std::vector<double> vCosth, vI;
+  int nP = 0;
+  while (!Data.eof())
+  {
+      Data>>s>>theta>>I;
+      vCosth.push_back(cos(theta));
+      vI.push_back(I);
+      nP++;
+  }
+  Data.close();
+
+  vCosth.push_back(-1);
+  vI.push_back(0);
+
+  TGraph* g = new TGraph();
+  for (int i=0;i<nP;i++)
+  {
+      g->SetPoint(i,vCosth[i],vI[i]);
+  }
+  return g;
+}
+
+// TH2F* TemplateHistogram(std::string fname, int nPMTs)
+// {
+//   std::ifstream Data(fname.c_str(),std::ios_base::in);
+//   if (!Data)
+//   {
+//     std::cout << ERR << "Cannot load source profile file "<<fname<<"! --> Exit"<<std::endl;
+//     exit(-1);
+//   }
+//   std::string s;
+//   double theta, I;
+//   std::vector<double> vCosth, vI;
+//   int nP = 0;
+//   while (!Data.eof())
+//   {
+//       Data>>s>>theta>>I;
+//       vCosth.push_back(cos(theta));
+//       vI.push_back(I);
+//       nP++;
+//   }
+//   Data.close();
+
+//   vCosth.push_back(-1);
+//   vI.push_back(0);
+
+//   double yedge[1024];
+//   for (int i=0;i<=nP;i++)
+//   {
+//     yedge[i] = vCosth[nP-i];
+//   }
+  
+//   return new TH2F("","",nPMTs,0,nPMTs,nP,yedge);
+// }
+
 void HelpMessage()
 {
   std::cout << "USAGE: "
@@ -59,6 +125,8 @@ void HelpMessage()
             << "-f : Input file\n"
             << "-o : Output file\n"
             << "-l : Laser wavelength\n"
+            << "-p : Source profile file\n"
+            << "-m : Make template histogram\n"
             // << "-b : Use hybrid configuration\n" // no hybrid option for WCTE simulation
             << "-d : Run with raw Cherenkov hits\n"
             // << "-t : Use separated triggers\n"
@@ -79,6 +147,7 @@ int main(int argc, char **argv){
   
   char * filename=NULL;
   char * outfilename=NULL;
+  char * sourcefilename;
   bool verbose=false;
   bool hybrid = false;
   double cvacuum = 3e8 ;//speed of light, in m/s.
@@ -94,6 +163,7 @@ int main(int argc, char **argv){
   // double lzslope = 0;
   // bool hitHisto = false;
   //BinManager bm;
+  bool makeHitTemplate = false;
 
   double wavelength = 400; //wavelength in nm
 
@@ -103,7 +173,7 @@ int main(int argc, char **argv){
   long int endEvent=0;
   int seed = 0;
   char c;
-  while( (c = getopt(argc,argv,"f:o:s:e:l:r:bhdtv")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
+  while( (c = getopt(argc,argv,"f:o:p:s:e:l:r:bhdtvm")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
     switch(c){
       case 'f':
         filename = optarg;
@@ -120,8 +190,14 @@ int main(int argc, char **argv){
       case 'v':
         verbose = true;
         break;
+      case 'm':
+        makeHitTemplate = true; // make template histogram
+        break;
       case 'o':
 	      outfilename = optarg;
+	      break;
+      case 'p':
+	      sourcefilename = optarg;
 	      break;
       case 's':
 	      startEvent = std::stol(optarg);
@@ -333,11 +409,19 @@ int main(int argc, char **argv){
     hitRate_pmtType1->Branch("timetof_digi",&timetof_digi);
   }
 
-  // Load diffuser position into memory
+  // Load source position and direction into memory
   double vtxpos[3];
   tree->GetEntry(0);
   wcsimrootevent = wcsimrootsuperevent->GetTrigger(0);
   for (int i=0;i<3;i++) vtxpos[i]=wcsimrootevent->GetVtx(i);
+  double vDirSource[3] = {((WCSimRootTrack*)wcsimrootevent->GetTracks()->At(0))->GetDir(0),((WCSimRootTrack*)wcsimrootevent->GetTracks()->At(0))->GetDir(1),((WCSimRootTrack*)wcsimrootevent->GetTracks()->At(0))->GetDir(2)};
+  TVector3 vDirZ(vDirSource[0],vDirSource[1],vDirSource[2]);
+  TVector3 vDirX = vDirZ.Orthogonal();
+  TVector3 vDirY = vDirZ.Cross(vDirX);
+  double vSource_localXaxis[3] = {vDirX.x(),vDirX.y(),vDirX.z()};
+  double vSource_localYaxis[3] = {vDirY.x(),vDirY.y(),vDirY.z()};
+
+  TVector3 source_position(vtxpos[0],vtxpos[1],vtxpos[2]);
 
 //   // Reweight class for source angular profile
 //   LEDProfile* led;
@@ -386,9 +470,9 @@ int main(int argc, char **argv){
   pmt_type1->Branch("weight",&weight); 
 
   // Assume the "source" is pointing downwards
-  double vDirSource[3] = {0,0,-1};
-  double vSource_localXaxis[3] = {1,0,0};
-  double vSource_localYaxis[3] = {0,-1,0};
+  // double vDirSource[3] = {0,0,-1};
+  // double vSource_localXaxis[3] = {1,0,0};
+  // double vSource_localYaxis[3] = {0,-1,0};
 //   double endcapZ = geo->GetWCCylLength()/2.*0.9; // cut value to determine whether the diffuser is in the barrel or endcap
 //   // Barrel injector
 //   if (abs(vtxpos[2])<endcapZ) {
@@ -424,6 +508,9 @@ int main(int argc, char **argv){
   // reweight factor per PMT
   std::vector<double> reweight_type0(nPMTs_type0,1);
   std::vector<double> reweight_type1(nPMTs_type1,1);
+  std::vector<TVector3> vPMTpos(nPMTs_type0);
+  TGraph* gSource = nullptr;
+  if (sourcefilename!=NULL) gSource = ReadSourceProfile(sourcefilename);
 
   for (int pmtType=0;pmtType<nPMTtypes;pmtType++) 
   {
@@ -444,6 +531,7 @@ int main(int argc, char **argv){
         PMTpos[j] = pmt.GetPosition(j);
         PMTdir[j] = pmt.GetOrientation(j);
       }
+      vPMTpos[i]=TVector3(PMTpos[0],PMTpos[1],PMTpos[2]);
       xpos = PMTpos[0]; ypos = PMTpos[1]; zpos = PMTpos[2];
       double particleRelativePMTpos[3];
       for(int j=0;j<3;j++) particleRelativePMTpos[j] = PMTpos[j] - vtxpos[j];
@@ -465,6 +553,7 @@ int main(int argc, char **argv){
       double localy = vDir[0]*vSource_localYaxis[0]+vDir[1]*vSource_localYaxis[1]+vDir[2]*vSource_localYaxis[2];
       phis = atan2(localy,localx);
       weight = 1;
+      if (gSource) weight *= gSource->Eval(cosths);
     //   if (diffuserProfile)
     //   {
     //     double wgt = led->GetLEDWeight(cosths,phis);
@@ -521,6 +610,47 @@ int main(int argc, char **argv){
   pmt_type0->Write();
   if (hybrid) pmt_type1->Write();
 
+  //TH2F* hist_template = TemplateHistogram(sourcefilename,nPMTs_type0);
+  // Bins for making hit template
+  double costh_bins[1024];
+  double pmt_bins[10240];
+  double phi_bins[1024];
+  costh_bins[0] = -1;
+  for (int i=0;i<=200;i++)
+  {
+    costh_bins[i+1] = 0.8+i*0.001;
+  }
+  for (int i=0;i<=nPMTs_type0;i++)
+  {
+    pmt_bins[i] = i;
+  }
+  for (int i=-180;i<=180;i++)
+  {
+    phi_bins[i+180] = i;
+  }
+  TH3F* hist_template = NULL;
+  TH3F* hist_template_f = NULL;
+  TH3F* hist_template_ft = NULL;
+  TH3F* hist_template_nft = NULL;
+  TH2C* hist_template_blacksheet = NULL;
+  TH1F* hist_f = NULL;
+  TH1F* hist_tof = NULL;
+  double fcut = 0.76;
+  double tcut = 0.4;
+  if (makeHitTemplate) 
+  {
+    hist_f = new TH1F("","",nPMTs_type0,0,nPMTs_type0);
+    hist_tof = new TH1F("","",nPMTs_type0,0,nPMTs_type0);
+    hist_template = new TH3F("","",nPMTs_type0,pmt_bins,201,costh_bins,360,phi_bins);
+    hist_template_f = new TH3F("","",nPMTs_type0,pmt_bins,201,costh_bins,360,phi_bins);
+    hist_template_ft = new TH3F("","",nPMTs_type0,pmt_bins,201,costh_bins,360,phi_bins);
+    hist_template_nft = new TH3F("","",nPMTs_type0,pmt_bins,201,costh_bins,360,phi_bins);
+    hist_template_blacksheet = new TH2C("","",201,costh_bins,360,phi_bins);
+  }
+  std::vector<double> sum_raw_hits(nPMTs_type0,0);
+  std::vector<double> sum_raw_hits_f(nPMTs_type0,0);
+  std::vector<double> sum_raw_hits_tof(nPMTs_type0,0);
+
   // int nBins_timetof = 255;
   // double timetof_min = -955, timetof_max = -750;
   // TH2F* hitRateHist_pmtType0;
@@ -566,7 +696,7 @@ int main(int argc, char **argv){
     //wcsimrootevent2 = wcsimrootsuperevent2->GetTrigger(0);
     if(verbose){
       printf("********************************************************");
-      printf("Evt, date %d %d\n", wcsimrootevent->GetHeader()->GetEvtNum(),
+      printf("Evt, date %d %ld\n", wcsimrootevent->GetHeader()->GetEvtNum(),
 	     wcsimrootevent->GetHeader()->GetDate());
       printf("Mode %d\n", wcsimrootevent->GetMode());
       printf("Number of subevents %d\n",
@@ -583,11 +713,11 @@ int main(int argc, char **argv){
       printf("Ntrack %d\n", wcsimrootevent->GetNtrack());
     }
 
-    std::vector<float> triggerInfo;
+    std::vector<double> triggerInfo;
     triggerInfo.clear();
     triggerInfo = wcsimrootevent->GetTriggerInfo();
 
-    std::vector<float> triggerInfo2;
+    std::vector<double> triggerInfo2;
     triggerInfo2.clear();
     if(hybrid) triggerInfo2 = wcsimrootevent2->GetTriggerInfo();
 
@@ -637,7 +767,8 @@ int main(int argc, char **argv){
       cout << "RAW HITS:" << endl;
     }
 
-    if(!plotDigitized) for(int pmtType=0;pmtType<nPMTtypes;pmtType++){
+    if(makeHitTemplate) 
+    for(int pmtType=0;pmtType<nPMTtypes;pmtType++){
       if(separatedTriggers){
         if(triggerInfo2.size()!=0 && pmtType==0) continue;
         if(triggerInfo.size()!=0 && pmtType==1) continue;
@@ -720,15 +851,42 @@ int main(int argc, char **argv){
         nReflec = 0;
         nRaySct = 0;
         nMieSct = 0;
-        // for (int idx = timeArrayIndex; idx<timeArrayIndex+peForTube; idx++) {
-        //   WCSimRootCherenkovHitTime * cht = (WCSimRootCherenkovHitTime*) timeArray->At(idx);
+        sum_raw_hits[tubeNumber-1] += peForTube;
+        for (int idx = timeArrayIndex; idx<timeArrayIndex+peForTube; idx++) {
+          WCSimRootCherenkovHitTime * cht = (WCSimRootCherenkovHitTime*) timeArray->At(idx);
 
-        //   // only works well for peForTube = 1
-        //   // if peForTube > 1, you don't know whether reflection and scattering happens at the same time for a single photon
-        //   if (cht->GetReflection()>0) nReflec++;
-        //   if (cht->GetRayScattering()>0) nRaySct++;
-        //   if (cht->GetMieScattering()>0) nMieSct++;
-        // }
+          // only works well for peForTube = 1
+          // if peForTube > 1, you don't know whether reflection and scattering happens at the same time for a single photon
+          // if (cht->GetReflection()>0) nReflec++;
+          // if (cht->GetRayScattering()>0) nRaySct++;
+          // if (cht->GetMieScattering()>0) nMieSct++;
+
+          TVector3 startDir(cht->GetPhotonStartDir(0),cht->GetPhotonStartDir(1),cht->GetPhotonStartDir(2));
+          double xs = startDir.Dot(vDirX);
+          double ys = startDir.Dot(vDirY);
+          hist_template->Fill(tubeNumber-0.5,startDir.Dot(vDirZ),atan2(ys,xs)*180/TMath::Pi());
+
+          TVector3 endDir(cht->GetPhotonEndDir(0),cht->GetPhotonEndDir(1),cht->GetPhotonEndDir(2));
+          TVector3 endPos(cht->GetPhotonEndPos(0)/10.,cht->GetPhotonEndPos(1)/10.,cht->GetPhotonEndPos(2)/10.); // mm to cm
+          TVector3 pmtPos(PMTpos[0],PMTpos[1],PMTpos[2]);
+          double costhend = (pmtPos-endPos).Unit().Dot(endDir);
+          double timetof_true = cht->GetTruetime() - (endPos-source_position).Mag()/vg/100;
+          if (costhend<fcut) 
+          {
+            sum_raw_hits_f[tubeNumber-1] += 1;
+            hist_template_f->Fill(tubeNumber-0.5,startDir.Dot(vDirZ),atan2(ys,xs)*180/TMath::Pi());
+
+            if(timetof_true<tcut) hist_template_ft->Fill(tubeNumber-0.5,startDir.Dot(vDirZ),atan2(ys,xs)*180/TMath::Pi());
+          }
+          else
+          {
+            if(timetof_true<tcut) hist_template_nft->Fill(tubeNumber-0.5,startDir.Dot(vDirZ),atan2(ys,xs)*180/TMath::Pi());
+          }
+          if (timetof_true<tcut)
+          {
+            sum_raw_hits_tof[tubeNumber-1] += 1;
+          }
+        }
         ////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////
@@ -748,8 +906,8 @@ int main(int argc, char **argv){
         nPE *= weight;  
         nPE_digi *= weight;  
 
-        if (pmtType==0) hitRate_pmtType0->Fill();
-        if (pmtType==1) hitRate_pmtType1->Fill();
+        // if (pmtType==0) hitRate_pmtType0->Fill();
+        // if (pmtType==1) hitRate_pmtType1->Fill();
 
       } // End of loop over Cherenkov hits
       if(verbose) cout << "Total Pe : " << totalPe << endl;
@@ -881,8 +1039,63 @@ int main(int argc, char **argv){
   // }
 
   // Save injector position
-  TVector3 source_position(vtxpos[0],vtxpos[1],vtxpos[2]);
   source_position.Write("source_position");
+  vDirZ.Write("source_direction");
+  vDirX.Write("source_directionX");
+  vDirY.Write("source_directionY");
+  if (gSource) gSource->Write("source_profile");
+  if(makeHitTemplate)
+  {
+    for (int i=1;i<=hist_template->GetNbinsX();i++)
+    {
+      if (sum_raw_hits[i-1]>0)
+      {
+        for (int j=1;j<=hist_template->GetNbinsY();j++)
+          for (int k=1;k<=hist_template->GetNbinsZ();k++)
+        {
+          if (hist_template_f->GetBinContent(i,j,k)>0) 
+            hist_template_ft->SetBinContent(i,j,k,hist_template_ft->GetBinContent(i,j,k)/hist_template_f->GetBinContent(i,j,k));
+          if (hist_template->GetBinContent(i,j,k)-hist_template_f->GetBinContent(i,j,k)>0) 
+            hist_template_nft->SetBinContent(i,j,k,hist_template_nft->GetBinContent(i,j,k)/(hist_template->GetBinContent(i,j,k)-hist_template_f->GetBinContent(i,j,k)));
+          if (hist_template->GetBinContent(i,j,k)>0) 
+            hist_template_f->SetBinContent(i,j,k,hist_template_f->GetBinContent(i,j,k)/hist_template->GetBinContent(i,j,k));
+          hist_template->SetBinContent(i,j,k,hist_template->GetBinContent(i,j,k)/sum_raw_hits[i-1]);
+        }
+
+        hist_f->SetBinContent(i,sum_raw_hits_f[i-1]/sum_raw_hits[i-1]);
+        hist_tof->SetBinContent(i,sum_raw_hits_tof[i-1]/sum_raw_hits[i-1]);
+      }
+
+      
+    }
+    double blacksheet_pmt_distance_cut = 6;
+    for (int j=1;j<=hist_template->GetNbinsY();j++)
+      for (int k=1;k<=hist_template->GetNbinsZ();k++)
+    {
+      // double IDRadius = 3.441*100/2;
+      // double IDHalfHeight = 2.739*100/2;
+      double costheta = hist_template->GetYaxis()->GetBinCenter(j);
+      double phi = hist_template->GetZaxis()->GetBinCenter(k)*TMath::Pi()/180;
+      TVector3 dir = costheta*vDirZ + sqrt(1-costheta*costheta)*(cos(phi)*vDirX+sin(phi)*vDirY);
+      for (int i=0;i<nPMTs_type0;i++)
+      {
+        double source_to_pmt_distance = (vPMTpos[i]-source_position).Mag();
+        double ang = dir.Angle(vPMTpos[i]-source_position);
+        if (source_to_pmt_distance*ang<blacksheet_pmt_distance_cut)
+        {
+          hist_template_blacksheet->SetBinContent(j,k,1);
+          break;
+        }
+      }
+    }
+    hist_template->Write("hit_template");
+    hist_template_f->Write("hit_template__f");
+    hist_template_ft->Write("hit_template__ft");
+    hist_template_nft->Write("hit_template__nft");
+    hist_f->Write("hit_template_f");
+    hist_tof->Write("hit_template_tof");
+    hist_template_blacksheet->Write("hit_template_NotBlacksheet");
+  }
 
   outfile->Close();
   
