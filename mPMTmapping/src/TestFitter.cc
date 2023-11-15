@@ -25,22 +25,42 @@ const std::string WAR = color::RED_STR + "[WARNING]: " + color::RESET_STR;
 
 using namespace std;
 
+int usage()
+{
+    std::cout << TAG    << "USAGE: "
+                                    << "TestFitter" << "\nOPTIONS:\n"
+                                    << "-c : config file\n"
+                                    << "-f : Data file\n"
+                                    << "-r : Reference map file\n"
+                                    //<< "-s : Spline file for cathode parameters\n"
+                                    << "-o : Output file\n"
+                                    << "-n : Number of threads\n"
+                                    ;
+    return 0;
+}
+
 int main(int argc, char **argv){
 
     std::vector<double> list_R;
+    std::vector<double> list_Cosths;
+    //std::vector<double> list_SourceProfile;
+    //std::vector<TVector3> list_SourcePMTDirection;
     std::vector<double> list_A;
+    //std::vector<double> list_A2;
     std::vector<double> list_Q;
+    //std::vector<double> list_Q2;
     std::vector<double> list_i;
+    int num_threads = 1;
 
     char * filename=NULL;
     char * reffilename=NULL;
-    char * splinefilename=NULL;
+    //char * splinefilename=NULL;
 
     std::string config_file;
     std::string outfilename;
 
     char c;
-    while( (c = getopt(argc,argv,"f:r:s:c:o:h")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
+    while( (c = getopt(argc,argv,"f:r:c:o:n:h")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
         switch(c){
             case 'c':
                 config_file = optarg;
@@ -54,36 +74,34 @@ int main(int argc, char **argv){
             case 'r': // reference map
                 reffilename = optarg;
                 break;
-            case 's': // spline file for cathode parameters
-                splinefilename = optarg;
+            // case 's': // spline file for cathode parameters
+            //     splinefilename = optarg;
+            //     break;
+            case 'n': // number of threads
+                num_threads = std::stoi(optarg);
+                if (num_threads<1) num_threads = 1;
                 break;
             case 'h':
-                std::cout << TAG    << "USAGE: "
-                                    << "TestFitter" << "\nOPTIONS:\n"
-                                    << "-c : config file\n"
-                                    << "-f : Data file\n"
-                                    << "-r : Reference map file\n"
-                                    << "-s : Spline file for cathode parameters\n"
-                                    << "-o : Output file\n"
-                                    ;
-                return 0;
             default:
-                return 0;
+                return usage();
         }
     }
 
     if (config_file.size()==0)
     {
         std::cout<< ERR << "No config file!" << std::endl;
-        return -1;
+        return usage();
     }
-        if (outfilename.size()==0)
+    if (outfilename.size()==0)
     {
         std::cout<< TAG << "Output file name default to: fitoutput.root" << std::endl;
         outfilename = "fitoutput.root";
     }
     auto const &card_toml = toml_h::parse_card(config_file);
     auto const &fitparameters_config = toml_h::find(card_toml, "fitparameters");
+    auto const &fittersettings_config = toml_h::find(card_toml, "fittersettings");
+    //double cosths_cut = toml_h::find<double>(fittersettings_config, "CosthsCut");
+    double chi2_cut = toml_h::find<double>(fittersettings_config, "ExtremeChi2Cut");
 
     // Open the data file
     if (filename==NULL){
@@ -97,24 +115,27 @@ int main(int argc, char **argv){
         return -1;
     }
 
-    TTree* pmt_type0 = (TTree*)f->Get("pmt_type0");
     TTree* hitRate_pmtType0 = (TTree*)f->Get("hitRate_pmtType0");
+    //TVector3* source_direction_true = (TVector3*)f->Get("source_direction");
     // distance to source
-    double R;
-    pmt_type0->SetBranchAddress("R",&R);
-    int nPMTs = pmt_type0->GetEntries();
+    int nPMTs = ((TTree*)f->Get("pmt_type0"))->GetEntries();//pmt_type0->GetEntries();
     // hit rate histogram
+    //hitRate_pmtType0->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs),"nPE*(timetof<-948)");
     hitRate_pmtType0->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs),"nPE");
     TH1D* hData = (TH1D*)hitRate_pmtType0->GetHistogram();
+    hData->SetDirectory(0);
     // Fill data entries for fitter
     for (int i = 0 ; i<nPMTs; i++)
     {
-        pmt_type0->GetEntry(i);
         list_i.push_back(i);
-        list_R.push_back(R);
         list_Q.push_back(hData->GetBinContent(i+1));
     }
-    f->Close();
+    // hitRate_pmtType0->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs),"nPE*(timetof>-948)");
+    // for (int i = 0 ; i<nPMTs; i++)
+    // {
+    //     list_Q2.push_back(hData->GetBinContent(i+1));
+    // }
+    // f->Close();
 
     // Open the ref file
     if (reffilename==NULL){
@@ -128,13 +149,58 @@ int main(int argc, char **argv){
         return -1;
     }
     TTree* hitRate_pmtType0r = (TTree*)fr->Get("hitRate_pmtType0");
+    //hitRate_pmtType0r->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs),"nPE*(timetof<-948)");
     hitRate_pmtType0r->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs),"nPE");
     TH1D* hRef = (TH1D*)hitRate_pmtType0r->GetHistogram();
+    TTree* pmt_type0 = (TTree*)fr->Get("pmt_type0");
+    TVector3* source_position = (TVector3*)fr->Get("source_position");
+    TVector3* source_direction = (TVector3*)fr->Get("source_direction");
+    TVector3* source_directionX = (TVector3*)fr->Get("source_directionX");
+    TVector3* source_directionY = (TVector3*)fr->Get("source_directionY");
+    TGraph* source_profile = (TGraph*)fr->Get("source_profile");
+    TH3F* hit_template = (TH3F*)fr->Get("hit_template");
+    TH3F* hit_template__f = (TH3F*)fr->Get("hit_template__f");
+    TH3F* hit_template__ft = (TH3F*)fr->Get("hit_template__ft");
+    TH3F* hit_template__nft = (TH3F*)fr->Get("hit_template__nft");
+    TH2F* hit_template_NotBlacksheet = (TH2F*)fr->Get("hit_template_NotBlacksheet");
+    TH1F* hit_template_f = (TH1F*)fr->Get("hit_template_f");
+    TH1F* hit_template_tof = (TH1F*)fr->Get("hit_template_tof");
+    hit_template->SetDirectory(0);
+    hit_template_f->SetDirectory(0);
+    hit_template__f->SetDirectory(0);
+    hit_template__ft->SetDirectory(0);
+    hit_template__nft->SetDirectory(0);
+    hit_template_NotBlacksheet->SetDirectory(0);
+    hit_template_tof->SetDirectory(0);
+    // distance to source
+    double R, cosths, xpos, ypos, zpos, weight;
+    pmt_type0->SetBranchAddress("R",&R);
+    pmt_type0->SetBranchAddress("cosths",&cosths);
+    pmt_type0->SetBranchAddress("xpos",&xpos);
+    pmt_type0->SetBranchAddress("ypos",&ypos);
+    pmt_type0->SetBranchAddress("zpos",&zpos);
+    pmt_type0->SetBranchAddress("weight",&weight);
     // Fill reference map
     for (int i = 0 ; i<nPMTs; i++)
     {
+        pmt_type0->GetEntry(i);
+        //if (cosths<cosths_cut) continue;
+        list_R.push_back(R);
+        list_Cosths.push_back(cosths);
         list_A.push_back(hRef->GetBinContent(i+1));
+        //list_SourcePMTDirection.push_back(TVector3(xpos-source_position->x(),ypos-source_position->y(),zpos-source_position->z()).Unit());
+        //list_SourceProfile.push_back(weight);
+        // Fill data entries for fitter
+        // list_i.push_back(i);
+        // list_Q.push_back(hData->GetBinContent(i+1));
     }
+    // hitRate_pmtType0r->Draw(Form("PMT_id>>(%i,0,%i)",nPMTs,nPMTs),"nPE*(timetof>-948)");
+    // hRef = (TH1D*)hitRate_pmtType0r->GetHistogram();
+    // for (int i = 0 ; i<nPMTs; i++)
+    // {
+    //     list_A2.push_back(hRef->GetBinContent(i+1));
+    // }
+    f->Close();
     fr->Close();
 
     // for (int i = 0 ; i<nPMTs; i++)
@@ -145,7 +211,9 @@ int main(int argc, char **argv){
     //Here the fitting begins
     Chisq *chi = new Chisq();
     chi->setData(list_i, list_Q);
-    chi->setRef(list_A, list_R);
+    chi->setRef(list_A, list_R, list_Cosths, *source_position, *source_direction, *source_directionX, *source_directionY/*, list_SourcePMTDirection, list_SourceProfile*/);
+    chi->SetHitTemplate(hit_template,hit_template__f, hit_template__ft, hit_template__nft,hit_template_NotBlacksheet);
+    chi->SetNTreads(num_threads);
     int nPars = 0; // number of fit parameters 
     // Add fit parameters
     std::vector<std::string> paramNames;
@@ -162,8 +230,21 @@ int main(int argc, char **argv){
         //std::cout<<"paramtype = "<<paramtype<<std::endl;
         if (paramtype==kCathode)
         {
-            std::cout << TAG << "Load spline file " << splinefilename << std::endl;
-            chi->LoadCathodeSpline(splinefilename);
+            // std::cout << TAG << "Load spline file " << splinefilename << std::endl;
+            // chi->LoadCathodeSpline(splinefilename);
+            chi->LoadCathodeSpline(hit_template_f);
+        }
+        else if (paramtype==kSource || paramtype==kSourceCathodeReflectivity)
+        {
+            //std::cout << TAG << "Load binning file " << toml_h::find<std::string>(ele,3) << std::endl;
+            std::cout << TAG << "Load source_profile from " << reffilename << std::endl;
+            chi->LoadSourceBin("",source_profile);
+        }
+        else if (paramtype==kReflectivity)
+        {
+            // std::cout << TAG << "Load spline file " << splinefilename << std::endl;
+            // chi->LoadCathodeSpline(splinefilename);
+            chi->LoadReflectivitySpline(hit_template_tof);
         }
         else if (paramtype==kInValid)
         {
@@ -211,7 +292,15 @@ int main(int argc, char **argv){
               << std::endl;
 
     min->Minimize();
+    if (chi2_cut>0)
+        while (chi->RemoveExtremeBins(chi2_cut))
+        {
+            min->Minimize();
+        }
     min->PrintResults();
+    TH1D* hPostfit = new TH1D("","",nPMTs,0,nPMTs);
+    TH1D* hChi2 = new TH1D("","",nPMTs,0,nPMTs);
+    chi->PrintBins(hPostfit,hChi2);
     const double* par_val = min->X();
     const double* par_err = min->Errors();
     const int ndim = nPars;
@@ -246,6 +335,14 @@ int main(int argc, char **argv){
     hist_fit->Write();
     cov_matrix.Write("res_cov_matrix");
     cor_matrix.Write("res_cor_matrix");
+    hData->Write("hData");
+    hPostfit->Write("hPostfit");
+    hChi2->Write("hChi2");
     fo->Close();
+
+    // double dTheta = par_val[1]*TMath::Pi()/180;
+    // double dPhi = par_val[2];
+    // TVector3 fit_direction = (*source_direction)*cos(dTheta)+sin(dTheta)*(cos(dPhi)*(*source_directionX)+sin(dPhi)*(*source_directionY));
+    // std::cout << TAG << "True-fit angle = "<<source_direction_true->Angle(fit_direction)*180/TMath::Pi()<<" deg "<<std::endl;
 }
 
