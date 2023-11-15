@@ -1,3 +1,6 @@
+[fittersettings]
+ExtremeChi2Cut = 1000
+
 # List of fit parameters input to fitter
 [fitparameters]
 
@@ -5,14 +8,17 @@
 names = [
     "norm",
     #"alpha",
-    "cathode",
+    #"cathode",
+    #"reflectivity",
+    #"source",
+    "scr",
 ]
 
 norm = [
     "Norm", # Type of parameters
     1, # Number of parameters
     [
-        ["Norm", 0.025, 0.01, 0, 100, true], # name, prefit, stepsize, min, max, fix
+        ["Norm", 0.0174163, 0.001, 0, 100, true], # name, prefit, stepsize, min, max, fix
     ], # Vector of parameters
 ]
 
@@ -28,10 +34,39 @@ cathode = [
     "Cathode", 
     3, 
     [
-        #["nRe", 3.2, 0.01, 3.0, 3.4, false], 
-        #["nIm", 1.4, 0.01, 1.1, 1.7, false], 
-        ["nRe", 1.0, 0.01, 0.0, 10.0, false], 
-        ["nIm", 1.0, 0.01, 0.0, 10.0, false], 
-        ["d",  15.0, 0.01, 11.5, 23.4, true], 
+        ["s1", 1.0, 0.01, 0.0, 10.0, false], 
+        ["s2", 1.0, 0.01, 0.0, 10.0, false], 
+        ["s3", 0.46, 0.01, 0.35, 0.6, true], 
     ], 
+]
+
+reflectivity = [
+    "Reflectivity", 
+    1, 
+    [
+        ["Reflectivity",  1, 0.1, 0, 10, false],
+    ],
+]
+
+source = [
+    "Source", 
+    3, 
+    [
+        ["dTheta",  0, 1, 0, 10, false],
+        ["dPhi",  0, 0.1, -3.14, 3.14, false],
+        ["sigma", 15, 0.1, 10, 30, false], 
+    ]
+]
+
+scr = [
+    "SourceCathodeReflectivity", 
+    6, 
+    [
+        ["dTheta",  0, 1, 0, 10, false],
+        ["dPhi",  0, 0.1, -3.14, 3.14, false],
+        ["sigma", 15, 0.1, 10, 30, false], 
+        ["s1", 1, 0.01, 0.0, 10.0, false], 
+        ["s2", 1, 0.01, 0.0, 10.0, false], 
+        ["reflectivity",  1, 0.1, 0, 10, false],
+    ]
 ]
