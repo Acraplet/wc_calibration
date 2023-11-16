@@ -125,7 +125,7 @@ void HelpMessage()
             << "-f : Input file\n"
             << "-o : Output file\n"
             << "-l : Laser wavelength\n"
-            << "-p : Source profile file\n"
+            << "-p : LED profile used in WCSIM\n"
             << "-m : Make template histogram\n"
             // << "-b : Use hybrid configuration\n" // no hybrid option for WCTE simulation
             << "-d : Run with raw Cherenkov hits\n"
