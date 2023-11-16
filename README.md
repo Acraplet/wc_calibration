@@ -248,28 +248,43 @@ The accuracy and precision of the fit is greatly improved if we use multiple map
 ## WCSIM_TreeConvert app
 c++ program to unwrap the WCSim output into flat tree. 
 ```
-bin/WCSIM_TreeConvert -f wcsim_output.root 
+./bin/WCSIM_TreeConvert -f wcsim_output.root 
 ```
 Available arguments are
 - `-f` : input file name
 - `-o` : output file name
-- `-l` : laser wavelength to calculating speed of light (thus time of flight )in water
-- `-d` : read raw Cherenkov hit instead of digitized hit container
+- `-l` : laser wavelength to calculating correct speed of light (thus time of flight) in water
+- `-p` : LED profile file used in WCSIM (needed for `TestFitter`)
+- `-m` : produce PMT hit template (needed for `TestFitter`)
 - `-v` : turn on detailed verbose
 - `-s` : specify start event
 - `-e` : specify end event
 
-The program assumes a light source simulation with fixed source position and store the basic PMT hits and PMT geometry (relative to the source) information in `TTree` format. Modify the code if you want to store extra in
+The program assumes a light source simulation with fixed source position and store the basic PMT hits and PMT geometry (relative to the source) information in `TTree` format. Modify the code if you want to store extra information.
 
 In the output file, there are two types of trees: `pmt_type0` is the PMT geometry tree, `hitRate_pmtType0` is the PMT hit tree.
+
+When `-m` is used, PMT hit templates will be produced in `TH3F` according to PMT id, hit time, and photon starting direction and ending (incident) angle on photocathode.
 
 ## TestFitter app
 Test program to use `WCSIM_TreeConvert` output to fit on hits from all PMTs in the detector.
 ```
-bin/TestFitter -c config.toml -f data_to_fit.root -r reference.root -o output.root
+./bin/TestFitter -c config_TestFitter.toml -f data_to_fit.root -r reference.root -o output.root
 ```
-`config.toml` specifcies the parameters to fit, `data_to_fit.root` is the data to fit, and `reference.root` is the reference map data. Currently `reference.root` is just an output from `WCSIM_TreeConvert`. `output.root` stores the best fit parameters and errors.
+Available arguments are
+- `-c` : toml config file to specify the parameters to fit
+- `-f` : data to fit (in the format of `hitRate_pmtType0` tree  )
+- `-r` : reference data file, i.e. output from `WCSIM_TreeConvert`
+- `-o` : output file name
+- `-n` : number of threads for parallelization in OpenMP is available
 
+For the `SourceCathodeReflectivity` parameters in `config_TestFitter.toml`, they are
+- `dTheta,dPhi` : change in LED direction relative to reference MC
+- `sigma`: LED profile width in `cos(sigma)` (FWHM of a Gaussian profile in `cos(theta)`)
+- `s1,s2` : ratio of absorption curves relative to reference MC
+- `reflectivity` : blacksheet reflectivity relative to reference MC
 
+The direct and indirect (reflected) hit parametrizations are shown in the figure below. They are summed to a single hit rate per PMT which is used to compute a chi2 (negative Poisson likelihood) for minimization against data.
+<img width="900" alt="image" src="https://github.com/kmtsui/wc_calibration/assets/19830271/af13f6a3-820c-48ec-b950-b0bf693dd679">
 
 
