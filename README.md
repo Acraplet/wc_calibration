@@ -9,6 +9,18 @@ export WCCALIB=$PWD # the wc_calibration directory
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCCALIB/mPMTmapping/lib
 ```
 
+To build with WCSIM library,
+```
+export WCSIMDIR=your_WCSIM_directory
+export WCSIMROOTDIR=your_libWCSimRoot.so_installation
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCSIMROOTDIR
+```
+
+To use OpenMP for parallel computation in Fitter app,
+```
+export USE_OPEN_MP=1
+```
+
 ## Make config files
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
 
@@ -180,8 +192,6 @@ NOTE: so far files with the same scattering lengths but different R distances (s
 
 NOTE: Most of the reference bin behaviour that were added are empty - because no photons were detected in this bin or it is in a quarter of the mPMT that we are not looking at. this could be improved.  
 
-
-
 ## Notes about install
 The \_flat root  files should be put in a new empty folder within wc_calibration/mPMTmapping called data and accessed from there. The code relies quite a lot on filename format consistency so we should either keep that as is or improve this method. 
 
@@ -235,8 +245,46 @@ The typical response function for absorption is an exponential function Q_pred =
 The accuracy and precision of the fit is greatly improved if we use multiple maps (at different Rs but same abwff) together. Intuitively, the no-absorption, zero-scattering maps should be independant of R however it is not quite the case (mainly because of rounding errors). This issue should be resolved by using a binned approach but until then we need to have a reference max charge for each source position at each R that we want to use. 
 
 
+## WCSIM_TreeConvert app
+c++ program to unwrap the WCSim output into flat tree. 
+```
+./bin/WCSIM_TreeConvert -f wcsim_output.root 
+```
+Available arguments are
+- `-f` : input file name
+- `-o` : output file name
+- `-l` : laser wavelength to calculating correct speed of light (thus time of flight) in water
+- `-p` : LED profile file used in WCSIM (needed for `TestFitter`)
+- `-m` : produce PMT hit template (needed for `TestFitter`)
+- `-v` : turn on detailed verbose
+- `-s` : specify start event
+- `-e` : specify end event
 
+The program assumes a light source simulation with fixed source position and store the basic PMT hits and PMT geometry (relative to the source) information in `TTree` format. Modify the code if you want to store extra information.
 
+In the output file, there are two types of trees: `pmt_type0` is the PMT geometry tree, `hitRate_pmtType0` is the PMT hit tree.
 
+When `-m` is used, PMT hit templates will be produced in `TH3F` according to PMT id, hit time, and photon starting direction and ending (incident) angle on photocathode.
+
+## TestFitter app
+Test program to use `WCSIM_TreeConvert` output to fit on hits from all PMTs in the detector.
+```
+./bin/TestFitter -c config_TestFitter.toml -f data_to_fit.root -r reference.root -o output.root
+```
+Available arguments are
+- `-c` : toml config file to specify the parameters to fit
+- `-f` : data to fit (in the format of `hitRate_pmtType0` tree  )
+- `-r` : reference data file, i.e. output from `WCSIM_TreeConvert`
+- `-o` : output file name
+- `-n` : number of threads for parallelization in OpenMP is available
+
+For the `SourceCathodeReflectivity` parameters in `config_TestFitter.toml`, they are
+- `dTheta,dPhi` : change in LED direction relative to reference MC
+- `sigma`: LED profile width in `cos(sigma)` (FWHM of a Gaussian profile in `cos(theta)`)
+- `s1,s2` : ratio of absorption curves relative to reference MC
+- `reflectivity` : blacksheet reflectivity relative to reference MC
+
+The direct and indirect (reflected) hit parametrizations are shown in the figure below. They are summed to a single hit rate per PMT which is used to compute a chi2 (negative Poisson likelihood) for minimization against data.
+<img width="900" alt="image" src="https://github.com/kmtsui/wc_calibration/assets/19830271/af13f6a3-820c-48ec-b950-b0bf693dd679">
 
 
