@@ -42,13 +42,11 @@ int main(int argc, char **argv){
     }
 
 	if (filename == NULL) {
-                std::cout << "Call the filename with the -f option" << std::endl;
-        }
+		std::cout << "Call the filename with the -f option" << std::endl;
+	}
 
-
-	       //	= Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/test_hadded/ReferenceAttenuation_ALLhitPMT_PMT-basedBin_R%.2f.txt", R);
 	std::vector<DataWithTime> test_positions = readTxtFileWithTime(filename);
-
+	std::cout << test_positions.size() << std::endl;
 	int nBins = 20;
 	int nPMTs = 19;
 	std::vector<std::vector<float>> total_bin_charge;
@@ -69,6 +67,7 @@ int main(int argc, char **argv){
 		DataWithTime refPoint = test_positions[i];
 		//double time = refPoint.time;
 		R = refPoint.R;
+		std::cout << R << " this is R " << std::endl;
 		double mPMT_pmt = refPoint.mPMT_pmt;
 		//we need to read the source position even if there is nothing in there, that also means recon
 		//structing the bin, for the expected number of photons

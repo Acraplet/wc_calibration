@@ -12,7 +12,8 @@ import pandas as pd
 
 plt.style.use(["science", "notebook", "grid"])
 
-scan_file = './../ScanAttenuation_withoutText.txt'
+scan_file = './../ScanAttenuation_PMT-basedBins_withoutText_onlyBest.txt'
+#short distance with uniform bins #'./../ScanAttenuation_withoutText.txt'
 scan = np.array(rd.read_data3(scan_file))
 df = pd.DataFrame()
 for i in range(len(scan[0])):
@@ -20,7 +21,7 @@ for i in range(len(scan[0])):
         row =  pd.Series(data=c, index=['true', 'config', 'reco', 'err', 'Q_thresh', 'initGuessScat', 'FVAL' ], dtype=np.float64)
         df = df.append(row, ignore_index=True)
 
-#Here info about the attenuation
+#Here info about the attenuation - there are the old ones I think
 true_att = np.array([50, 60, 80, 100, 125, 150, 200]) * 1/100
 reco_att = np.array([48.5453,  64.5826, 81.2833, 97.2022, 121.874, 147.323,208.556 ]) * 1/100
 err_att = np.array([0.201828, 2.49692, 0.325958,1.3145, 1.97521, 2.8501, 11.4826]) * 1/100
@@ -58,10 +59,10 @@ plt.title('Absorption length scan vs FVAL')
 plt.show()
 
 
-df_buf = df[abs(df['FVAL'])<5]
+df_buf = df[abs(df['FVAL'])!=0]
 
-
-plt.plot([0.4, 5], [0.4, 5], '--', color = 'darkgray')
+plt.xlim(5,50)
+plt.plot([0.4, 50], [0.4, 50], '--', color = 'darkgray')
 plt.errorbar(df_buf['true']/100, df_buf['reco']/100, yerr = df_buf['err']/100, fmt ='x', color = 'red', markersize = 10)
 plt.xlabel('True absorption length (m)')
 # plt.semilogy()
@@ -69,8 +70,8 @@ plt.ylabel('Reco absorption length (m)')
 plt.title('Absorption length binned and non-binned', weight = 'bold')
 
 
-plt.errorbar(true_att, reco_att, yerr = err_att, fmt ='x', label = 'Absorption only', markersize = 10)
-plt.errorbar(true_att_binned, reco_att_binned, yerr = err_att_binned, fmt ='x', color = 'red', label = 'Absorption only\nbinned method', markersize = 10)
+#plt.errorbar(true_att, reco_att, yerr = err_att, fmt ='x', label = 'Absorption only', markersize = 10)
+plt.errorbar(true_att_binned, reco_att_binned, yerr = err_att_binned, fmt ='x', color = 'red', label = 'Absorption only', markersize = 10)
 plt.legend()
 plt.xlabel('True attenuation length (m)')
 # plt.semilogx()

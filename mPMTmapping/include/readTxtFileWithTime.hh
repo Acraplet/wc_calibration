@@ -28,12 +28,14 @@ typedef struct fileData DataWithTime;
 
 std::vector<DataWithTime> readTxtFileWithTime(char* filename){
     std::fstream position_file;
+    std::cout << "Trying " << std::endl;
     //this is the the vector of 'line' Data where one line is one simulated source position (or content of a bin)
     std::vector<DataWithTime> list_all;
     position_file.open(filename, std::ios::in);
     if (position_file.is_open()){   //checking whether the file is open
         std::string tp_ref;
         while(getline(position_file, tp_ref)){ //Each reference point
+	    std::cout << "ok" << std::endl;
             char *ptr_ref;
             //convert to s char the string of the line we are extracting
             char* character_ref = std::strcpy(new char[tp_ref.length() + 1], tp_ref.c_str());
