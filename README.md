@@ -15,7 +15,7 @@ export WCSIMDIR=your_WCSIM_directory_with_include_folder_and_libWCSimRoot.so
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WCSIMDIR
 ```
 
-## Make config files
+## Make config files for perpendicular files
 First step to this analysis is to obtain the mPMT maps. This is done through a combinaison of WCSim and the python analyis code. So far we are using the PMT raw data as a reference, calculating for each source position the ratio of the total charge collected by the 58th mPMT (at the centre of the bottom end cap of WCTE) over the total number of photons sent (usually 1,000).
 
 The config files for WCSim are stored using a FileID which indicates which group of runs it belongs to. 
@@ -49,6 +49,21 @@ bash make_all_config.sh abwff rayff ID0
 ```
 which will make 7 sets of config files with the input absorption and scattering params and IDs going from ID0 to ID0 + 7 with 20 points in theta, and phi and with R = 5, 10, 20, 40, 80, 160, 250 (used to be 320)cm. 
 
+## Make config file for laser ball simulation
+In the same ```wc_calibration/config_files_prod``` folder, you can make a simulation of the laser ball using:
+
+```
+python writeLBFile.py -f 1322 -R 1 -e 30000 -r 10e10 -a 10e10 -x 0 -y 0 -z 0
+```
+where 
+-  f the (integer) ID of the run
+-  R is the number of repetition of the whole laser ball simulation (keep it to 1)
+-  e is the number of events, i.e. the number of photons simulated
+-  r, a are the rayleigh and absorption coefficients
+-  x, y, z are the position of the source in the tank
+
+Similartly to the perpendicularly incoming simulated light, this creates a config file, saved in ```wc_calibration/WCSim_configFiles``` and a tuning file, saved in ```wc_calibration/WCSim_tuningFiles``` that have to be used when running WCSim. The reference LB configuration template (that handles e.g. the uniformity, the half angle of the dark cone at the top and the DR) is ```wc_calibration/config_files_prod/LaserBall_template.txt```. 
+
 ## Run WCSim on the batch system (efficiently) 
 
 The config files should then be copied to my /vols/t2k/user/ac4317/WCTE/mPMTmapping/config_files folder, and the tuning files to /vols/t2k/user/ac4317/WCTE/mPMTmapping/tuning_files. Then follow the steps presented in the image below. 
@@ -67,21 +82,52 @@ Then you can then call
 ```
 bash make_mPMTmap.sh ID
 ```
-replacing ID with the run ID you want. This saved a .txt file named `mPMTmapping/Maps/maps_txtFiles/mPMT_map_IDxx.txt` with the following entries:
+replacing ID with the run ID you want, for making the map for a perpendicular scan of the mPMT. If you are looking at  the hits produced by the laser ball itself, use ```make_mPMTmap_LB.sh``` instead, in the same way.
 
-1. Source x position
-2. Source y position
-3. Source z position
-4. Theta angle from the mPMT axis of the source
-5. Phi angle from the mPMT axis of the source
-6. Source R distance from the mPMT surface
-7. Total charge collected in mPMT 58
-8. Total number of events
-9. Abwff - absorption coefficient
-10. Rayff - Rayleigh scattering coeffcient
+These codes save a .txt file named `mPMTmapping/Maps/maps_txtFiles/mPMT_map_IDxx.txt` with the following entries:
+
+1. ID of mPMT that was hit
+2. ID of PMT that was hit
+4. Source x position
+5. Source y position
+6. Source z position
+7. Theta angle from the mPMT axis of the source
+8. Phi angle from the mPMT axis of the source
+9. Source R distance from the mPMT surface
+10. Total charge collected in this PMT
+11. Timing of the hit
+12. Abwff - absorption coefficient
+13. Rayff - Rayleigh scattering coeffcient
+14. Reconstructed bin
+
+Note: large update which takes into account the orientation of the mPMT and their rotation, the reconstructed bins are now correct for each PMT within each mPMT module. 
+
+## Calculate the solid angle seen by each PMT when simulating the laser ball 
+
+When calculatin the number of PE that we expect to see in each PMT, we need to calculate the solid angle seen by each PMT, and multiply that by the number of photons that were emitted by the laser ball per unit soliud angle to get the number of photons that reach each PMT when there isn't any absorption or scattering. This number of photons reaching the PMTs will then be scaled according to the water quality parameter, PMT collection efficiency to perpendicular light and angular response. 
+
+This solid angle calculation is done using:
+```
+bash make_solidAngleMap_LB.sh ID
+```
+and the output is another .txt map: ```mPMTmapping/Maps/Expected_Number_Photons_FileIDxxxx.txt``` which contains:
+1. mPMT number
+2. PMT number within that mPMT
+3. Calculated solid angle (which is a function of the source position)
+4. Predicted number of photons reaching that PMT (which depends on the total number of photons and shadowing cone, make sure you have the correct value in the code, hard coded for now)
+5. Source x
+6. Source y
+7. Source z
+8. PMT x
+9. PMT y
+10. PMT z
+11. Theta from the source to the PMT
+12. Phi from the source to the PMT (placeholder at -9999 for now)
+13. Total number of photons simulated
+
+Note: all the calculations are based on reading the informations from the root file, this means that there should be minimal changes required when moving to new labeling conventions/detector geometry.
 
 ## Plot and compare the maps
-
 
 Once these maps have been made, they can be plotted individually from the `mPMTmapping/` folder with 
 ```
@@ -109,7 +155,7 @@ Some left-over python codes are available but not maintained to do similar thing
 
 ## Extract the absorption length - binned
 
-### Get the reference max amplitude
+### Get the reference max amplitude (perpendicular light efficiency)
 For absorption, the max charge that gets collected at a given position when there is no scattering and no absorption is saved in `mPMTmapping/Maps/2D_ref_maps` under the name `absorption_ref_file_RXX.txt` by the code
 ```
 bash make_oneBin_noAttenuation_reference.sh ID_ref
@@ -118,7 +164,7 @@ bash make_oneBin_noAttenuation_reference.sh ID_ref
 A bunch of reference R-distances are already mapped and can be used for testing. When using more continuous R distances I recommend using `absorption_ref_file.txt` which corresponds to R = 120cm, a typical distance. 
 
 
-### Fit the response
+### Fit the response for perpendicularly incoming light
 
 The typical response function for absorption is an exponential function Q_pred = A_max * exp(-R/abs_length). A_max is the reference value that we have saved just before and the R value (dome-source distance) is known and lifted from the dataset. abs_length is obtained from minimising the chi2 between Q_true and Q_pred. The code that does this is
 ```
