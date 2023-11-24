@@ -24,17 +24,19 @@ interpolation_mode = 'linear' # linear interpolation of the data
 argv = sys.argv[1:]
 
 #set up the geometry of the tank i.e. read the PMT positions
-PMT_position_file = WORKDIR+'/mPMTmapping/PMT_positions_with_direction.txt'
+PMT_position_file = WORKDIR+'/mPMTmapping/PMT_positions_with_direction_new.txt'
 PMT = np.array(rd.read_data3(PMT_position_file)).T
-PMT_mPMT = PMT[0]
-PMT_mPMT_pmt = PMT[1]
-PMT_x = PMT[2]
-PMT_y = PMT[3]
-PMT_z = PMT[4]
+remove_PMT_number = 0
+
+PMT_mPMT = PMT[0+remove_PMT_number]
+PMT_mPMT_pmt = PMT[1+remove_PMT_number]
+PMT_x = PMT[2+remove_PMT_number]
+PMT_y = PMT[3+remove_PMT_number]
+PMT_z = PMT[4+remove_PMT_number]
 #test
-PMT_dirx = PMT[5]
-PMT_diry = PMT[6]
-PMT_dirz = PMT[7]
+PMT_dirx = PMT[5+remove_PMT_number]
+PMT_diry = PMT[6+remove_PMT_number]
+PMT_dirz = PMT[7+remove_PMT_number]
 
 print(PMT_diry)
 df_geom = pd.DataFrame()
@@ -42,6 +44,21 @@ for i in range(len(PMT[0])):
         c = [PMT[0][i],PMT[1][i],PMT[2][i],PMT[3][i],PMT[4][i], PMT[5][i], PMT[6][i], PMT[7][i]]
         row =  pd.Series(data=c, index=['mPMT', 'mPMT_pmt', 'x', 'y', 'z', 'dirx', 'diry', 'dirz'], dtype=np.float64)
         df_geom = df_geom.append(row, ignore_index=True)
+#
+table = []
+for mPMT in df_geom['mPMT'].unique()[1:]:
+    print(mPMT)
+    df_buf = df_geom[df_geom['mPMT']==mPMT]
+    df_buf = df_buf[df_buf['mPMT_pmt']==19]
+    print(float(df_buf['x']))
+    mPMT_to_PMT = 26.8
+    table.append(np.array([mPMT-1, float(df_buf['x']) - mPMT_to_PMT * float(df_buf['dirx']), float(df_buf['y']) - mPMT_to_PMT * float(df_buf['diry']), float(df_buf['z']) - mPMT_to_PMT * float(df_buf['dirz']), float(df_buf['dirx']), float(df_buf['diry']), float(df_buf['dirz'])]))
+
+print(table)
+table = np.array(table)
+np.savetxt( 'mPMT_positionAndDirection_new.txt',list(table), fmt = '%.4f')
+
+# raise end
 
 #Here check the cone of sight of the PMT
 df_58 = df_geom[df_geom['mPMT']==58]
@@ -226,6 +243,11 @@ for i in range(len(df_58)):
     PMTs_theta.append(theta_centre)
     PMTs_phi.append(phi_centre)
 
+# table = np.array([PMTs_theta, PMTs_phi]).T
+# np.savetxt("DrawingTools_PMTs_Position.txt", table)
+#
+# table = np.array([list_theta, list_phi]).T
+# np.savetxt("DrawingTools_PMTs_Outline.txt", table)
 
 xs = r * np.cos(u) * np.sin(v)
 ys = r * np.sin(u) * np.sin(v)
@@ -260,12 +282,12 @@ def distance_on_sphere(theta1, phi1, theta2, phi2, R = 34.2):
 # sys.exit()
 
 
-bins_position = WORKDIR+'/mPMTmapping/uniform_304_bins.txt'
-bins = np.array(rd.read_data3(bins_position))
+#bins_position = WORKDIR+'/mPMTmapping/uniform_304_bins.txt'
+#bins = np.array(rd.read_data3(bins_position))
 
 #Now look at the theta and phi - is a simple distance in theta and phi enough for the full distance?
-bins_position = WORKDIR+'/mPMTmapping/uniform_top_bins_theta_phi.txt'
-bins_theta = np.array(rd.read_data3(bins_position)).T
+#bins_position = WORKDIR+'/mPMTmapping/uniform_top_bins_theta_phi.txt'
+#bins_theta = np.array(rd.read_data3(bins_position)).T
 
 #crefull - can be some discrepancies/issues with definitions
 bins_position = WORKDIR+'/mPMTmapping/uniform_top_bins_withBinNumber.txt'
@@ -298,17 +320,28 @@ list_safe = []
 for f in filename:
     df = pd.DataFrame()
     table = rd.read_data3(f)
+    remove_PMT_number = 0
+    # if table[1][0] <= 19 and table[1][0]>=1:
+    remove_PMT_number = 2
+    true_mPMT = np.array(table[0])
+    true_PMT = np.array(table[1])
+    reco_bin = np.array(table [-1])
+
     print(f)
-    source_xyz = [table [0], table[1], table [2]]
-    source_Rtp = [table [3], table [4], table[5]]
-    x, y, z = np.array(table[0]), np.array(table[1]), np.array(table[2])
-    R, theta, phi = np.array(table[5]), np.array(table[3]), np.array(table[4])
-    Q_tot =  np.array(table[6])
-    nEvents = np.array(table[7])
+    source_xyz = [table [0+remove_PMT_number], table[1+remove_PMT_number], table [2+remove_PMT_number]]
+    source_Rtp = [table [3+remove_PMT_number], table [4+remove_PMT_number], table[5+remove_PMT_number]]
+    x, y, z = np.array(table[0+remove_PMT_number]), np.array(table[1+remove_PMT_number]), np.array(table[2+remove_PMT_number])
+    R, theta, phi = np.array(table[5+remove_PMT_number]), np.array(table[3+remove_PMT_number]), np.array(table[4+remove_PMT_number])
+    Q_tot =  np.array(table[6+remove_PMT_number])
+    nEvents = np.array(table[7+remove_PMT_number])
     phi_max = 360
-    for i in range(len(x)):
-        c = [x[i], y[i],  z[i],  theta[i], phi[i],  R[i],  Q_tot[i],  nEvents[i]]
-        row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events'], dtype=np.float64)
+    for i in np.arange(0, len(x), 1):
+        print(i)
+        # c = [x[i], y[i],  z[i],  theta[i], phi[i],  R[i],  Q_tot[i],  nEvents[i]]
+        # row =  pd.Series(data=c, index=['x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events'], dtype=np.float64)
+        # if table[1][0] <= 19 and table[1][0]>=1:
+        c = [true_mPMT[i], true_PMT[i], x[i], y[i],  z[i],  theta[i], phi[i],  R[i],  Q_tot[i],  nEvents[i], reco_bin[i]]
+        row =  pd.Series(data=c, index=['true_mPMT', 'true_PMT', 'x', 'y', 'z', 'theta', 'phi', 'R', 'Q', 'events', 'reco_bin'], dtype=np.float64)
         df = df.append(row, ignore_index=True)
     list_safe.append(df)
 
@@ -317,38 +350,86 @@ for f in filename:
 df_test = list_safe[0]
 
 
-# print(distance_on_sphere(df_test['theta'], df_test['phi'],  PMTs_theta[PMT], PMTs_phi[PMT]))
-closest_PMT = np.zeros(len(df_test['theta'])) - 9999
-shortest_dist_to_PMT = np.zeros(len(df_test['theta'])) + 9999
-
-for PMT_ID in range(19):
-    PMT_dist = distance_on_sphere(df_test['theta'], df_test['phi'],  PMTs_theta[PMT_ID], PMTs_phi[PMT_ID])
-
-    closest_PMT = np.where(shortest_dist_to_PMT<PMT_dist, closest_PMT, PMT_ID)
-    shortest_dist_to_PMT = np.where(shortest_dist_to_PMT<PMT_dist, shortest_dist_to_PMT, PMT_dist)
-
-R_PMT = 5.30
-closest_PMT = np.where(shortest_dist_to_PMT<R_PMT, closest_PMT, 19)
-
-df_test['closest_PMT'] = closest_PMT
+# # print(distance_on_sphere(df_test['theta'], df_test['phi'],  PMTs_theta[PMT], PMTs_phi[PMT]))
+# closest_PMT = np.zeros(len(df_test['theta'])) - 9999
+# shortest_dist_to_PMT = np.zeros(len(df_test['theta'])) + 9999
+#
+# for PMT_ID in range(19):
+#     PMT_dist = distance_on_sphere(df_test['theta'], df_test['phi'],  PMTs_theta[PMT_ID], PMTs_phi[PMT_ID])
+#
+#     closest_PMT = np.where(shortest_dist_to_PMT<PMT_dist, closest_PMT, PMT_ID)
+#     shortest_dist_to_PMT = np.where(shortest_dist_to_PMT<PMT_dist, shortest_dist_to_PMT, PMT_dist)
+#
+# R_PMT = 5.30
+# closest_PMT = np.where(shortest_dist_to_PMT<R_PMT, closest_PMT, 19)
+#
+# df_test['closest_PMT'] = closest_PMT
 
 ax = plt.axes(projection = 'polar')
-PMT_conversion = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 16, 17, 15, 13, 14, 18, 19, 0]
+# PMT_conversion = [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 16, 17, 15, 13, 14, 18, 19, 0]
 
-print(" ")
-for PMT in range(len(PMTs_theta)):
-    print("Distance from point of interest  to PMT " , PMT_conversion[PMT], " is %.2f" % distance_on_sphere( 0.260997, 1.049, PMTs_theta[PMT], PMTs_phi[PMT]))
+# print(" ")
+# for PMT in range(len(PMTs_theta)):
+#     print("Distance from point of interest  to PMT " , PMT_conversion[PMT], " is %.2f" % distance_on_sphere( 0.260997, 1.049, PMTs_theta[PMT], PMTs_phi[PMT]))
 #
-
-for PMT_bin in df_test['closest_PMT'].unique():
-    df_buf = df_test[df_test['closest_PMT'] == PMT_bin]
+print(df_test['reco_bin'].unique())
+for PMT_bin in df_test['reco_bin'].unique():
+    df_buf = df_test[df_test['reco_bin'] == PMT_bin]
+    print(df_buf['phi'], df_buf['theta'])
     #print(int(PMT_bin), df_test['closest_PMT'].unique())
-    ax.scatter(df_buf['phi'], df_buf['theta'], marker = 'x', label = 'Bin %i'%PMT_conversion[int(PMT_bin)])
+    ax.scatter(df_buf['phi'], df_buf['theta'], marker = 'x', label = 'Bin %i, PMT true: %.2f, mPMT true: %.2f, theta: %.2f, phi: %.2f, x:%.2f, y:%.2f, z:%.2f'%(sum(df_buf['reco_bin']*df_buf['Q'])/sum(df_buf['Q']), sum(df_buf['true_PMT']*df_buf['Q'])/sum(df_buf['Q']), sum(df_buf['true_mPMT']*df_buf['Q'])/sum(df_buf['Q']), df_buf['theta'].mean(), df_buf['phi'].mean(), df_buf['x'].mean(), df_buf['z'].mean(), df_buf['z'].mean()))
+    # ax.scatter(df_buf['phi'], df_buf['theta'], marker = 'x')
+
 ax.scatter(np.array(PMTs_phi), np.array(PMTs_theta), color = 'black', marker = 'x')
 ax.scatter(np.array(list_phi), np.array(list_theta), color = 'black', marker = '.', s = 2)
 plt.legend()
 
 plt.show()
+
+
+
+#Now plot the source positions overlayed with the position of the maps
+source_Rtp = np.array(source_Rtp)
+source_xyz = np.array(source_xyz)
+ax = plt.axes(projection ="3d")
+#This is the mPMT (outer) shpere
+r = 34.2
+u, v = np.mgrid[0:2 * np.pi:30j, 0:np.pi:20j]
+xs = r * np.cos(u) * np.sin(v)
+ys = r * np.sin(u) * np.sin(v)
+zs = r * np.cos(v) - 128.05 - 27.4
+ax.plot_surface(xs, ys, zs, cmap=plt.cm.YlGnBu, alpha = 0.1)
+#This is the mPMT inner sphere (10mm of thickness)
+r = 33.2
+u, v = np.mgrid[0:2 * np.pi:30j, 0:np.pi:20j]
+xs = r * np.cos(u) * np.sin(v)
+ys = r * np.sin(u) * np.sin(v)
+zs = r * np.cos(v) - 128.05 - 27.4
+ax.plot_surface(xs, ys, zs, cmap=plt.cm.YlGnBu, alpha = 0.1)
+#this is the PMT sphere
+r = 4.9
+u, v = np.mgrid[0:2 * np.pi:30j, 0:np.pi:20j]
+xs = r * np.cos(u) * np.sin(v)
+ys = r * np.sin(u) * np.sin(v)
+zs = r * np.cos(v) - 128.05
+ax.plot_surface(xs, ys, zs, alpha = 0.1)
+#This is the centre of the mPMT sphere
+ax.scatter3D(0, 0, - 128.05 - 27.4, marker = 'x', color = 'k')
+ax.scatter3D(x, z, y, marker = 'x', color ='r')
+#these are the other PMTs - can be helpful for visualisation (uncomment)
+ax.scatter3D(PMT_x,PMT_z,PMT_y, marker = 'o')
+for s in range(int(len(PMT_x))):
+    ax.plot([PMT_x[s], PMT_dirx[s]+PMT_x[s]],[PMT_z[s], PMT_dirz[s]+PMT_z[s]],[PMT_y[s], PMT_diry[s]+PMT_y[s]], 'k-')
+
+#This is the position of the centre of the uniform bins
+for b in range(len(bins_all)):
+    ax.scatter3D(bins_all[0][b],bins_all[2][b], bins_all[1][b], 'o', color = 'k')
+
+for i in range(len(x)):
+    ax.plot([x[i], x[i] - R[i] *  np.sin(theta[i]) * np.cos(phi[i])], [z[i], z[i] - R[i] * np.sin(theta[i]) * np.sin(phi[i])], [y[i], y[i] - R[i] * np.cos(theta[i])], 'r-')
+plt.show()
+
+raise end
 
 print(closest_PMT)
 
@@ -359,7 +440,7 @@ table = np.array([np.array(PMT_conversion[:-1]),np.array(df_58['x']), np.array(d
 print(table)
 np.savetxt( 'PMT-basedBins.txt',list(table.T))
 
-sys.exit()
+# sys.exit()
 
 #place each source position in a bin
 

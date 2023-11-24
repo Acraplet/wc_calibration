@@ -17,7 +17,7 @@ int main(int argc, char **argv){
     float R;
     int bin;
     char c;
-    char * filename;
+    char * filename = NULL;
 
     while( (c = getopt(argc,argv,"R:b:f:")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
         switch(c){
@@ -37,12 +37,13 @@ int main(int argc, char **argv){
 	}
     }
 
+	if (filename == NULL) {
+		std::cout << "Call the filename with the -f option" << std::endl;
+	}
 
 
-
-	       //	= Form("/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/test_hadded/ReferenceAttenuation_ALLhitPMT_PMT-basedBin_R%.2f.txt", R);
 	std::vector<DataWithTime> test_positions = readTxtFileWithTime(filename);
-
+	std::cout << test_positions.size() << std::endl;
 	int nBins = 20;
 	int nPMTs = 19;
 	std::vector<std::vector<float>> total_bin_charge;
@@ -64,6 +65,7 @@ int main(int argc, char **argv){
 		DataWithTime refPoint = test_positions[i];
 		//double time = refPoint.time;
 		R = refPoint.R;
+		std::cout << R << " this is R " << std::endl;
 		double mPMT_pmt = refPoint.mPMT_pmt;
 		//std::cout << "Bin " << refPoint.bin << " PMT " << refPoint.mPMT_pmt << total_bin_charge[int(refPoint.bin)][int(refPoint.mPMT_pmt)] << " " << total_bin_photons[int(refPoint.bin)][int(refPoint.mPMT_pmt)] << std::endl;
 		//I am looking at the number of photons that are falling inside a bin and how many of them are going in each PMT otherwise it makes no sense, we could have 1 photon that happens to fall in PMT i but is in bin j and that would be a 100% efficiency - non-sense.  

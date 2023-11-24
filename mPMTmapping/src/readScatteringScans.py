@@ -12,7 +12,8 @@ import pandas as pd
 
 plt.style.use(["science", "notebook", "grid"])
 
-scan_file = './../ScanAttenuation_withoutText.txt'
+scan_file = './../InitGuessScanScatteringLength_ManyR_withoutText.txt'
+#'./../ScanAttenuation_withoutText.txt'
 scan = np.array(rd.read_data3(scan_file))
 df = pd.DataFrame()
 for i in range(len(scan[0])):
@@ -21,13 +22,17 @@ for i in range(len(scan[0])):
         df = df.append(row, ignore_index=True)
 
 #Here info about the attenuation
-true_att = np.array([50, 60, 80, 100, 125, 150, 200]) * 1/100
-reco_att = np.array([48.5453,  64.5826, 81.2833, 97.2022, 121.874, 147.323,208.556 ]) * 1/100
-err_att = np.array([0.201828, 2.49692, 0.325958,1.3145, 1.97521, 2.8501, 11.4826]) * 1/100
+#true_att = np.array([50, 60, 80, 100, 125, 150, 200]) * 1/100
+#reco_att = np.array([48.5453,  64.5826, 81.2833, 97.2022, 121.874, 147.323,208.556 ]) * 1/100
+#err_att = np.array([0.201828, 2.49692, 0.325958,1.3145, 1.97521, 2.8501, 11.4826]) * 1/100
 
-true_att_binned = np.array([40, 50, 60, 80, 100, 125, 150, 200, 220]) * 1/100
-reco_att_binned = np.array([43.3924, 52.4663, 62.7514, 86.1419, 101.487, 140.186, 169.491, 228.738,242.46 ]) * 1/100
-err_att_binned = np.array([0.379626, 0.520512, 0.621977, 1.14762, 1.83234, 1.75267, 2.82106, 7.4886, 5.00852]) * 1/100
+true_att = np.array([1000.86, 2001.72, 4503.88]) * 1/100
+reco_att = np.array([1034.81, 2229.35, 4505.6]) * 1/100
+err_att = np.array([4.81636,21.6028,  86.7662]) * 1/100
+
+#true_att_binned = np.array([40, 50, 60, 80, 100, 125, 150, 200, 220]) * 1/100
+#reco_att_binned = np.array([43.3924, 52.4663, 62.7514, 86.1419, 101.487, 140.186, 169.491, 228.738,242.46 ]) * 1/100
+#err_att_binned = np.array([0.379626, 0.520512, 0.621977, 1.14762, 1.83234, 1.75267, 2.82106, 7.4886, 5.00852]) * 1/100
 
 
 
@@ -64,11 +69,11 @@ plt.errorbar(df_buf['true']/100, df_buf['reco']/100, yerr = df_buf['err']/100, f
 plt.xlabel('True scattering length (m)')
 # plt.semilogy()
 plt.ylabel('Reco scattering length (m)')
-plt.title('Scattering length estimation 2D binned (FVAL < 5) \n and absorption length estimation 1D non-binned', weight = 'bold')
+plt.title('Estimation of the water attenuation length \n from WCTE simulated data using 1 mPMT only', weight = 'bold')
 
 
-plt.errorbar(true_att, reco_att, yerr = err_att, fmt ='x', label = 'Absorption only', markersize = 10)
-plt.errorbar(true_att_binned, reco_att_binned, yerr = err_att_binned, fmt ='x', label = 'Absorption only\nbinned method', markersize = 10)
+plt.errorbar(true_att, reco_att, yerr = err_att, fmt ='rx', label = 'Absorption only', markersize = 10)
+#plt.errorbar(true_att_binned, reco_att_binned, yerr = err_att_binned, fmt ='x', label = 'Absorption only\nbinned method', markersize = 10)
 plt.legend()
 plt.xlabel('True attenuation length (m)')
 # plt.semilogx()
