@@ -40,10 +40,10 @@ offset = 0 #1/6 * np.pi#add a bit of margin not to cut into the middle of a bin 
 
 #The limits for our theta and phi
 #These are for a 'classic' quarter of the mPMT dome
-theta_min = 0
-theta_max = 1.1 # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
-phi_min = np.pi/2 - offset/2 #3*np.pi/2 - have checked the symmetry: we can extrapolate a quarter to the full map 
-phi_max = np.pi + offset #2*np.pi  #up to 90 degrees for now -  second ring of bins is causing the problem 
+theta_min = 0 #0.59 #0
+theta_max = 1.1 #0.61 #1.1 # #1 #now it is done in sin(theta) #np.pi/2 #up to 90 degrees for now
+phi_min = 0 #np.pi/2 - offset/2 #3*np.pi/2 - have checked the symmetry: we can extrapolate a quarter to the full map 
+phi_max = 2 * np.pi #np.pi + offset #2*np.pi  #up to 90 degrees for now -  second ring of bins is causing the problem 
 #so we need a bit less offset
 
 #This is for an intensive scan around a given bin (24)
@@ -152,6 +152,7 @@ if uniform_positions == True:
         range_phi.append(float("%.3f"%phi))
     range_phi = np.array(range_phi) #for now use completely random phi
     range_theta = np.array(range_theta)
+    print(range_phi)
     for t in range(len(range_theta)):
         phi = range_phi[t]
         theta = range_theta[t]

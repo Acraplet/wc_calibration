@@ -562,7 +562,7 @@ ax = fig.add_subplot(projection='polar')
 ax.set_title("Q")
 zr = df['Q']/df['events']
 im = ax.scatter(df['phi'], df['theta'], c = zr, cmap = "nipy_spectral",s = 40)
-col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="horizontal", format= "%.2f")
+#col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="horizontal", format= "%.2f")
 ax.set_thetamin(0)
 ax.set_ylabel("Q %s "%(filename))
 ax.set_thetamax(phi_max)
@@ -589,7 +589,7 @@ rbf = scipy.interpolate.Rbf(df['phi'], df['theta'], zr, function=interpolation_m
 zi = rbf(xi, yi)
 ax.contourf(xi, yi, zi, 500, cmap='nipy_spectral', vmin = zr.min(), vmax = zr.max())
 #im = ax.scatter(phi, theta, c = zr, cmap = "nipy_spectral",s = 40)
-col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
+#col2 = plt.colorbar(im, label=f"Average number of *raw* P.E. in mPMT58 per photon", orientation="vertical", format= "%.2f")
 ax.set_thetamin(0)
 ax.set_thetamax(phi_max)
 ax.xaxis.labelpad = 10
