@@ -21,7 +21,7 @@
 #include <TVector3.h>
 #include <TRandom3.h>
 struct fileData {
-    float x, y, z, theta, phi, R, abwff, rayff, Q, time, bin, mPMT, mPMT_pmt;
+    float x, y, z, theta, phi, R, abwff, rayff, Q, time, bin, nPhotons, mPMT, mPMT_pmt;
 };
 
 typedef struct fileData DataWithTime;
@@ -40,7 +40,7 @@ std::vector<DataWithTime> readTxtFileWithTime(char* filename){
             ptr_ref = std::strtok(character_ref, " "); //split the string after the blanks
             int j=0;
             float x, y, z, t, p, R, abwff, rayff, time, bin, mPMT, mPMT_pmt;
-            float Q_ref, nevents;
+            float Q_ref, nevents, nPhotons;
 
             while (ptr_ref != NULL)
             {//loop over the characteristics of the given position
@@ -76,23 +76,28 @@ std::vector<DataWithTime> readTxtFileWithTime(char* filename){
                     std::string fs(ptr_ref);
                     R=std::stof(fs);
                 }
-                if (j==8){
+		if (j==8){
+                    std::string fs(ptr_ref);
+                    nPhotons=std::stof(fs);
+                }
+
+                if (j==9){
                     std::string fs(ptr_ref);
                     Q_ref=std::stof(fs);
                 }
-                if (j==9){
+                if (j==10){
                     std::string fs(ptr_ref);
                     time=std::stof(fs);
                 }
-                if (j==10){
+                if (j==11){
                     std::string fs(ptr_ref);
                     abwff=std::stof(fs);
                 }
-                if (j==11){
+                if (j==12){
                     std::string fs(ptr_ref);
                     rayff=std::stof(fs);
                 }
-                if (j==12){
+                if (j==13){
                     std::string fs(ptr_ref);
                     bin=std::stof(fs);
                 }
@@ -107,6 +112,7 @@ std::vector<DataWithTime> readTxtFileWithTime(char* filename){
             pos.theta = t;
             pos.phi = p;
             pos.R = R;
+	    pos.nPhotons = nPhotons;
             pos.Q = Q_ref;
             pos.bin = bin;
             pos.mPMT = mPMT;

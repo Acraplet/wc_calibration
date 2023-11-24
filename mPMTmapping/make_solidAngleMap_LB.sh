@@ -2,16 +2,15 @@
 #called with bash make_mPMTmap.sh ID where ID is the FileID that we want and the flat files are stored in the
 #/home/ac4317/Laptops/Year1/WCTE/wc_calibration/mPMTmapping/data/ folder
 ID=$1
-TargetmPMT=$2
 #VAR="$(ls ./data/data/*FileID""$ID""_*_flat*)"
 VAR="$(ls /vols/t2k/users/ac4317/WCTE/wc_calibration/mPMTmapping/data/*FileID""$ID""_*_flat*)"
 #make
 
-rm Maps/maps_txtFiles/mPMT_map_ID"$ID".txt
+#rm Maps/maps_txtFiles/mPMT_map_ID"$ID".txt
 #to make sure we don't add to an existing file
-for name in $VAR
+for name in ${VAR[0]}
 do
     echo $name
-    ./bin/make_mPMTmap_binned -f $name -o "Maps/maps_txtFiles/mPMT_map_ID"$ID".txt" -t $TargetmPMT
+    ./bin/make_predNbPhotons_LB -f $name -o "Maps/Expected_Number_Photons_FileID"$ID".txt"
     echo
 done
