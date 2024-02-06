@@ -3,9 +3,10 @@
 #import uproot
 import os
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import sys
 import getopt
+import random
 #import pandas as pd
 #import uproot
 
@@ -150,15 +151,17 @@ def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode, theta, phi
 
     #print("The direction: ", array_source_dir_rotated)
 
-    orientation_string = "/gun/direction %.5f %.5f %.5f\n"%(source_dirx, source_diry, source_dirz)
+    orientation_string = "/gps/direction %.5f %.5f %.5f\n"%(source_dirx, source_diry, source_dirz)
     #can be more precise once we save the source direction infp
-    position_string = "/gun/position %.3f %.3f %.3f \n"%(source_xpos, source_ypos, source_zpos)
+    position_string = "/gps/position %.3f %.3f %.3f \n"%(source_xpos, source_ypos, source_zpos)
+    random_number_string = "/WCSim/random/seed %i \n"%(random.randint(1, 1e7))
 
     with open("%s"%config_file_name, "w") as file:
         for line in template_txtFile:
             file.write(line)
         file.write(orientation_string)
         file.write(position_string + "\n")
+	file.write(random_number_string + "\n")
         #file.write("/Tracking/fractionOpticalPhotonsToDraw 100.0 \n")
         file.write("/WCSimIO/RootFile %s \n"%(data_file_name))
         #now we are running in temp folder so no need to have the path to the file
@@ -168,7 +171,7 @@ def makeConfigFile(source_xpos, source_ypos, source_zpos, alpha_mode, theta, phi
     #save the information about the source position and direction for debugging purposes
     writeOutSourceInfo(source_xpos, source_ypos, source_zpos, source_dirx, source_diry, source_dirz, FileID)
 
-def makeConfigFile_LB(source_xpos, source_ypos, source_zpos, alpha_mode, theta, phi, R, FileID, nEvent = 10000):
+def makeConfigFile_LB(source_xpos, source_ypos, source_zpos, alpha_mode, theta, phi, R, FileID, nEvent = 10000, coneTheta = 160):
     ''' 
     This function write a config file from the template we have and with the given inputs
     Craefull - now we have a 3 s.f. precision on the source position -> this will have to be updated everywhere
@@ -184,12 +187,15 @@ def makeConfigFile_LB(source_xpos, source_ypos, source_zpos, alpha_mode, theta, 
     #can be more precise once we save the source direction info
     position_string = "/gps/position %.3f %.3f %.3f \n"%(source_xpos, source_ypos, source_zpos)
     numberOfPhoton_string = "/gps/number %i \n"%(R)
+    random_number_string = "/WCSim/random/seed %i \n"%(random.randint(1, 1e7))
 
     with open("%s"%config_file_name, "w") as file:
         for line in template_txtFile:
             file.write(line)
+	file.write("/gps/ang/mintheta %.2f deg\n"%(180-coneTheta))
         file.write(numberOfPhoton_string)
         file.write(position_string + "\n")
+	file.write(random_number_string + "\n")
         file.write("/Tracking/fractionOpticalPhotonsToDraw 100.0 \n")
         file.write("/WCSimIO/RootFile %s \n"%(data_file_name))
         #now we are running in temp folder so no need to have the path to the file

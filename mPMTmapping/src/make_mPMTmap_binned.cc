@@ -51,7 +51,7 @@ int main(int argc, char **argv){
     //need to know the target of the perpendicular beam, to have the photons when they do not get detected 
     int TargetmPMT = 58;
 
-    while( (c = getopt(argc,argv,"f:o:b:s:e:l:r:p:c:w:hdt:v")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
+    while( (c = getopt(argc,argv,"f:o:b:s:e:l:r:p:c:w:hd:t:v")) != -1 ){//input in c the argument (-f etc...) and in optarg the next argument. When the above test becomes -1, it means it fails to find a new argument.
         switch(c){
             case 'f':
                 filename = optarg;

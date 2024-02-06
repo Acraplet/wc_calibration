@@ -6,14 +6,14 @@
 /WCSim/WCgeom nuPRISMBeamTest_16cShort_mPMT ## this is 16c4r from CAD
 #/WCSim/WCGeom nuPRISMBeamTest_mPMT
 /WCSim/Construct
-/WCSim/PMTQEMethod     SensitiveDetector_Only #Stacking_Only
-/WCSim/PMTCollEff on
+/WCSim/PMTQEMethod     DoNotApplyQE #SensitiveDetector_Only #Stacking_Only
+/WCSim/PMTCollEff off
 
 /WCSim/SavePi0 false
 /DAQ/Digitizer SKI
 /DAQ/Trigger NDigits
 /control/execute macros/daq.mac
-/WCSim/random/seed 4
+#/WCSim/random/seed 4
 
 # default dark noise frequency (and conversion factor) is PMT property (NEW), set in the code.
 # Below gives possibility to overwrite nominal values, eg. to switch OFF the Dark Noise.
@@ -26,10 +26,10 @@
 # Or you can use the G4 Particle Gun
 # for a full list of /gun/ commands see:
 # http://geant4.web.cern.ch/geant4/G4UsersDocuments/UsersGuides/ForApplicationDeveloper/html/Control/UIcommands/_gun_.html
-/mygen/generator gun
-/gun/particle opticalphoton
-/gun/energy 3.08945 eV
-/gun/number 1 #fire 10,000 photon per event
+/mygen/generator gps
+/gps/particle opticalphoton
+/gps/energy 3.08945 eV
+/gps/number 1 #fire 10,000 photon per event
 
 #/Tracking/trackParticle 22
 /Tracking/fractionOpticalPhotonsToDraw 100

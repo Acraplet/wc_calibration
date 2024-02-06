@@ -1,5 +1,5 @@
-/WCSim/tuning/rgcff 0.32
-/WCSim/tuning/bsrff 2.50
+/WCSim/tuning/rgcff 0.0 #0.32
+/WCSim/tuning/bsrff 0.00
 /WCSim/tuning/mieff 0.0
 
 # Parameters to set up Top Veto - jl145

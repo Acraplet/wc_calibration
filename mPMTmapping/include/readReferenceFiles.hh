@@ -67,3 +67,39 @@ double readAbsorptionRef(int bin, int PMT, double R){
 	
 
 }
+
+double getPerpendicularQE(int TargetPMT){
+    std::fstream position_file;
+    char* filename = "Maps/PMTefficiencyPerpNoAttenuation.txt";
+    position_file.open(filename, std::ios::in);
+    if (position_file.is_open()){   //checking whether the file is open
+        std::string tp_ref;
+        while(getline(position_file, tp_ref)){ //Each reference point
+            char *ptr_ref;
+            //convert to s char the string of the line we are extracting
+            char* character_ref = std::strcpy(new char[tp_ref.length() + 1], tp_ref.c_str());
+            ptr_ref = std::strtok(character_ref, " "); //split the string after the blanks
+            int j=0;
+            int PMT;
+            double QE;
+
+            while (ptr_ref != NULL)
+            {//loop over the characteristics of the given position
+            if (j==1){
+            	std::string fs(ptr_ref);
+                PMT=std::stoi(fs);
+            }
+	    //we only need to read in the value of the efficiency for the PMT of interest
+	    if (j==TargetPMT+2 and PMT == TargetPMT){
+                std::string fs(ptr_ref);
+                QE=std::stof(fs);
+		return QE;
+            }
+	    
+	    ptr_ref = std::strtok (NULL, " ");
+            j +=1;
+	    } //finished reading one line
+	} // finished reading all the lines
+     }//finsihed with the file
+   position_file.close();
+}

@@ -11,14 +11,18 @@ LIBS := $(shell $(ROOTSYS)/bin/root-config --libs) -L ../lib -lChisq
 INCLUDES := -I ../chisq -I ../include
 
 
-all: make_predNbPhotons_LB make_mPMTmap_binned make_mPMTmap_binned_LB splitReference_intoMaps AttenuationFitterPMT-basedBinned 
+all:AttenuationFitterWholeDetector make_predNbPhotons_LB make_mPMTmap_binned make_mPMTmap_binned_LB splitReference_intoMaps AttenuationFitterPMT-basedBinned make_predNbPhotons_LB_withAR 
 
 
+AttenuationFitterWholeDetector: AttenuationFitterWholeDetector.cc
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -o ../bin/$@ $(LIBS) $(INCLUDES)
 make_mPMTmap_binned: make_mPMTmap_binned.cc
+	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -g -o ../bin/$@ $(LIBS) $(INCLUDES)
+make_predNbPhotons_LB_withAR: make_predNbPhotons_LB_withAR.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -g -o ../bin/$@ $(LIBS) $(INCLUDES)
 make_predNbPhotons_LB: make_predNbPhotons_LB.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -g -o ../bin/$@ $(LIBS) $(INCLUDES)
-make_: make_mPMTmap_binned.cc
+make_mPMT_map_binned: make_mPMTmap_binned.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -g -o ../bin/$@ $(LIBS) $(INCLUDES)
 make_mPMTmap_binned_LB: make_mPMTmap_binned_LB.cc
 	g++ -Wall -Wextra $(CXXFLAGS) $@.cc -g -o ../bin/$@ $(LIBS) $(INCLUDES)

@@ -58,8 +58,8 @@ double FresnelTransmission(double theta, double n1 = 1.333, double n2 = 1.50){
 	double meanReflection = 0.5 * (FresnelRs + FresnelRp);
 	std::cout << " meanReflection " << meanReflection << std::endl;
 	return 1 - meanReflection; //this is the total power that is transmitted	
-	
-}
+}	
+
 
 std::vector<double> GetSolidAngle(double source_x, double source_y, double source_z, double surfaceX, double surfaceY, double surfaceZ, double dirPMT_x, double dirPMT_y, double dirPMT_z, double effectivePMTradius, double defaultMultiplicativeFactor = 1., std::vector<double> LBaxis = {0, 1, 0}, double thetaDarkCone = 40.){
 	std::string command = "python ./src/elliptical_solid_angle.py " + std::to_string(source_x) + " " + std::to_string(source_y) + " " + std::to_string(source_z) + " " + std::to_string(surfaceX) + " " + std::to_string(surfaceY) + " " + std::to_string(surfaceZ) + " " + std::to_string(dirPMT_x) + " " + std::to_string(dirPMT_y) + " " + std::to_string(dirPMT_z) + " " + std::to_string(effectivePMTradius);
@@ -118,6 +118,7 @@ std::vector<double> GetSolidAngle(double source_x, double source_y, double sourc
 	results.push_back(solidAngle);
 	results.push_back(multiplicatorFactor);
 	results.push_back(thetaToPMT);
+	results.push_back(thetaFromPMT);
 	pclose(pythonProcess);
 	return results;
 }
@@ -318,6 +319,7 @@ int main(int argc, char **argv){
 
 	double solidAngle = surface_results[0];
 	double thetaToPMT = surface_results[2];
+	double thetaFromPMT = surface_results[3];
 	double outputMultiplicatorPMTsurface = surface_results[1]; 
      	
 	std::vector<double> reflector_results  = GetSolidAngle(source_x, source_y, source_z, surfaceX, surfaceY, surfaceZ, dirPMT_x[i], dirPMT_y[i],  dirPMT_z[i], effectivePMTradius, multiplicatorReflector, LBaxis , thetaDarkCone);
@@ -326,7 +328,27 @@ int main(int argc, char **argv){
 	double phiToPMT = flag;
 	double outputMultiplicatorReflector = reflector_results[1];
 
-	double expectedNbPhotonsPerPMT = (solidAngle * outputMultiplicatorPMTsurface + solidAngleReflector * outputMultiplicatorReflector) * densityPhotons;
+	double expectedNbPhotonsPerPMTsolidAngle = (solidAngle * outputMultiplicatorPMTsurface + solidAngleReflector * outputMultiplicatorReflector) * densityPhotons;
+
+	//Here, calculate the angular response correction that is necessary
+	//WCTE factors, obtained from the simlation, sorry for the hardcoded factors
+	//TODO: improve this 
+	double angularResponseFactor = 1.0;
+	double theta = thetaFromPMT* 180./TMath::Pi();
+	if (theta < 40 and theta >= 1){
+		std::cout << "yay" << std::endl;
+		std::cout << "yay, angle is "  << theta << " degrees." << std::endl;
+		angularResponseFactor = theta * 7.67e-3 - 3.93e-2;
+		angularResponseFactor = 1/(1+angularResponseFactor);
+		std::cout << "The AR factor is " << angularResponseFactor << std::endl;
+	}
+	else if (theta >= 40){
+		std::cout << "yay, angle is "  << theta << " degrees." << std::endl;
+		angularResponseFactor = theta * 15.67e-3 - 14.93e-2;
+		angularResponseFactor = 1/(1+angularResponseFactor);
+		std::cout << "The AR factor is " << angularResponseFactor << std::endl;
+	} 
+	double expectedNbPhotonsPerPMT = expectedNbPhotonsPerPMTsolidAngle * angularResponseFactor;
 
 	outfile << mPMT[i] << " " << mPMT_pmt[i] << " " <<  solidAngle << " " << expectedNbPhotonsPerPMT << " " << source_x << " " << source_y << " " << source_z << " " <<  surfaceX << " " << surfaceY << " "<<surfaceZ << " " << thetaToPMT << " " << phiToPMT << " " << n_photons_tot << std::endl;
     	std::cout << "Source position: [" << source_x << ", " << source_y << ", " << source_z << "], mPMT: " << mPMT[i] << " mPMT_pmt " << mPMT_pmt[i] << " PMT x y z = " <<  PMT_x[i] << " " << PMT_y[i] << " "<<PMT_z[i] << " solid angle " << solidAngle << " angle to the PMT " << thetaToPMT << " multiplicatorSurface = " << outputMultiplicatorPMTsurface << " total expected nB photons = " << expectedNbPhotonsPerPMT << ". \n \n " << std::endl;

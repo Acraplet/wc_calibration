@@ -571,7 +571,7 @@ def projectSourceOntoPMT(sourcePosition, PMTPosition, PMTdirection):
 p = 0
 q = 0
 h = 1 #in cm
-a = 4 #in cm
+a = float(sys.argv[10]) #in cm - now effective radius!
 b = a #this is a disk, same distance
 solid_angle  = calc_omega(p, q, h, a, b)
 # print("Solid angle for this disk of radius %.2f at a distance %.2f from the point is %.2f"%(a, h, solid_angle))

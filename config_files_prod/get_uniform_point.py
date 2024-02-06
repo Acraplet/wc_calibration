@@ -1,6 +1,6 @@
 from random import *
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 def get_tp_point(theta_min = 0, theta_max = 1.1, phi_min = 0, phi_max = np.pi/2):
